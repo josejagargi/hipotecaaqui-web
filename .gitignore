@@ -1,0 +1,8 @@
+node_modules/
+.netlify/
+.env
+.gemini/
+dist/
+build/
+*.zip
+*.log

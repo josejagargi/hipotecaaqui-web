@@ -1,0 +1,19 @@
+node_modules/
+.git/
+.gemini/
+*.gdoc
+*.gsheet
+*.docx
+*.md
+.netlify/
+netlify_sites.json
+WEB_DOCX_CONTENT.txt
+Cuestionario de viabilidad hipotecaria.gsheet
+Modificacions_web 1.gdoc
+questionario rafel.gdoc
+FAQS Hipoteca Aqui.docx
+WEB HIPOTECA AQUI.docx
+WEB HIPOTECA AQUI.md
+hosting_decision.md
+politica de privacidad.md
+politica_cookies.md

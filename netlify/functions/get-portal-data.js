@@ -1,0 +1,182 @@
+// get-portal-data.js
+// Uses native fetch (Node 18+) — no airtable package needed
+exports.handler = async (event, context) => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
+  if (event.httpMethod !== 'GET') {
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
+  }
+
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { statusCode: 401, headers, body: JSON.stringify({ error: 'Missing token' }) };
+  }
+
+  const token = authHeader.split(' ')[1];
+  const AIRTABLE_PAT  = process.env.AIRTABLE_PAT;
+  const BASE_ID       = process.env.AIRTABLE_BASE_ID;
+  const FIREBASE_KEY  = process.env.FIREBASE_API_KEY;
+
+  try {
+    // ── 1. Verify Firebase ID token ──────────────────────────────────────────
+    const verifyRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: token })
+      }
+    );
+    const verifyData = await verifyRes.json();
+
+    if (!verifyRes.ok || !verifyData.users || verifyData.users.length === 0) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Invalid or expired token' }) };
+    }
+
+    const userEmail = verifyData.users[0].email.trim();
+    if (!userEmail) {
+      return { statusCode: 401, headers, body: JSON.stringify({ error: 'Token has no email' }) };
+    }
+
+    console.log(`Processing portal data for email: [${userEmail}]`);
+
+    // 2. Determine role: Associate or Client ───────────────────────────────
+    let role = 'client';
+    let userName = '';
+
+    // Check if Associate or Admin (💼 Franquiciados table)
+    // Using double quotes for strings and ensuring we handle array fields with & ""
+    const assocFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({Email} & "")) > 0`);
+    const assocRes = await fetch(
+      `https://api.airtable.com/v0/${BASE_ID}/Franquiciados?filterByFormula=${assocFormula}&maxRecords=1`,
+      { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+    );
+    const assocData = await assocRes.json();
+
+    if (assocData.records && assocData.records.length > 0) {
+      const recordFields = assocData.records[0].fields;
+      role = recordFields['Rol'] === 'Administrador' ? 'admin' : 'associate';
+      userName = recordFields['Nombre franquiciado'] || recordFields['Nombre y apellidos del representante'] || recordFields['Nombre comunicaciones'] || '';
+      console.log(`[DEBUG] Found associate/admin record. ID: ${assocData.records[0].id}, Role: ${role}, Name: ${userName}`);
+    } else {
+      // Check if Client (Contacts table)
+      // Use exact match for email
+      const clientFormula = encodeURIComponent(`LOWER({Email}) = LOWER("${userEmail}")`);
+      console.log(`[DEBUG] Searching client with formula: ${clientFormula}`);
+      
+      const clientRes = await fetch(
+        `https://api.airtable.com/v0/${BASE_ID}/Contacts?filterByFormula=${clientFormula}&maxRecords=1`,
+        { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+      );
+      const clientData = await clientRes.json();
+
+      if (clientData.records && clientData.records.length > 0) {
+        userName = clientData.records[0].fields['Nombre y apellidos'] || '';
+        console.log(`[DEBUG] Found client record. ID: ${clientData.records[0].id}, Name: [${userName}]`);
+      } else {
+        console.warn(`[DEBUG] No record found for [${userEmail}] in Franquiciados or Contacts.`);
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            user: { email: userEmail, role: 'client', name: userEmail.split('@')[0], debug_not_found: true },
+            records: [],
+            message: 'No se encontró tu ficha en Airtable.'
+          })
+        };
+      }
+    }
+
+    // ── 3. Fetch records from Hipoteca filtered by email ───────────────────
+    let filterFormula = '';
+    if (role === 'admin') {
+      // Admins see all records
+      console.log(`[DEBUG] Role is admin, fetching all Hipoteca records.`);
+    } else if (role === 'associate') {
+      filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email franquiciado} & "")) > 0`);
+      console.log(`[DEBUG] Role is associate, filtering Hipoteca by email franquiciado.`);
+    } else {
+      // Client role: use FIND on the lookup field 'email contacto'
+      filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email contacto} & "")) > 0`);
+      console.log(`[DEBUG] Role is client, filtering Hipoteca by email contacto.`);
+    }
+
+    const hipotecaUrl = filterFormula
+      ? `https://api.airtable.com/v0/${BASE_ID}/Hipoteca?filterByFormula=${filterFormula}&sort[0][field]=Created&sort[0][direction]=desc`
+      : `https://api.airtable.com/v0/${BASE_ID}/Hipoteca?sort[0][field]=Created&sort[0][direction]=desc`;
+
+    const hipotecaRes = await fetch(
+      hipotecaUrl,
+      { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+    );
+    const hipotecaData = await hipotecaRes.json();
+
+    const records = (hipotecaData.records || []).map(r => ({
+      id: r.id,
+      created: r.fields['Created'] || r.createdTime,
+      contactName: (r.fields['Nombre y apellidos (from Contact)'] || ['N/A'])[0],
+      loanType: r.fields['Tipo prestamo'] || 'Hipotecario',
+      status: r.fields['OPER - Status'] || r.fields['Etapa'] || 'Pendiente',
+      amount: r.fields['Importe a financiar scoring'] || r.fields['Importe a financiar auto'] || null
+    }));
+
+    // ── 4. Fetch contacts (for Admin or Associate) ───────────────────────────
+    let contacts = [];
+    if (role === 'admin' || role === 'associate') {
+      let contactsFormula = '';
+      if (role === 'associate' && assocData.records && assocData.records.length > 0) {
+        const assocId = assocData.records[0].id;
+        // Search where the Franquiciados array contains the associate's ID
+        contactsFormula = encodeURIComponent(`FIND('${assocId}', {Franquiciados}) > 0`);
+      }
+      
+      const contactsUrl = contactsFormula 
+        ? `https://api.airtable.com/v0/${BASE_ID}/Contacts?filterByFormula=${contactsFormula}&sort[0][field]=Created&sort[0][direction]=desc`
+        : `https://api.airtable.com/v0/${BASE_ID}/Contacts?sort[0][field]=Created&sort[0][direction]=desc`;
+
+      const contactsRes = await fetch(
+        contactsUrl,
+        { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+      );
+      const contactsData = await contactsRes.json();
+      
+      contacts = (contactsData.records || []).map(c => ({
+        id: c.id,
+        name: c.fields['Nombre y apellidos'] || 'Sin nombre',
+        email: c.fields['Email'] || 'Sin email',
+        phone: c.fields['Telefono'] || 'Sin teléfono'
+      }));
+    }
+
+    console.log(`Returning data for ${userEmail}: ${records.length} records found.`);
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        user: { email: userEmail, role, name: userName },
+        records,
+        contacts
+      })
+    };
+
+  } catch (error) {
+    console.error('Portal data error:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: 'Internal server error', details: error.message })
+    };
+  }
+};

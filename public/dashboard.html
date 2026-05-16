@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hipoteca Aquí</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="portal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="dashboard-page">
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="index.html" class="logo" style="color: white;">Hipoteca<span style="color: var(--secondary);">Aquí</span></a>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" id="nav-actividad" class="active" onclick="switchTab('actividad')"><i class="fas fa-home"></i> Mi Actividad</a></li>
+                    <li><a href="#" id="nav-estudios" onclick="switchTab('estudios')"><i class="fas fa-file-invoice-dollar"></i> Mis Estudios</a></li>
+                    <li><a href="#" id="nav-contactos" onclick="switchTab('contactos')"><i class="fas fa-user-friends"></i> Mis Contactos</a></li>
+                    <li><a href="#" id="nav-ajustes" onclick="switchTab('ajustes')"><i class="fas fa-cog"></i> Ajustes</a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" onclick="logout()" style="color: rgba(255,255,255,0.6); text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="welcome-text">
+                    <h1>¡Hola, <span id="userName">Cargando...</span>!</h1>
+                    <p>Aquí tienes el estado actual de tus gestiones.</p>
+                </div>
+                <div class="user-profile">
+                    <span id="userRole" class="status-badge" style="background: var(--bg-alt); color: var(--primary);">Cargando...</span>
+                    <div class="user-avatar" id="userInitial">U</div>
+                </div>
+            </header>
+
+            <!-- Tab Content: Mi Actividad -->
+            <div id="tab-actividad" class="tab-content" style="display: block;">
+                <!-- Stats Overview -->
+                <section class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-info">
+                        <h4>Total Estudios</h4>
+                        <p id="totalRecords">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <h4>En Proceso</h4>
+                        <p id="pendingRecords">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #dcfce7; color: #16a34a;"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <h4>Aprobados</h4>
+                        <p id="approvedRecords">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Records Table -->
+            <div class="records-table-container">
+                <div class="table-header">
+                    <h3>Registros Recientes</h3>
+                    <button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Ver todo</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="recordsTable">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Contacto</th>
+                                <th>Tipo Préstamo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsBody">
+                            <!-- Records will be injected here -->
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 3rem; color: #999;">
+                                    <i class="fas fa-spinner fa-spin"></i> Cargando tus datos...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Mis Estudios -->
+            <div id="tab-estudios" class="tab-content" style="display: none;">
+                <div class="records-table-container">
+                    <div class="table-header">
+                        <h3>Gestión de Estudios</h3>
+                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('La funcionalidad de crear un nuevo estudio desde aquí se conectará con el formulario.')">+ Nuevo Estudio</button>
+                    </div>
+                    <p style="color: #666; margin-bottom: 2rem;">Aquí puedes consultar y editar el detalle de tus estudios hipotecarios.</p>
+                    <div class="table-responsive">
+                        <table id="estudiosTable">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Contacto</th>
+                                    <th>Tipo Préstamo</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="estudiosBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 3rem; color: #999;">
+                                        Cargando estudios...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Mis Contactos -->
+            <div id="tab-contactos" class="tab-content" style="display: none;">
+                <div class="records-table-container">
+                    <div class="table-header">
+                        <h3>Directorio de Contactos</h3>
+                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('Se abrirá un modal para añadir un contacto.')">+ Nuevo Contacto</button>
+                    </div>
+                    <p style="color: #666; margin-bottom: 2rem;">Gestiona la información de tus clientes y contactos.</p>
+                    <div class="table-responsive">
+                        <table style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 3rem; color: #999;">
+                                        No hay contactos disponibles actualmente.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Ajustes -->
+            <div id="tab-ajustes" class="tab-content" style="display: none;">
+                <div class="records-table-container" style="max-width: 600px;">
+                    <div class="table-header">
+                        <h3>Ajustes de Perfil</h3>
+                    </div>
+                    <form onsubmit="updateProfile(event)">
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+                            <div class="form-group">
+                                <label>Nombre Completo</label>
+                                <input type="text" id="profileName" placeholder="Cargando..." class="form-control" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>Email (Solo lectura)</label>
+                                <input type="email" id="profileEmail" disabled class="form-control" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5; width: 100%;">
+                            </div>
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Cambios</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function switchTab(tabId) {
+                    // Ocultar todos los tabs
+                    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+                    // Mostrar el seleccionado
+                    document.getElementById('tab-' + tabId).style.display = 'block';
+                    
+                    // Actualizar active state del nav
+                    document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+                    document.getElementById('nav-' + tabId).classList.add('active');
+                }
+            </script>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="js/portal-auth.js"></script>
+    <script src="js/portal-dashboard.js"></script>
+</body>
+</html>

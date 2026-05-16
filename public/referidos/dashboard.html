@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel de Referidos | Hipoteca Aquí</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a3a5c;
+            --primary-dark: #0f2540;
+            --secondary: #e8a020;
+            --accent: #2ecc71;
+            --bg: #f0f4f9;
+            --white: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 20px rgba(26,58,92,0.09);
+            --shadow-lg: 0 12px 40px rgba(26,58,92,0.16);
+            --radius: 20px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* ---- LOGIN SCREEN ---- */
+        #loginScreen {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 60%, #1a4a7c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .login-box {
+            background: white;
+            border-radius: 28px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+        .brand-logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 0.4rem;
+        }
+        .brand-logo span { color: var(--secondary); }
+        .login-box h1 { font-size: 1.4rem; font-weight: 700; color: var(--primary); margin: 1.5rem 0 0.3rem; }
+        .login-box p { font-size: 0.95rem; color: var(--text-light); margin-bottom: 2rem; }
+        .input-wrap { position: relative; margin-bottom: 1.2rem; }
+        .input-wrap i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-light); }
+        .input-wrap input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.8rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-wrap input:focus { border-color: var(--secondary); }
+        .btn-primary {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, var(--secondary), #d4891a);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,160,32,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .login-error {
+            margin-top: 1rem; padding: 0.8rem; background: #fee2e2; color: #991b1b;
+            border-radius: 10px; font-size: 0.88rem; font-weight: 600; display: none;
+        }
+
+        /* ---- DASHBOARD ---- */
+        #dashboardScreen { display: none; }
+
+        .topbar {
+            background: white;
+            box-shadow: var(--shadow);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .topbar-brand { font-size: 1.3rem; font-weight: 900; color: var(--primary); }
+        .topbar-brand span { color: var(--secondary); }
+        .topbar-user {
+            display: flex; align-items: center; gap: 0.8rem;
+            background: var(--bg); padding: 0.5rem 1rem; border-radius: 50px;
+            font-size: 0.9rem; font-weight: 600;
+        }
+        .avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white; font-weight: 800; font-size: 0.9rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .logout-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--text-light); font-size: 1rem; padding: 0.4rem;
+            border-radius: 8px; transition: color 0.2s;
+        }
+        .logout-btn:hover { color: #e53e3e; }
+
+        .dashboard-body { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+        .page-header { margin-bottom: 2.5rem; }
+        .page-header h1 { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin-bottom: 0.3rem; }
+        .page-header p { color: var(--text-light); }
+
+        /* ---- REFERRAL LINK BOX ---- */
+        .link-box {
+            background: linear-gradient(135deg, var(--primary), #1a4a7c);
+            color: white;
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+        .link-box label { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.8rem; }
+        .link-box label i { margin-right: 0.4rem; }
+        .link-input-row {
+            display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;
+        }
+        .link-input-row input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .link-input-row input::selection { background: var(--secondary); }
+        .btn-copy {
+            padding: 0.85rem 1.5rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex; align-items: center; gap: 0.5rem;
+            white-space: nowrap;
+        }
+        .btn-copy:hover { transform: scale(1.03); }
+        .btn-share-wa {
+            padding: 0.85rem 1.5rem;
+            background: #25d366;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex; align-items: center; gap: 0.5rem;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-share-wa:hover { transform: scale(1.03); }
+
+        /* ---- STAT CARDS ---- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2.5rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex; align-items: center; gap: 1.2rem;
+        }
+        .stat-icon {
+            width: 50px; height: 50px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .stat-info small { font-size: 0.78rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-info strong { display: block; font-size: 1.8rem; font-weight: 900; color: var(--primary); line-height: 1.1; }
+
+        /* ---- TABLES ---- */
+        .section-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 1.5rem;
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .section-title i { color: var(--secondary); }
+
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 0.8rem 1rem; border-bottom: 2px solid var(--bg); color: var(--text-light); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 1rem; border-bottom: 1px solid var(--bg); font-weight: 600; color: var(--text); font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafbfd; }
+
+        .badge {
+            padding: 0.3rem 0.8rem; border-radius: 50px;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .badge-yellow { background: #fef3c7; color: #d97706; }
+        .badge-green  { background: #d1fae5; color: #065f46; }
+        .badge-red    { background: #fee2e2; color: #991b1b; }
+        .badge-blue   { background: #dbeafe; color: #1e40af; }
+        .badge-gray   { background: #f1f5f9; color: #64748b; }
+
+        .empty-state {
+            text-align: center; padding: 3rem; color: var(--text-light);
+        }
+        .empty-state i { font-size: 2.5rem; display: block; margin-bottom: 0.8rem; opacity: 0.4; }
+        .empty-state p { font-size: 0.95rem; }
+
+        .copy-toast {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--primary); color: white;
+            padding: 0.8rem 1.5rem; border-radius: 50px; font-weight: 600; font-size: 0.9rem;
+            box-shadow: var(--shadow-lg); transition: transform 0.3s; z-index: 999;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .copy-toast.show { transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 640px) {
+            .topbar { padding: 1rem; }
+            .dashboard-body { padding: 1.5rem 1rem; }
+            .link-input-row input { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+    <div class="login-box">
+        <div class="brand-logo">Hipoteca <span>Aquí</span></div>
+        <h1>Panel de Referidos</h1>
+        <p>Accede con tu email para ver tu enlace y tus referidos</p>
+        <div class="input-wrap">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="loginEmail" placeholder="tu@email.com" autocomplete="email">
+        </div>
+        <button class="btn-primary" id="loginBtn" onclick="doLogin()">
+            <i class="fas fa-arrow-right"></i> Acceder
+        </button>
+        <div class="login-error" id="loginError"></div>
+    </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboardScreen">
+    <nav class="topbar">
+        <div class="topbar-brand">Hipoteca <span>Aquí</span> <span style="font-size:0.8rem;font-weight:400;color:var(--text-light);margin-left:0.5rem">· Referidos</span></div>
+        <div style="display:flex;align-items:center;gap:0.8rem">
+            <div class="topbar-user">
+                <div class="avatar" id="avatarInitials">?</div>
+                <span id="topbarName">-</span>
+            </div>
+            <button class="logout-btn" onclick="doLogout()" title="Cerrar sesión"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </nav>
+
+    <main class="dashboard-body">
+        <div class="page-header">
+            <h1>Bienvenido, <span id="headerName">-</span> 👋</h1>
+            <p>Comparte tu enlace y gana recompensas cada vez que un amigo contrate con nosotros</p>
+        </div>
+
+        <!-- REFERRAL LINK -->
+        <div class="link-box">
+            <label><i class="fas fa-link"></i>Tu enlace personal de referidos</label>
+            <div class="link-input-row">
+                <input type="text" id="referralUrlInput" readonly>
+                <button class="btn-copy" onclick="copyLink()">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+                <a id="waShareBtn" href="#" target="_blank" class="btn-share-wa">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <small>Referidos totales</small>
+                    <strong id="statTotal">-</strong>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <small>En proceso</small>
+                    <strong id="statPending">-</strong>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#d1fae5;color:#065f46"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <small>Cerrados</small>
+                    <strong id="statClosed">-</strong>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:#f3e8ff;color:#7c3aed"><i class="fas fa-euro-sign"></i></div>
+                <div class="stat-info">
+                    <small>Recompensas pendientes</small>
+                    <strong id="statRewards">-</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- REFERIDOS TABLE -->
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-user-friends"></i> Tus Referidos</div>
+            <div class="table-wrap" id="referidosContainer">
+                <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
+            </div>
+        </div>
+
+        <!-- RECOMPENSAS TABLE -->
+        <div class="section-card">
+            <div class="section-title"><i class="fas fa-gift"></i> Historial de Recompensas</div>
+            <div class="table-wrap" id="recompensasContainer">
+                <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Cargando...</p></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="copy-toast" id="copyToast"><i class="fas fa-check"></i> ¡Enlace copiado!</div>
+
+<script>
+const SESSION_KEY = 'referidos_email';
+
+// Auto-login if session exists
+window.addEventListener('DOMContentLoaded', () => {
+    const savedEmail = sessionStorage.getItem(SESSION_KEY);
+    if (savedEmail) loadDashboard(savedEmail);
+
+    // Allow Enter key on login
+    document.getElementById('loginEmail').addEventListener('keydown', e => {
+        if (e.key === 'Enter') doLogin();
+    });
+});
+
+async function doLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const errEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    errEl.style.display = 'none';
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = 'Por favor, introduce un email válido.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+
+    try {
+        const ok = await loadDashboard(email);
+        if (!ok) {
+            errEl.textContent = 'No encontramos este email en nuestra base de clientes. Contacta con nosotros.';
+            errEl.style.display = 'block';
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-arrow-right"></i> Acceder';
+    }
+}
+
+async function loadDashboard(email) {
+    try {
+        const res = await fetch(`/.netlify/functions/referral-dashboard?email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+            console.error('Dashboard error:', data.error);
+            return false;
+        }
+
+        sessionStorage.setItem(SESSION_KEY, email);
+        renderDashboard(data);
+        return true;
+    } catch (err) {
+        console.error('Network error:', err);
+        return false;
+    }
+}
+
+function renderDashboard(data) {
+    const { referrer, stats, referidos, recompensas } = data;
+
+    // Switch screens
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboardScreen').style.display = 'block';
+
+    // Header
+    const firstName = referrer.nombre.split(' ')[0];
+    document.getElementById('headerName').textContent = firstName;
+    document.getElementById('topbarName').textContent = firstName;
+    document.getElementById('avatarInitials').textContent = firstName.charAt(0).toUpperCase();
+
+    // Referral link
+    const url = referrer.referralUrl;
+    document.getElementById('referralUrlInput').value = url;
+    const waMsg = encodeURIComponent(`¡Hola! Te recomiendo Hipoteca Aquí, mi bróker hipotecario. Me han ayudado muchísimo a conseguir las mejores condiciones para mi hipoteca. Puedes registrarte aquí y te asesorarán sin coste: ${url}`);
+    document.getElementById('waShareBtn').href = `https://wa.me/?text=${waMsg}`;
+
+    // Stats
+    const pending = referidos.filter(r => r.estado === 'Pendiente' || r.estado === 'Contactado').length;
+    const closed = referidos.filter(r => r.estado === 'Cerrado').length;
+    document.getElementById('statTotal').textContent = stats.totalReferidos;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statClosed').textContent = closed;
+    document.getElementById('statRewards').textContent = `${stats.pendingRewards.toFixed(2)}€`;
+
+    // Referidos table
+    const refContainer = document.getElementById('referidosContainer');
+    if (!referidos || referidos.length === 0) {
+        refContainer.innerHTML = `<div class="empty-state"><i class="fas fa-user-plus"></i><p>Aún no tienes referidos. ¡Comparte tu enlace para empezar!</p></div>`;
+    } else {
+        const rows = referidos.map(r => {
+            const fecha = r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : '-';
+            const badgeClass = {
+                'Pendiente': 'badge-yellow',
+                'Contactado': 'badge-blue',
+                'Cerrado': 'badge-green',
+                'Rechazado': 'badge-red'
+            }[r.estado] || 'badge-gray';
+            return `<tr>
+                <td>${escHtml(r.nombre)}</td>
+                <td><span class="badge ${badgeClass}">${escHtml(r.estado)}</span></td>
+                <td>${fecha}</td>
+            </tr>`;
+        }).join('');
+        refContainer.innerHTML = `<table><thead><tr><th>Nombre</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    // Recompensas table
+    const rewContainer = document.getElementById('recompensasContainer');
+    if (!recompensas || recompensas.length === 0) {
+        rewContainer.innerHTML = `<div class="empty-state"><i class="fas fa-gift"></i><p>Aún no tienes recompensas. Se añadirán cuando un referido complete el proceso.</p></div>`;
+    } else {
+        const rows = recompensas.map(r => {
+            const fecha = r.fecha ? new Date(r.fecha).toLocaleDateString('es-ES') : '-';
+            const badgeClass = {
+                'Pendiente': 'badge-yellow',
+                'Pagado': 'badge-green',
+                'Cancelado': 'badge-red'
+            }[r.estado] || 'badge-gray';
+            return `<tr>
+                <td><strong>${r.importe.toFixed(2)}€</strong></td>
+                <td><span class="badge ${badgeClass}">${escHtml(r.estado)}</span></td>
+                <td>${fecha}</td>
+            </tr>`;
+        }).join('');
+        rewContainer.innerHTML = `<table><thead><tr><th>Importe</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+}
+
+function copyLink() {
+    const url = document.getElementById('referralUrlInput').value;
+    navigator.clipboard.writeText(url).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+    });
+}
+
+function doLogout() {
+    sessionStorage.removeItem(SESSION_KEY);
+    document.getElementById('dashboardScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginError').style.display = 'none';
+}
+
+function escHtml(str) {
+    return String(str || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
