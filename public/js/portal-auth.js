@@ -22,21 +22,21 @@ const auth = firebase.auth();
 
 // ─── Friendly error messages ──────────────────────────────────────────────────
 const AUTH_ERRORS = {
-    'auth/user-not-found':      'No existe ninguna cuenta con ese email.',
-    'auth/wrong-password':      'Contraseña incorrecta. Inténtalo de nuevo.',
+    'auth/user-not-found':      'No existe ninguna cuenta de acceso con ese email. Si es tu primera vez accediendo, por favor crea tu contraseña en la pestaña "Crear Cuenta".',
+    'auth/wrong-password':      'Contraseña incorrecta. Inténtalo de nuevo o recupérala si la has olvidado.',
     'auth/invalid-email':       'El formato del email no es válido.',
-    'auth/invalid-credential':  'Email o contraseña incorrectos.',
+    'auth/invalid-credential':  'Email o contraseña incorrectos. Si aún no has establecido tu contraseña, haz clic en la pestaña "Crear Cuenta".',
     'auth/too-many-requests':   'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
     'auth/user-disabled':       'Esta cuenta está desactivada. Contacta con soporte.',
     'auth/popup-closed-by-user':'Ventana de Google cerrada. Inténtalo de nuevo.',
     'auth/popup-blocked':       'El navegador bloqueó la ventana. Permite las ventanas emergentes e inténtalo de nuevo.',
     'auth/network-request-failed': 'Error de conexión. Comprueba tu internet.',
-    'auth/email-already-in-use': 'Ya existe una cuenta con ese email.',
+    'auth/email-already-in-use': 'Ya existe una cuenta con ese email. Si has olvidado tu contraseña, utiliza la pestaña "Recuperar".',
     'auth/operation-not-allowed': 'Este método de acceso no está habilitado. Contacta con soporte.'
 };
 
 function getAuthError(error) {
-    return AUTH_ERRORS[error.code] || `Error inesperado: ${error.message}`;
+    return AUTH_ERRORS[error.code] || `Error: ${error.message}`;
 }
 
 // ─── Helper: show/hide UI messages ────────────────────────────────────────────
@@ -77,6 +77,17 @@ window.loginWithEmail = async function(email, password) {
         window.location.href = 'dashboard.html';
     } catch (error) {
         console.error('Email login error:', error);
+        throw error;
+    }
+};
+
+// ─── Email / Password Sign Up (First Access) ───────────────────────────────────
+window.signUpWithEmail = async function(email, password) {
+    try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        window.location.href = 'dashboard.html';
+    } catch (error) {
+        console.error('Email sign up error:', error);
         throw error;
     }
 };

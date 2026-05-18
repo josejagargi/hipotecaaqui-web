@@ -420,8 +420,11 @@
                 <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">
                     <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                 </button>
+                <button class="tab-btn" id="tab-signup" onclick="switchTab('signup')">
+                    <i class="fas fa-user-plus"></i> Crear Cuenta
+                </button>
                 <button class="tab-btn" id="tab-forgot" onclick="switchTab('forgot')">
-                    <i class="fas fa-key"></i> Recuperar acceso
+                    <i class="fas fa-key"></i> Recuperar
                 </button>
             </div>
 
@@ -432,7 +435,7 @@
             <div class="section active" id="sec-login">
 
                 <!-- Google Sign-In -->
-                <button class="btn-google" id="btnGoogle" onclick="handleGoogle()">
+                <button class="btn-google" id="btnGoogle" onclick="handleGoogle('btnGoogle')">
                     <svg class="google-icon" viewBox="0 0 48 48">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                         <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
@@ -483,6 +486,65 @@
 
                 <div class="card-footer" id="portalFooter">
                     ¿Aún no eres cliente? <a href="index.html#estudio">Solicita tu estudio gratuito</a>
+                </div>
+            </div>
+
+            <!-- ══ CREAR CUENTA (SIGNUP) ══ -->
+            <div class="section" id="sec-signup">
+                <!-- Google Sign-In for Sign-Up tab -->
+                <button class="btn-google" id="btnGoogleSignup" onclick="handleGoogle('btnGoogleSignup')">
+                    <svg class="google-icon" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                    Registrarse con Google
+                </button>
+
+                <div class="divider">o crea una contraseña</div>
+
+                <form id="signupForm" novalidate>
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="signupEmail" placeholder="tu@email.com"
+                                   autocomplete="email" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupPassword">Contraseña</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="signupPassword" placeholder="••••••••"
+                                   autocomplete="new-password" required>
+                            <button type="button" class="toggle-pw" onclick="toggleSignupPw()" tabindex="-1">
+                                <i class="fas fa-eye" id="signupPwEye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signupPasswordConfirm">Confirmar Contraseña</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="signupPasswordConfirm" placeholder="••••••••"
+                                   autocomplete="new-password" required>
+                            <button type="button" class="toggle-pw" onclick="toggleSignupPwConfirm()" tabindex="-1">
+                                <i class="fas fa-eye" id="signupPwConfirmEye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="btnSignup">
+                        <i class="fas fa-user-plus"></i> Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="card-footer">
+                    ¿Ya tienes una cuenta? <button class="text-link" onclick="switchTab('login')">Inicia sesión</button>
                 </div>
             </div>
 
@@ -578,7 +640,7 @@
 
         // ── UI helpers ────────────────────────────────────────────────────────
         function switchTab(tab) {
-            ['login','forgot'].forEach(t => {
+            ['login', 'signup', 'forgot'].forEach(t => {
                 document.getElementById(`tab-${t}`)?.classList.remove('active');
                 document.getElementById(`sec-${t}`)?.classList.remove('active');
             });
@@ -618,21 +680,55 @@
             }
         }
 
+        function toggleSignupPw() {
+            const input = document.getElementById('signupPassword');
+            const eye   = document.getElementById('signupPwEye');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                eye.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Fix the typo from onclick="toggleSignupPwConfirm()" in HTML 
+        window.toggleSignupPwConfirm = function() {
+            const input = document.getElementById('signupPasswordConfirm');
+            const eye   = document.getElementById('signupPwConfirmEye');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                eye.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        };
+
+        window.toggleSignupPw = toggleSignupPw;
+
         // ── Google Sign-In handler ────────────────────────────────────────────
-        async function handleGoogle() {
+        async function handleGoogle(btnId = 'btnGoogle') {
             hideAuthMsg();
-            setLoading('btnGoogle', true, null);
-            document.getElementById('btnGoogle').innerHTML =
-                '<div style="width:18px;height:18px;border:3px solid rgba(0,0,0,0.15);border-top-color:#4285f4;border-radius:50%;animation:spin 0.75s linear infinite"></div> Conectando con Google...';
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<div style="width:18px;height:18px;border:3px solid rgba(0,0,0,0.15);border-top-color:#4285f4;border-radius:50%;animation:spin 0.75s linear infinite"></div> Conectando con Google...';
+            }
             showOverlay('Conectando con Google...');
             try {
                 await window.loginWithGoogle();
                 // onAuthStateChanged in portal-auth.js will handle redirect
             } catch (err) {
                 hideOverlay();
-                document.getElementById('btnGoogle').disabled = false;
-                document.getElementById('btnGoogle').innerHTML =
-                    `<svg class="google-icon" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continuar con Google`;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML =
+                        btnId === 'btnGoogleSignup' 
+                        ? `<svg class="google-icon" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Registrarse con Google`
+                        : `<svg class="google-icon" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continuar con Google`;
+                }
                 showAuthMsg(window.getAuthError(err));
             }
         }
@@ -659,6 +755,43 @@
                 hideOverlay();
                 setLoading('btnLogin', false,
                     '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión');
+                showAuthMsg(window.getAuthError(err));
+            }
+        });
+
+        // ── Email signup handler ───────────────────────────────────────────────
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email       = document.getElementById('signupEmail').value.trim();
+            const password    = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+
+            if (!email || !password || !passwordConfirm) {
+                showAuthMsg('Por favor, completa todos los campos.');
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                showAuthMsg('Las contraseñas no coinciden.');
+                return;
+            }
+
+            if (password.length < 6) {
+                showAuthMsg('La contraseña debe tener al menos 6 caracteres.');
+                return;
+            }
+
+            hideAuthMsg();
+            setLoading('btnSignup', true);
+            showOverlay('Creando cuenta...');
+
+            try {
+                await window.signUpWithEmail(email, password);
+                // redirect handled inside onAuthStateChanged or signUpWithEmail
+            } catch (err) {
+                hideOverlay();
+                setLoading('btnSignup', false,
+                    '<i class="fas fa-user-plus"></i> Crear Cuenta');
                 showAuthMsg(window.getAuthError(err));
             }
         });
