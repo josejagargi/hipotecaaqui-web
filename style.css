@@ -139,6 +139,20 @@ nav {
     list-style: none;
 }
 
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mobile-toggle {
+    display: none;
+    font-size: 1.5rem;
+    color: var(--primary);
+    cursor: pointer;
+    z-index: 1001;
+}
+
 .nav-links a {
     text-decoration: none;
     color: var(--primary);
@@ -494,8 +508,33 @@ footer {
 }
 
 /* Responsive */
+@media (max-width: 992px) {
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        background: white;
+        flex-direction: column;
+        padding: 100px 2rem;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+        transition: var(--transition);
+        z-index: 1000;
+        gap: 1.5rem;
+    }
+
+    .nav-links.active {
+        right: 0;
+    }
+
+    .mobile-toggle {
+        display: block;
+    }
+}
+
 @media (max-width: 768px) {
-    .nav-links { display: none; }
     .hero-btns { flex-direction: column; }
     .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
     section { padding: 60px 0; }
@@ -531,7 +570,7 @@ footer {
     max-height: 90vh;
     border-radius: 24px;
     position: relative;
-    padding: 3rem;
+    padding: 2rem 2.5rem;
     overflow-y: auto;
     box-shadow: var(--shadow-lg);
     transform: translateY(20px);
@@ -561,13 +600,13 @@ footer {
 
 .form-header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.2rem;
 }
 
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .form-group {
@@ -583,11 +622,11 @@ footer {
 }
 
 .form-group input, .form-group select {
-    padding: 0.8rem 1rem;
+    padding: 0.65rem 1rem;
     border: 1px solid #ddd;
     border-radius: 10px;
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.95rem;
     transition: var(--transition);
 }
 
@@ -635,14 +674,14 @@ footer {
 }
 
 .form-footer {
-    margin-top: 3rem;
+    margin-top: 1.5rem;
     text-align: center;
 }
 
 .submit-btn {
     width: 100%;
-    padding: 1.2rem;
-    font-size: 1.1rem;
+    padding: 1rem;
+    font-size: 1.05rem;
 }
 
 .success-message {
