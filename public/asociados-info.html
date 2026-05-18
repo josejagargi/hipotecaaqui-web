@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asociados AKIA | Hipoteca Aquí</title>
+    <meta name="description" content="Multiplica las ventas de tu inmobiliaria con el sistema AKIA de Hipoteca Aquí. Accede a financiación 100% y cierra más operaciones con Inteligencia Artificial.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .asociados-hero {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 120px 0 80px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .asociados-hero::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(255, 90, 95, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .asociados-hero h1 {
+            color: white;
+            margin-bottom: 1.5rem;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+        }
+        .asociados-hero p {
+            color: #cbd5e1;
+            font-size: 1.25rem;
+            max-width: 800px;
+            margin: 0 auto 2.5rem auto;
+        }
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+        .benefit-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid #f1f5f9;
+            transition: var(--transition);
+            text-align: center;
+        }
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border-color: rgba(255, 90, 95, 0.2);
+        }
+        .benefit-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 90, 95, 0.1);
+            color: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem auto;
+            font-size: 1.8rem;
+        }
+        .benefit-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .benefit-card p {
+            font-size: 1rem;
+            color: #64748b;
+            line-height: 1.7;
+        }
+        .cta-section {
+            background: #f8fafc;
+            padding: 80px 0;
+            border-radius: 30px;
+            margin-bottom: 80px;
+        }
+        .cta-wrapper {
+            max-width: 650px;
+            margin: 0 auto;
+            background: white;
+            padding: 4rem 3rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.15);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+        }
+        .back-nav {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            z-index: 10;
+        }
+        .back-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        .back-nav a:hover {
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="asociados-hero">
+        <div class="back-nav">
+            <a href="index.html"><i class="fas fa-arrow-left"></i> Volver a la Web</a>
+        </div>
+        <div class="container">
+            <img src="imagenes/logo_hipotecaaqui_trans.png" alt="Hipoteca Aquí" style="height: 60px; margin-bottom: 2.5rem; filter: brightness(0) invert(1);">
+            <h1>Únete a la Red de Asociados AKIA</h1>
+            <p>Descubre la plataforma definitiva que permite a las inmobiliarias multiplicar sus cierres y generar nuevos ingresos sin esfuerzo.</p>
+            <a href="#solicitud" class="btn btn-primary">Solicitar Alta Gratuitamente</a>
+        </div>
+    </div>
+
+    <section class="benefits-section">
+        <div class="container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto 4rem auto;">
+                <h2 style="font-size: 2.5rem;">¿Por qué convertirse en Asociado AKIA?</h2>
+                <p style="color: #64748b;">Diferénciate de la competencia ofreciendo las mejores soluciones financieras a tus compradores directamente desde tu oficina.</p>
+            </div>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Viabilidad Express IA</h3>
+                    <p>Evalúa el perfil de tus compradores en menos de 2 minutos gracias a nuestro motor inteligente integrado en el portal.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h3>Financiación de hasta el 100%</h3>
+                    <p>Accede a convenios bancarios exclusivos que permiten alcanzar el 100% de financiación para perfiles viables.</p>
+                </div>
+                
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <h3>Comisiones Recurrentes</h3>
+                    <p>Gana un porcentaje del corretaje hipotecario por cada operación completada. Nueva línea de ingresos para tu inmobiliaria.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="solicitud" class="cta-section">
+        <div class="container" style="text-align: center;">
+            <div class="cta-wrapper">
+                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Solicitud de Registro</h2>
+                <p style="color: #64748b; margin-bottom: 2.5rem; font-size: 1rem;">Completa el formulario y uno de nuestros gestores se pondrá en contacto contigo para activar tu cuenta de asociado en menos de 24h.</p>
+                
+                <form id="asociadosForm" onsubmit="handleAsociadoSubmit(event)">
+                    <div class="form-group">
+                        <label for="assocName">Nombre de la Inmobiliaria</label>
+                        <input type="text" id="assocName" required placeholder="Ej. Inmobiliaria Costa Brava" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="assocContact">Persona de Contacto</label>
+                        <input type="text" id="assocContact" required placeholder="Tu nombre completo" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="assocEmail">Correo Electrónico Comercial</label>
+                        <input type="email" id="assocEmail" required placeholder="tu@empresa.com" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="assocPhone">Teléfono de Contacto</label>
+                        <input type="tel" id="assocPhone" required placeholder="Ej. 600 000 000" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-submit" id="btnSubmitAssoc">Enviar Solicitud</button>
+                </form>
+                <div id="successMsg" style="display: none; margin-top: 2rem; padding: 1.5rem; background: #dcfce7; color: #15803d; border-radius: 12px; font-weight: 600;">
+                    <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i> ¡Solicitud recibida! Nos pondremos en contacto contigo en breve para activar tu acceso.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer style="background: var(--primary); color: white; padding: 40px 0; text-align: center;">
+        <div class="container">
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 0;">&copy; 2026 Hipoteca Aquí. Todos los derechos reservados. Sistema AKIA.</p>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        function handleAsociadoSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitAssoc');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            
+            setTimeout(() => {
+                document.getElementById('asociadosForm').style.display = 'none';
+                document.getElementById('successMsg').style.display = 'block';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>

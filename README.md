@@ -16,3 +16,12 @@ Para probar localmente las funciones de Netlify:
 ```bash
 netlify dev
 ```
+
+USERS:
+
+2 TYPE OF USERS:
+
+1. CLIENTES: Pueden ver el estado de su hipoteca en tiempo real.
+- No cliente registrado: deben ser invitados por la web a realizar un scoring, para asi registrarse
+2. ASOCIADOS: Pueden ver el estado de sus hipotecas y las de sus clientes.
+- No asociado registrado: deben ser invitados a ser asociados, para una vez ser asociados, poder utilizar los servicios. 

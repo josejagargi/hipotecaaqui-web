@@ -57,46 +57,50 @@ exports.handler = async (event, context) => {
     let userName = '';
 
     // Check if Associate or Admin (💼 Franquiciados table)
-    // Using double quotes for strings and ensuring we handle array fields with & ""
     const assocFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({Email} & "")) > 0`);
-    const assocRes = await fetch(
-      `https://api.airtable.com/v0/${BASE_ID}/Franquiciados?filterByFormula=${assocFormula}&maxRecords=1`,
-      { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
-    );
-    const assocData = await assocRes.json();
+    // Check if Client (Contacts table)
+    const clientFormula = encodeURIComponent(`LOWER({Email}) = LOWER("${userEmail}")`);
 
-    if (assocData.records && assocData.records.length > 0) {
+    console.log(`[DEBUG] Querying Airtable for Associate and Client records in parallel...`);
+    const [assocRes, clientRes] = await Promise.all([
+      fetch(`https://api.airtable.com/v0/${BASE_ID}/Franquiciados?filterByFormula=${assocFormula}&maxRecords=1`, { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }),
+      fetch(`https://api.airtable.com/v0/${BASE_ID}/Contacts?filterByFormula=${clientFormula}&maxRecords=1`, { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } })
+    ]);
+
+    const [assocData, clientData] = await Promise.all([
+      assocRes.json(),
+      clientRes.json()
+    ]);
+
+    const existsInFranquiciados = assocData.records && assocData.records.length > 0;
+    const existsInContacts = clientData.records && clientData.records.length > 0;
+
+    if (existsInFranquiciados) {
       const recordFields = assocData.records[0].fields;
       role = recordFields['Rol'] === 'Administrador' ? 'admin' : 'associate';
       userName = recordFields['Nombre franquiciado'] || recordFields['Nombre y apellidos del representante'] || recordFields['Nombre comunicaciones'] || '';
       console.log(`[DEBUG] Found associate/admin record. ID: ${assocData.records[0].id}, Role: ${role}, Name: ${userName}`);
+    } else if (existsInContacts) {
+      userName = clientData.records[0].fields['Nombre y apellidos'] || '';
+      console.log(`[DEBUG] Found client record. ID: ${clientData.records[0].id}, Name: [${userName}]`);
     } else {
-      // Check if Client (Contacts table)
-      // Use exact match for email
-      const clientFormula = encodeURIComponent(`LOWER({Email}) = LOWER("${userEmail}")`);
-      console.log(`[DEBUG] Searching client with formula: ${clientFormula}`);
-      
-      const clientRes = await fetch(
-        `https://api.airtable.com/v0/${BASE_ID}/Contacts?filterByFormula=${clientFormula}&maxRecords=1`,
-        { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
-      );
-      const clientData = await clientRes.json();
-
-      if (clientData.records && clientData.records.length > 0) {
-        userName = clientData.records[0].fields['Nombre y apellidos'] || '';
-        console.log(`[DEBUG] Found client record. ID: ${clientData.records[0].id}, Name: [${userName}]`);
-      } else {
-        console.warn(`[DEBUG] No record found for [${userEmail}] in Franquiciados or Contacts.`);
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            user: { email: userEmail, role: 'client', name: userEmail.split('@')[0], debug_not_found: true },
-            records: [],
-            message: 'No se encontró tu ficha en Airtable.'
-          })
-        };
-      }
+      console.warn(`[DEBUG] No record found for [${userEmail}] in Franquiciados or Contacts.`);
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          user: {
+            email: userEmail,
+            role: 'client',
+            name: userEmail.split('@')[0],
+            existsInContacts: false,
+            existsInFranquiciados: false,
+            debug_not_found: true
+          },
+          records: [],
+          message: 'No se encontró tu ficha en Airtable.'
+        })
+      };
     }
 
     // ── 3. Fetch records from Hipoteca filtered by email ───────────────────
@@ -165,7 +169,14 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        user: { email: userEmail, role, name: userName },
+        user: {
+          email: userEmail,
+          role,
+          name: userName,
+          existsInContacts,
+          existsInFranquiciados,
+          debug_not_found: false
+        },
         records,
         contacts
       })
