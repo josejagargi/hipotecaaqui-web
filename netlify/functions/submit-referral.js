@@ -128,29 +128,102 @@ exports.handler = async (event) => {
 
         // 2. Find referrer by their Referral Code (or record ID)
         let referrerRecordId = null;
-        if (refCode) {
-            // Try by Referral Code field first
-            const refFilter = encodeURIComponent(`{Referral Code} = '${sanitize(refCode)}'`);
-            const refRes = await fetch(
-                `${airtableBase}/${CONTACTS_TABLE}?filterByFormula=${refFilter}&maxRecords=1`,
-                { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
-            );
-            const refData = await refRes.json();
+        let referrerTableType = null; // 'Contacts' or 'Franquiciados'
 
-            if (refData.records && refData.records.length > 0) {
-                referrerRecordId = refData.records[0].id;
-            } else {
-                // Fallback: try matching the refCode as a record ID
-                try {
+        if (refCode) {
+            const cleanRefCode = sanitize(refCode).trim();
+            
+            // A. Check in Contacts first
+            try {
+                const refFilter = encodeURIComponent(`{Referral Code} = '${cleanRefCode}'`);
+                const refRes = await fetch(
+                    `${airtableBase}/Contacts?filterByFormula=${refFilter}&maxRecords=1`,
+                    { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+                );
+                const refData = await refRes.json();
+
+                if (refData.records && refData.records.length > 0) {
+                    referrerRecordId = refData.records[0].id;
+                    referrerTableType = 'Contacts';
+                } else {
                     const directRes = await fetch(
-                        `${airtableBase}/${CONTACTS_TABLE}/${sanitize(refCode)}`,
+                        `${airtableBase}/Contacts/${cleanRefCode}`,
                         { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
                     );
                     if (directRes.ok) {
                         const directData = await directRes.json();
                         referrerRecordId = directData.id;
+                        referrerTableType = 'Contacts';
                     }
-                } catch { /* refCode was not a valid record ID */ }
+                }
+            } catch (e) {
+                console.error("Error checking Contacts referrer:", e);
+            }
+
+            // B. If not found in Contacts, check in Franquiciados
+            if (!referrerRecordId) {
+                try {
+                    const refFilter = encodeURIComponent(`{Referral Code} = '${cleanRefCode}'`);
+                    const refRes = await fetch(
+                        `${airtableBase}/Franquiciados?filterByFormula=${refFilter}&maxRecords=1`,
+                        { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+                    );
+                    const refData = await refRes.json();
+
+                    if (refData.records && refData.records.length > 0) {
+                        referrerRecordId = refData.records[0].id;
+                        referrerTableType = 'Franquiciados';
+                    } else {
+                        const directRes = await fetch(
+                            `${airtableBase}/Franquiciados/${cleanRefCode}`,
+                            { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+                        );
+                        if (directRes.ok) {
+                            const directData = await directRes.json();
+                            referrerRecordId = directData.id;
+                            referrerTableType = 'Franquiciados';
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error checking Franquiciados referrer:", e);
+                }
+            }
+
+            // C. Proactive Case-Insensitive Fallback!
+            // If still not found, and it looks like a record ID (17 chars starting with rec), 
+            // fetch the list of records to find a case-insensitive match!
+            if (!referrerRecordId && /^rec[a-zA-Z0-9]{14}$/i.test(cleanRefCode)) {
+                try {
+                    const listRes = await fetch(
+                        `${airtableBase}/Contacts?fields[]=Nombre&maxRecords=100`,
+                        { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+                    );
+                    const listData = await listRes.json();
+                    const matchedRecord = (listData.records || []).find(
+                        r => r.id.toLowerCase() === cleanRefCode.toLowerCase()
+                    );
+                    if (matchedRecord) {
+                        referrerRecordId = matchedRecord.id;
+                        referrerTableType = 'Contacts';
+                    }
+                } catch {}
+
+                if (!referrerRecordId) {
+                    try {
+                        const listRes = await fetch(
+                            `${airtableBase}/Franquiciados?fields[]=Nombre&maxRecords=100`,
+                            { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+                        );
+                        const listData = await listRes.json();
+                        const matchedRecord = (listData.records || []).find(
+                            r => r.id.toLowerCase() === cleanRefCode.toLowerCase()
+                        );
+                        if (matchedRecord) {
+                            referrerRecordId = matchedRecord.id;
+                            referrerTableType = 'Franquiciados';
+                        }
+                    } catch {}
+                }
             }
         }
 
@@ -162,9 +235,13 @@ exports.handler = async (event) => {
             'Consentimiento': true
         };
 
-        // Link to referrer via "referido por" field if we found them
+        // Link to referrer based on whether they are a client (Contacts) or associate (Franquiciados)
         if (referrerRecordId) {
-            newContactFields['referido por'] = [referrerRecordId];
+            if (referrerTableType === 'Franquiciados') {
+                newContactFields['Franquiciados'] = [referrerRecordId];
+            } else {
+                newContactFields['referido por'] = [referrerRecordId];
+            }
         }
 
         const createRes = await fetch(
