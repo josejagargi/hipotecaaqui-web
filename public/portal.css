@@ -270,6 +270,14 @@ td {
     color: var(--primary);
 }
 
+tbody tr {
+    transition: all 0.2s ease;
+}
+
+tbody tr:hover {
+    background-color: #f8fafc !important;
+}
+
 .status-badge {
     padding: 0.4rem 0.8rem;
     border-radius: 50px;
