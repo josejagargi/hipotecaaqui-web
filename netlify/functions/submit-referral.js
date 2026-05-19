@@ -105,7 +105,8 @@ exports.handler = async (event) => {
             'Nombre': sanitize(nombre),
             'Email': sanitize(email),
             'Telefono': sanitize(telefono),
-            'Estado': 'Pendiente'
+            'Estado': 'Pendiente',
+            'Consentimiento': true
         };
 
         // Link to referrer via "referido por" field if we found them

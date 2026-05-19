@@ -21,7 +21,6 @@
                     <li><a href="#" id="nav-actividad" class="active" onclick="switchTab('actividad')"><i class="fas fa-home"></i> Mi Actividad</a></li>
                     <li><a href="#" id="nav-estudios" onclick="switchTab('estudios')"><i class="fas fa-file-invoice-dollar"></i> Mis Estudios</a></li>
                     <li><a href="#" id="nav-contactos" onclick="switchTab('contactos')"><i class="fas fa-user-friends"></i> Mis Contactos</a></li>
-                    <li><a href="#" id="nav-referidos" style="display: none;" onclick="switchTab('referidos')"><i class="fas fa-gift"></i> Programa Referidos</a></li>
                     <li><a href="#" id="nav-ajustes" onclick="switchTab('ajustes')"><i class="fas fa-cog"></i> Ajustes</a></li>
                 </ul>
             </nav>
@@ -166,17 +165,46 @@
                 </div>
             </div>
 
-            <!-- Tab Content: Mis Contactos -->
+            <!-- Tab Content: Mis Contactos / Referidos -->
             <div id="tab-contactos" class="tab-content" style="display: none;">
                 <div class="records-table-container">
                     <div class="table-header">
-                        <h3>Directorio de Contactos</h3>
-                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('Se abrirá un modal para añadir un contacto.')">+ Nuevo Contacto</button>
+                        <h3 id="contactsTabTitle">Directorio de Contactos</h3>
+                        <button id="contactsTabNewBtn" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('Se abrirá un modal para añadir un contacto.')">+ Nuevo Contacto</button>
                     </div>
-                    <p style="color: #666; margin-bottom: 2rem;">Gestiona la información de tus clientes y contactos.</p>
+                    <p id="contactsTabDesc" style="color: #666; margin-bottom: 2rem;">Gestiona la información de tus clientes y contactos.</p>
+                    
+                    <!-- Client Referral Header -->
+                    <div id="clientReferralHeader" style="display: none; background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%); border-radius: 16px; padding: 2rem; color: white; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(43, 108, 176, 0.15); box-sizing: border-box; width: 100%;">
+                        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.3rem; font-weight: 800; color: white;">🎁 ¡Invita y Gana con el Programa de Referidos!</h4>
+                        <p style="margin: 0 0 1.5rem 0; font-size: 0.92rem; color: rgba(255,255,255,0.9); line-height: 1.6;">
+                            Comparte tu enlace de recomendación con amigos, familiares o conocidos. Cuando se registren y soliciten su estudio gratuito a través del formulario de tu enlace, quedarán automáticamente asociados a tu cuenta para que puedas seguir su evolución y recibir tus ventajas.
+                        </p>
+                        
+                        <div style="background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem; width: 100%; box-sizing: border-box; margin-bottom: 1.5rem;">
+                            <span style="font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.5px;">Tu Enlace de Referencia Personalizado</span>
+                            <div style="display: flex; gap: 0.5rem; width: 100%;">
+                                <input type="text" id="referralLinkInput" readonly value="Cargando enlace..." style="flex: 1; padding: 0.8rem 1rem; border: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.88rem; color: var(--primary); font-weight: 600; background: white; outline: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; box-sizing: border-box;">
+                                <button class="btn" onclick="copyReferralLink()" style="padding: 0.8rem 1.2rem; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; font-size: 0.9rem; background: white; color: var(--primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s;">
+                                    <i class="fas fa-copy"></i> Copiar Enlace
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Share buttons -->
+                        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                            <a id="shareWhatsAppBtn" href="#" target="_blank" class="btn" style="background: #25d366; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer;">
+                                <i class="fab fa-whatsapp"></i> Compartir por WhatsApp
+                            </a>
+                            <a id="shareEmailBtn" href="#" target="_blank" class="btn" style="background: #ea4335; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-envelope"></i> Enviar por Email
+                            </a>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table style="width: 100%;">
-                            <thead>
+                            <thead id="contactsTabHead">
                                 <tr>
                                     <th>Nombre</th>
                                     <th>Email</th>
@@ -184,7 +212,7 @@
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="contactsTabBody">
                                 <tr>
                                     <td colspan="4" style="text-align: center; padding: 3rem; color: #999;">
                                         No hay contactos disponibles actualmente.

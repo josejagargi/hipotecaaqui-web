@@ -87,16 +87,17 @@ async function loadDashboardData() {
             return; // Halt dashboard rendering!
         }
 
-        // Hide contacts tab link for clients, always show referidos for everyone
+        // Setup Contacts / Referidos sidebar navigation based on role
         const navContactos = document.getElementById('nav-contactos');
-        const navReferidos = document.getElementById('nav-referidos');
         const isClient = data.user.role === 'client' || portalRole === 'cliente';
         
         if (navContactos) {
-            navContactos.parentElement.style.display = isClient ? 'none' : 'block';
-        }
-        if (navReferidos) {
-            navReferidos.parentElement.style.display = 'block'; // Always visible!
+            if (isClient) {
+                navContactos.innerHTML = '<i class="fas fa-gift"></i> Referidos';
+            } else {
+                navContactos.innerHTML = '<i class="fas fa-user-friends"></i> Mis Contactos';
+            }
+            navContactos.parentElement.style.display = 'block'; // Always visible!
         }
         
         // Update UI
@@ -133,63 +134,106 @@ async function loadDashboardData() {
         currentRecords = data.records || [];
         currentContacts = data.contacts || [];
 
-        // Populate Referral Link and render referred contacts for both clients and associates
-        const referralLink = data.user.linkReferidos || `https://hipotecaaqui-draft-javi.netlify.app/referidos/?ref=${data.user.id}`;
+        // ------------------ Unified Referidos / Contacts view system ------------------
+        const referralLink = data.user.linkReferidos || `https://hipotecaaqui.com/referidos/?ref=${data.user.id}`;
         
-        const referralInput = document.getElementById('referralLinkInput');
-        if (referralInput) {
-            referralInput.value = referralLink;
-        }
+        const clientHeader = document.getElementById('clientReferralHeader');
+        const tabTitle = document.getElementById('contactsTabTitle');
+        const tabDesc = document.getElementById('contactsTabDesc');
+        const tabNewBtn = document.getElementById('contactsTabNewBtn');
+        const tabHead = document.getElementById('contactsTabHead');
+        const tabBody = document.getElementById('contactsTabBody');
 
-        const waBtn = document.getElementById('shareWhatsAppBtn');
-        if (waBtn) {
-            waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`¡Hola! Te recomiendo utilizar Hipoteca Aquí para conseguir las mejores condiciones para tu hipoteca de forma 100% gratuita. Analiza tu caso gratis aquí: ` + referralLink)}`;
-        }
+        if (isClient) {
+            // Setup Referidos view for Client role
+            if (tabTitle) tabTitle.textContent = 'Referencias y Créditos';
+            if (tabDesc) tabDesc.textContent = 'Sigue el estado en tiempo real de tus recomendados y mira cómo progresa su estudio hipotecario.';
+            if (tabNewBtn) tabNewBtn.style.display = 'none';
+            if (clientHeader) clientHeader.style.display = 'block';
 
-        const mailBtn = document.getElementById('shareEmailBtn');
-        if (mailBtn) {
-            mailBtn.href = `mailto:?subject=${encodeURIComponent(`Te recomiendo Hipoteca Aquí`)}&body=${encodeURIComponent(`Hola,\n\nTe recomiendo utilizar Hipoteca Aquí para conseguir las mejores condiciones para tu hipoteca de forma 100% gratuita.\n\nAnaliza tu caso gratis con mi enlace de recomendación:\n` + referralLink)}`;
-        }
+            // Set referral inputs
+            const referralInput = document.getElementById('referralLinkInput');
+            if (referralInput) {
+                referralInput.value = referralLink;
+            }
 
-        const referredBody = document.getElementById('referredContactsBody');
-        if (referredBody && data.contacts) {
-            if (data.contacts.length === 0) {
-                referredBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">Aún no has recomendado a ningún contacto. ¡Comparte tu enlace arriba para empezar!</td></tr>';
-            } else {
-                referredBody.innerHTML = data.contacts.map(c => `
+            const waBtn = document.getElementById('shareWhatsAppBtn');
+            if (waBtn) {
+                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`¡Hola! Te recomiendo utilizar Hipoteca Aquí para conseguir las mejores condiciones para tu hipoteca de forma 100% gratuita. Solicita tu asesoramiento gratis en: ` + referralLink)}`;
+            }
+
+            const mailBtn = document.getElementById('shareEmailBtn');
+            if (mailBtn) {
+                mailBtn.href = `mailto:?subject=${encodeURIComponent(`Te recomiendo Hipoteca Aquí`)}&body=${encodeURIComponent(`Hola,\n\nTe recomiendo utilizar Hipoteca Aquí para conseguir las mejores condiciones para tu hipoteca de forma 100% gratuita.\n\nRegístrate gratis para tu estudio de viabilidad con mi enlace de recomendación:\n` + referralLink)}`;
+            }
+
+            // Adjust table columns for referral tracking
+            if (tabHead) {
+                tabHead.innerHTML = `
                     <tr>
-                        <td style="font-weight: 700; color: var(--primary);">${c.name}</td>
-                        <td>${c.email}</td>
-                        <td>${c.phone}</td>
-                        <td>
-                            <span class="status-badge" style="background: ${c.status === 'Cerrado' ? '#dcfce7; color: #16a34a;' : (c.status === 'Rechazado' ? '#fee2e2; color: #ef4444;' : '#fef3c7; color: #d97706;')}">
-                                ${c.status || 'Pendiente'}
-                            </span>
-                        </td>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Estado del Estudio</th>
                     </tr>
-                `).join('');
+                `;
+            }
+
+            // Populate referred list
+            if (tabBody && data.contacts) {
+                if (data.contacts.length === 0) {
+                    tabBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">Aún no has recomendado a ningún contacto. ¡Comparte tu enlace de arriba para empezar!</td></tr>';
+                } else {
+                    tabBody.innerHTML = data.contacts.map(c => `
+                        <tr>
+                            <td style="font-weight: 700; color: var(--primary);">${c.name}</td>
+                            <td>${c.email}</td>
+                            <td>${c.phone}</td>
+                            <td>
+                                <span class="status-badge" style="background: ${c.status === 'Cerrado' ? '#dcfce7; color: #16a34a;' : (c.status === 'Rechazado' ? '#fee2e2; color: #ef4444;' : '#fef3c7; color: #d97706;')}">
+                                    ${c.status || 'Pendiente'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        } else {
+            // Setup Directory of Contacts view for Associate role
+            if (tabTitle) tabTitle.textContent = 'Directorio de Contactos';
+            if (tabDesc) tabDesc.textContent = 'Gestiona la información de tus clientes y contactos.';
+            if (tabNewBtn) tabNewBtn.style.display = 'block';
+            if (clientHeader) clientHeader.style.display = 'none';
+
+            if (tabHead) {
+                tabHead.innerHTML = `
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Acciones</th>
+                    </tr>
+                `;
+            }
+
+            if (tabBody && data.contacts) {
+                if (data.contacts.length === 0) {
+                    tabBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">No hay contactos disponibles actualmente.</td></tr>';
+                } else {
+                    tabBody.innerHTML = data.contacts.map(contact => `
+                        <tr>
+                            <td>${contact.name}</td>
+                            <td>${contact.email}</td>
+                            <td>${contact.phone}</td>
+                            <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('contact', '${contact.id}')">Detalles</button></td>
+                        </tr>
+                    `).join('');
+                }
             }
         }
 
         populateFilterDropdowns(currentRecords);
         applyFilters();
-
-        // Render Contacts (if provided)
-        const contactsTabBody = document.querySelector('#tab-contactos tbody');
-        if (contactsTabBody && data.contacts) {
-            if (data.contacts.length === 0) {
-                contactsTabBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">No hay contactos disponibles actualmente.</td></tr>';
-            } else {
-                contactsTabBody.innerHTML = data.contacts.map(contact => `
-                    <tr>
-                        <td>${contact.name}</td>
-                        <td>${contact.email}</td>
-                        <td>${contact.phone}</td>
-                        <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('contact', '${contact.id}')">Detalles</button></td>
-                    </tr>
-                `).join('');
-            }
-        }
 
     } catch (error) {
         console.error("Dashboard data error:", error);
