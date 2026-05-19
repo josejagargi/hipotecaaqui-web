@@ -179,7 +179,8 @@ exports.handler = async (event, context) => {
       }));
     } else if (role === 'client' && existsInContacts) {
       // Fetch referred contacts for the client
-      const contactsFormula = encodeURIComponent(`FIND('${clientRecordId}', {referido por}) > 0`);
+      const sanitizedName = userName.replace(/'/g, "\\'");
+      const contactsFormula = encodeURIComponent(`OR({referido por} = '${sanitizedName}', FIND('${clientRecordId}', {referido por}) > 0)`);
       const contactsUrl = `https://api.airtable.com/v0/${BASE_ID}/Contacts?filterByFormula=${contactsFormula}&sort[0][field]=Created&sort[0][direction]=desc`;
       const contactsRes = await fetch(
         contactsUrl,

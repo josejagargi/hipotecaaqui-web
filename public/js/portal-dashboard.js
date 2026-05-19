@@ -135,7 +135,10 @@ async function loadDashboardData() {
         currentContacts = data.contacts || [];
 
         // ------------------ Unified Referidos / Contacts view system ------------------
-        const referralLink = data.user.linkReferidos || `https://hipotecaaqui.com/referidos/?ref=${data.user.id}`;
+        let referralLink = data.user.linkReferidos;
+        if (!referralLink || referralLink.includes('app.cliente.com') || referralLink.includes('cliente.com')) {
+            referralLink = `${window.location.origin}/referidos/?ref=${data.user.id}`;
+        }
         
         const clientHeader = document.getElementById('clientReferralHeader');
         const tabTitle = document.getElementById('contactsTabTitle');

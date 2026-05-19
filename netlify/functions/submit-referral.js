@@ -8,7 +8,7 @@ const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
 
 exports.handler = async (event) => {
@@ -16,15 +16,70 @@ exports.handler = async (event) => {
         return { statusCode: 200, headers, body: '' };
     }
 
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
-    }
-
     const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
 
     if (!AIRTABLE_PAT || !BASE_ID) {
         return { statusCode: 500, headers, body: JSON.stringify({ error: 'Server misconfiguration' }) };
+    }
+
+    if (event.httpMethod === 'GET') {
+        const ref = event.queryStringParameters ? event.queryStringParameters.ref : null;
+        if (!ref) {
+            return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing ref parameter' }) };
+        }
+
+        try {
+            const airtableBase = `https://api.airtable.com/v0/${BASE_ID}`;
+            
+            // Check Contacts first
+            const refRes = await fetch(
+                `${airtableBase}/Contacts/${encodeURIComponent(ref)}`,
+                { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+            );
+
+            if (refRes.ok) {
+                const data = await refRes.json();
+                const name = data.fields['Nombre y apellidos'] || data.fields['Nombre'] || 'un amigo';
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({ success: true, name })
+                };
+            }
+
+            // Fallback: Check Franquiciados
+            const assocRes = await fetch(
+                `${airtableBase}/Franquiciados/${encodeURIComponent(ref)}`,
+                { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+            );
+
+            if (assocRes.ok) {
+                const data = await assocRes.json();
+                const name = data.fields['Nombre franquiciado'] || data.fields['Nombre y apellidos del representante'] || 'un asesor';
+                return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify({ success: true, name })
+                };
+            }
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ success: true, name: 'un amigo' }) // graceful fallback
+            };
+        } catch (error) {
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ success: true, name: 'un amigo' }) // graceful fallback
+            };
+        }
+    }
+
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
     let body;

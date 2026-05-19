@@ -10,18 +10,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #1a3a5c;
-            --secondary: #e8a020;
+            --primary: #33475b;
+            --secondary: #ff5a5f;
             --accent: #2ecc71;
             --bg: #f4f7fb;
             --white: #ffffff;
             --text: #2d3748;
             --text-light: #718096;
             --border: #e2e8f0;
-            --shadow: 0 4px 24px rgba(26,58,92,0.10);
-            --shadow-lg: 0 16px 48px rgba(26,58,92,0.18);
+            --shadow: 0 4px 24px rgba(51,71,91,0.10);
+            --shadow-lg: 0 16px 48px rgba(51,71,91,0.18);
             --radius: 20px;
-            --gradient: linear-gradient(135deg, #1a3a5c 0%, #0f2540 60%, #1a4a7c 100%);
+            --gradient: linear-gradient(135deg, #33475b 0%, #1a2a3a 100%);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,7 +47,7 @@
             content: '';
             position: absolute;
             width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(232,160,32,0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255,90,95,0.15) 0%, transparent 70%);
             top: -200px; right: -150px;
             border-radius: 50%;
         }
@@ -77,8 +77,8 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(232,160,32,0.25);
-            border: 1px solid rgba(232,160,32,0.5);
+            background: rgba(255,90,95,0.25);
+            border: 1px solid rgba(255,90,95,0.5);
             color: var(--secondary);
             padding: 0.5rem 1.2rem;
             border-radius: 50px;
@@ -161,8 +161,8 @@
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            background: linear-gradient(135deg, rgba(232,160,32,0.1), rgba(232,160,32,0.05));
-            border: 1px solid rgba(232,160,32,0.3);
+            background: linear-gradient(135deg, rgba(255,90,95,0.08), rgba(255,90,95,0.04));
+            border: 1px solid rgba(255,90,95,0.25);
             border-radius: 12px;
             padding: 0.9rem 1.2rem;
             margin-bottom: 1.8rem;
@@ -207,7 +207,7 @@
         }
         .input-wrap input:focus {
             border-color: var(--secondary);
-            box-shadow: 0 0 0 3px rgba(232,160,32,0.15);
+            box-shadow: 0 0 0 3px rgba(255,90,95,0.15);
             background: white;
         }
 
@@ -230,7 +230,7 @@
         .btn-submit {
             width: 100%;
             padding: 1rem;
-            background: linear-gradient(135deg, var(--secondary), #d4891a);
+            background: linear-gradient(135deg, var(--secondary), #e04a4f);
             color: white;
             border: none;
             border-radius: 14px;
@@ -246,7 +246,7 @@
         }
         .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(232,160,32,0.35);
+            box-shadow: 0 8px 24px rgba(255,90,95,0.35);
         }
         .btn-submit:disabled {
             opacity: 0.6;
@@ -446,8 +446,23 @@
 
     // Show referrer info badge
     if (refCode) {
-        document.getElementById('referrerInfo').style.display = 'flex';
-        document.getElementById('referralBadgeText').textContent = 'Recomendado por un amigo especial';
+        const badge = document.getElementById('referrerInfo');
+        const badgeText = document.getElementById('referralBadgeText');
+        const referrerNameEl = document.getElementById('referrerName');
+
+        if (badge) badge.style.display = 'flex';
+        if (badgeText) badgeText.textContent = 'Recomendado por un amigo especial';
+
+        // Dynamically fetch and display the actual referrer's name!
+        fetch(`/.netlify/functions/submit-referral?ref=${encodeURIComponent(refCode)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.success && data.name) {
+                    if (referrerNameEl) referrerNameEl.textContent = data.name;
+                    if (badgeText) badgeText.textContent = `Recomendado por ${data.name}`;
+                }
+            })
+            .catch(() => {});
     }
 
     const form = document.getElementById('referralForm');
