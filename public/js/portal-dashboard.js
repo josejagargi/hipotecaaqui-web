@@ -2,6 +2,17 @@ let currentRecords = [];
 let currentContacts = [];
 let currentUserFranquiciadoId = null;
 
+// Instant Greeting from localStorage to prevent any loading flashes or caching issues
+const cachedName = localStorage.getItem('currentUserDisplayName');
+if (cachedName) {
+    document.addEventListener('DOMContentLoaded', () => {
+        const userNameEl = document.getElementById('userName');
+        if (userNameEl) userNameEl.textContent = cachedName;
+        const profileNameEl = document.getElementById('profileName');
+        if (profileNameEl) profileNameEl.value = cachedName;
+    });
+}
+
 async function loadDashboardData() {
     const user = firebase.auth().currentUser;
     if (!user) return;
@@ -92,9 +103,11 @@ async function loadDashboardData() {
         if (currentUserFranquiciadoId) {
             localStorage.setItem('currentUserFranquiciadoId', currentUserFranquiciadoId);
             localStorage.setItem('currentUserEmail', data.user.email);
+            localStorage.setItem('currentUserDisplayName', displayName);
         } else {
             localStorage.removeItem('currentUserFranquiciadoId');
             localStorage.removeItem('currentUserEmail');
+            localStorage.removeItem('currentUserDisplayName');
         }
         
         let roleDisplay = 'Cliente';
@@ -175,6 +188,7 @@ async function updateProfile(event) {
         if (!response.ok) throw new Error(data.error || 'Error al actualizar el perfil');
 
         alert('Perfil guardado exitosamente');
+        localStorage.setItem('currentUserDisplayName', newName);
         document.getElementById('userName').textContent = newName;
         document.getElementById('userInitial').textContent = newName.charAt(0).toUpperCase();
     } catch (error) {
