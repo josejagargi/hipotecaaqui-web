@@ -486,9 +486,17 @@ td {
     color: var(--secondary);
 }
 
+#editRecordForm {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+}
+
 .edit-modal-body {
     padding: 2rem;
     overflow-y: auto;
+    flex: 1;
 }
 
 .edit-modal-footer {
