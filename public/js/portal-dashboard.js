@@ -117,19 +117,19 @@ async function loadDashboardData() {
         }
 
         const rowsHTML = data.records.map(record => `
-            <tr style="cursor: pointer;" onclick="if (!event.target.closest('button')) openEditModal('estudio', '${record.id}')">
-                <td>${new Date(record.created).toLocaleDateString()}</td>
-                <td>${record.contactName || 'N/A'}</td>
-                <td>${record.loanType || 'Hipotecario'}</td>
+            <tr style="cursor: pointer;">
+                <td onclick="openEditModal('estudio', '${record.id}')">${new Date(record.created).toLocaleDateString()}</td>
+                <td onclick="openEditModal('estudio', '${record.id}')">${record.contactName || 'N/A'}</td>
+                <td onclick="openEditModal('estudio', '${record.id}')">${record.loanType || 'Hipotecario'}</td>
                 <td>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem;">
                         <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
-                        <button class="btn" style="padding: 0.15rem 0.5rem; font-size: 0.7rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="event.stopPropagation(); openViabilityModal('${record.id}')">
+                        <button class="btn" style="padding: 0.15rem 0.5rem; font-size: 0.7rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="openViabilityModal('${record.id}')">
                             <i class="fas fa-traffic-light"></i> Viabilidad
                         </button>
                     </div>
                 </td>
-                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="event.stopPropagation(); openEditModal('estudio', '${record.id}')">Detalles</button></td>
+                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
             </tr>
         `).join('');
         
