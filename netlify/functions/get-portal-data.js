@@ -72,24 +72,14 @@ exports.handler = async (event, context) => {
       clientRes.json()
     ]);
 
-    let existsInFranquiciados = (assocData.records && assocData.records.length > 0) || (userEmail.toLowerCase() === 'josejagargi@gmail.com');
+    const existsInFranquiciados = assocData.records && assocData.records.length > 0;
     const existsInContacts = clientData.records && clientData.records.length > 0;
 
     let assocRecordId = null;
 
     if (existsInFranquiciados) {
-      let recordFields = {};
-      if (assocData.records && assocData.records.length > 0) {
-        recordFields = assocData.records[0].fields;
-        assocRecordId = assocData.records[0].id;
-      } else if (userEmail.toLowerCase() === 'josejagargi@gmail.com') {
-        // Fallback for Developer's test email to his Franquiciados record ID
-        assocRecordId = 'recjHrWME10syakFk';
-        recordFields = {
-          'Nombre franquiciado': 'Javi franquiciado',
-          'Rol': 'Administrador'
-        };
-      }
+      const recordFields = assocData.records[0].fields;
+      assocRecordId = assocData.records[0].id;
       role = recordFields['Rol'] === 'Administrador' ? 'admin' : 'associate';
       userName = recordFields['Nombre franquiciado'] || recordFields['Nombre y apellidos del representante'] || recordFields['Nombre comunicaciones'] || '';
       console.log(`[DEBUG] Found associate/admin record. ID: ${assocRecordId}, Role: ${role}, Name: ${userName}`);
@@ -122,13 +112,8 @@ exports.handler = async (event, context) => {
       // Admins see all records
       console.log(`[DEBUG] Role is admin, fetching all Hipoteca records.`);
     } else if (role === 'associate') {
-      const emails = [userEmail];
-      if (userEmail.toLowerCase() === 'josejagargi@gmail.com') {
-        emails.push('javiergarciaginer@outlook.com');
-      }
-      const emailConditions = emails.map(email => `FIND(LOWER("${email}"), LOWER({email franquiciado} & "")) > 0`).join(', ');
-      filterFormula = encodeURIComponent(`OR(${emailConditions})`);
-      console.log(`[DEBUG] Role is associate, filtering Hipoteca by email conditions: ${emails.join(', ')}.`);
+      filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email franquiciado} & "")) > 0`);
+      console.log(`[DEBUG] Role is associate, filtering Hipoteca by email franquiciado.`);
     } else {
       // Client role: use FIND on the lookup field 'email contacto'
       filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email contacto} & "")) > 0`);
