@@ -167,11 +167,16 @@ exports.handler = async (event, context) => {
     }
 
     console.log(`Returning data for ${userEmail}: ${records.length} records found.`);
+    const assocRecordId = existsInFranquiciados && assocData.records && assocData.records.length > 0
+      ? assocData.records[0].id
+      : null;
+
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         user: {
+          id: assocRecordId,
           email: userEmail,
           role,
           name: userName,

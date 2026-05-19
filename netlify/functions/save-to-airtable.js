@@ -58,6 +58,10 @@ exports.handler = async (event, context) => {
       'Contact': [contactId],
     };
 
+    if (data['Franquiciados'] && Array.isArray(data['Franquiciados'])) {
+      hipotecaFields['Franquiciados'] = data['Franquiciados'];
+    }
+
     // --- Campos numéricos ---
     hipotecaFields['Edad sim']                  = parseInt(data['Edad sim']) || 0;
     hipotecaFields['Antiguedad sim']            = parseInt(data['Antiguedad sim']) || 0;

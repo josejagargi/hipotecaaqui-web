@@ -1,5 +1,6 @@
 let currentRecords = [];
 let currentContacts = [];
+let currentUserFranquiciadoId = null;
 
 async function loadDashboardData() {
     const user = firebase.auth().currentUser;
@@ -88,6 +89,7 @@ async function loadDashboardData() {
         // Update UI
         const displayName = (data.user.name || user.email.split('@')[0]).trim();
         userNameEl.textContent = displayName;
+        currentUserFranquiciadoId = data.user.id || null;
         
         let roleDisplay = 'Cliente';
         if (data.user.role === 'associate') roleDisplay = 'Asociado AKIA';
@@ -838,4 +840,134 @@ function renderEstudiosTable(records) {
     
     recordsBody.innerHTML = rowsHTML;
     if (estudiosBody) estudiosBody.innerHTML = rowsHTML;
+}
+
+// ── +Nuevo Estudio Modal Functions ───────────────────────────────────────────
+
+function openNewEstudioModal() {
+    const modal = document.getElementById('newEstudioModalOverlay');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeNewEstudioModal() {
+    const modal = document.getElementById('newEstudioModalOverlay');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function toggleNewT2Block() {
+    const isChecked = document.getElementById('new_hay_segundo_titular').checked;
+    const block = document.getElementById('new-titular-2-block');
+    const inputIngresos = document.getElementById('new_ingresos_t2');
+    const inputTrabajo = document.getElementById('new_tipo_trabajo_t2');
+    
+    if (isChecked) {
+        block.style.display = 'block';
+        if (inputIngresos) inputIngresos.required = true;
+        if (inputTrabajo) inputTrabajo.required = true;
+    } else {
+        block.style.display = 'none';
+        if (inputIngresos) inputIngresos.required = false;
+        if (inputTrabajo) inputTrabajo.required = false;
+    }
+}
+
+function toggleNewPropBlock() {
+    const val = document.getElementById('new_encontrado_propiedad').value;
+    const block = document.getElementById('new-propiedad-block');
+    const inputPrecio = document.getElementById('new_precio_inmueble');
+    const inputLocalidad = document.getElementById('new_localidad_inmueble');
+    
+    if (val !== 'Buscando') {
+        block.style.display = 'block';
+        if (inputPrecio) inputPrecio.required = true;
+        if (inputLocalidad) inputLocalidad.required = true;
+    } else {
+        block.style.display = 'none';
+        if (inputPrecio) inputPrecio.required = false;
+        if (inputLocalidad) inputLocalidad.required = false;
+    }
+}
+
+async function submitNewEstudio(event) {
+    event.preventDefault();
+    const form = document.getElementById('newEstudioForm');
+    const submitBtn = document.getElementById('btnSaveNewEstudio');
+    if (!form || !submitBtn) return;
+
+    const originalBtnText = submitBtn.innerText;
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Enviando...';
+
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+        if (value !== '') {
+            data[key] = value;
+        }
+    });
+
+    // Handle "Hay segundo titular" mapping
+    const isT2 = document.getElementById('new_hay_segundo_titular').checked;
+    data['Hay segundo titular'] = isT2 ? 'Si' : 'No';
+
+    // If no second titular, remove related fields to prevent Airtable errors
+    if (!isT2) {
+        delete data['Ingresos titular 2'];
+        delete data['Tipo trabajo T2'];
+        delete data['Num pagas T2'];
+        delete data['Antiguedad T2'];
+    }
+
+    // If property not found, remove property details
+    const toggleProp = document.getElementById('new_encontrado_propiedad');
+    if (toggleProp && toggleProp.value === 'Buscando') {
+        delete data['Precio del inmueble'];
+        delete data['Tipo vivienda'];
+        delete data['Localidad inmueble'];
+        delete data['CP Localidad'];
+        delete data['Tipo prestamo'];
+    }
+
+    // If franquiciado ID is available, link this Hipoteca record to the Franquiciado!
+    if (currentUserFranquiciadoId) {
+        data['Franquiciados'] = [currentUserFranquiciadoId];
+    }
+
+    try {
+        const response = await fetch('/.netlify/functions/save-to-airtable', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('¡Estudio hipotecario creado correctamente!');
+            closeNewEstudioModal();
+            form.reset();
+            
+            // Reset toggles visual states
+            document.getElementById('new-titular-2-block').style.display = 'none';
+            document.getElementById('new-propiedad-block').style.display = 'none';
+            
+            // Reload the table!
+            loadDashboardData();
+        } else {
+            console.error('Airtable Error Details:', result);
+            alert('Error al crear el estudio: ' + (result.error?.message || result.message || 'Error desconocido'));
+        }
+    } catch (error) {
+        console.error('Submission error:', error);
+        alert('Error de conexión al enviar la solicitud.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+    }
 }

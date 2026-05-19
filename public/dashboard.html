@@ -106,7 +106,7 @@
                 <div class="records-table-container">
                     <div class="table-header">
                         <h3>Gestión de Estudios</h3>
-                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('La funcionalidad de crear un nuevo estudio desde aquí se conectará con el formulario.')">+ Nuevo Estudio</button>
+                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="openNewEstudioModal()">+ Nuevo Estudio</button>
                     </div>
                     <p style="color: #666; margin-bottom: 2rem;">Aquí puedes consultar y editar el detalle de tus estudios hipotecarios.</p>
                     
@@ -269,6 +269,166 @@
                 <div class="edit-modal-footer">
                     <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.2rem;" onclick="closeEditModal()">Cancelar</button>
                     <button type="submit" id="btnSaveRecord" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Estudio Modal Overlay -->
+    <div id="newEstudioModalOverlay" class="edit-modal-overlay">
+        <div class="edit-modal-card" style="max-width: 800px;">
+            <div class="edit-modal-header" style="padding: 1.5rem 2rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--primary);">+ Nuevo Estudio Hipotecario</h3>
+                <button type="button" class="edit-modal-close" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b;" onclick="closeNewEstudioModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="newEstudioForm" onsubmit="submitNewEstudio(event)" style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
+                <div class="edit-modal-body" style="padding: 2rem; overflow-y: auto; flex: 1;">
+                    <div class="edit-form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
+                        <!-- Datos de contacto -->
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Nombre y Apellidos *</label>
+                            <input type="text" name="Nombre y apellidos" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Nombre completo">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Email *</label>
+                            <input type="email" name="Email" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="email@correo.com">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Teléfono *</label>
+                            <input type="tel" name="Telefono" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 600000000">
+                        </div>
+
+                        <!-- Titular 1 -->
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Edad Titular 1 *</label>
+                            <input type="number" name="Edad sim" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 35">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo de trabajo Titular 1 *</label>
+                            <select name="Tipo trabajo sim" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                <option value="" disabled selected>Selecciona...</option>
+                                <option value="Cuenta ajena">Cuenta ajena</option>
+                                <option value="Funcionario">Funcionario</option>
+                                <option value="Autonomo">Autónomo</option>
+                                <option value="Fijo discontinuo">Fijo discontinuo</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Años Antigüedad T1 *</label>
+                            <input type="number" name="Antiguedad sim" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 5">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Ingresos mensuales T1 (€) *</label>
+                            <input type="number" name="Ingresos titular 1" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 2000">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Nº pagas T1 *</label>
+                            <select name="Num pagas T1" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                <option value="12">12 pagas</option>
+                                <option value="14">14 pagas</option>
+                                <option value="15">15 pagas</option>
+                            </select>
+                        </div>
+
+                        <!-- Toggle Segundo Titular -->
+                        <div class="form-group" style="grid-column: span 2; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                            <input type="checkbox" id="new_hay_segundo_titular" name="hay_segundo_titular" style="width: 18px; height: 18px; cursor: pointer;" onchange="toggleNewT2Block()">
+                            <label for="new_hay_segundo_titular" style="font-weight: 700; color: #475569; font-size: 0.88rem; cursor: pointer;">¿Hay un segundo titular?</label>
+                        </div>
+
+                        <!-- Titular 2 (Conditional) -->
+                        <div id="new-titular-2-block" style="grid-column: span 2; display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 1.2rem; box-sizing: border-box;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Ingresos mensuales T2 (€)</label>
+                                    <input type="number" id="new_ingresos_t2" name="Ingresos titular 2" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;" placeholder="Ej: 1500">
+                                </div>
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo de trabajo Titular 2</label>
+                                    <select id="new_tipo_trabajo_t2" name="Tipo trabajo T2" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                        <option value="" disabled selected>Selecciona...</option>
+                                        <option value="Cuenta ajena">Cuenta ajena</option>
+                                        <option value="Funcionario">Funcionario</option>
+                                        <option value="Autonomo">Autónomo</option>
+                                        <option value="Fijo discontinuo">Fijo discontinuo</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Nº pagas T2</label>
+                                    <select id="new_pagas_t2" name="Num pagas T2" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                        <option value="12">12 pagas</option>
+                                        <option value="14">14 pagas</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Años Antigüedad T2</label>
+                                    <input type="number" id="new_antiguedad_t2" name="Antiguedad T2" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;" placeholder="Ej: 3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Info -->
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Otros préstamos mensuales (€) *</label>
+                            <input type="number" name="Otros prestamos mensuales" value="0" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Capital pendiente devolución (€) *</label>
+                            <input type="number" name="Capital pendiente" value="0" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Ahorros disponibles (€) *</label>
+                            <input type="number" name="Ahorros" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 20000">
+                        </div>
+
+                        <!-- Toggle Propiedad -->
+                        <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">¿Habéis encontrado propiedad? *</label>
+                            <select id="new_encontrado_propiedad" name="Habeis encontrado propiedad" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;" onchange="toggleNewPropBlock()">
+                                <option value="Buscando">No, estoy buscando</option>
+                                <option value="Si, no reservada">Sí, la tengo vista</option>
+                                <option value="Si, reservada">Sí, ya la tengo reservada</option>
+                            </select>
+                        </div>
+
+                        <!-- Propiedad Details (Conditional) -->
+                        <div id="new-propiedad-block" style="grid-column: span 2; display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 1.2rem; box-sizing: border-box;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Precio del inmueble (€)</label>
+                                    <input type="number" id="new_precio_inmueble" name="Precio del inmueble" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                </div>
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo vivienda</label>
+                                    <select id="new_tipo_vivienda" name="Tipo vivienda" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                        <option value="Nueva">Nueva</option>
+                                        <option value="Segunda mano">Segunda mano</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Localidad inmueble</label>
+                                    <input type="text" id="new_localidad_inmueble" name="Localidad inmueble" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                </div>
+                                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">CP Localidad</label>
+                                    <input type="text" id="new_cp_localidad" name="CP Localidad" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                </div>
+                                <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 0.4rem;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo préstamo</label>
+                                    <select id="new_tipo_prestamo" name="Tipo prestamo" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                        <option value="Hipotecario" selected>Hipotecario</option>
+                                        <option value="ICO">ICO</option>
+                                        <option value="Autopromocion">Autopromoción</option>
+                                        <option value="Hipoteca no residente">Hipoteca no residente</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-modal-footer">
+                    <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.2rem;" onclick="closeNewEstudioModal()">Cancelar</button>
+                    <button type="submit" id="btnSaveNewEstudio" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">Enviar Solicitud</button>
                 </div>
             </form>
         </div>
