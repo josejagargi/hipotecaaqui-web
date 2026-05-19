@@ -58,10 +58,7 @@ exports.handler = async (event, context) => {
       'Contact': [contactId],
     };
 
-    if (data['franquiciadoName']) {
-      // Pass the name string inside the array to match and link the record in Franquiciados
-      hipotecaFields['Franquiciados'] = [data['franquiciadoName']];
-    } else if (data['Franquiciados'] && Array.isArray(data['Franquiciados'])) {
+    if (data['Franquiciados'] && Array.isArray(data['Franquiciados'])) {
       hipotecaFields['Franquiciados'] = data['Franquiciados'];
     }
 
