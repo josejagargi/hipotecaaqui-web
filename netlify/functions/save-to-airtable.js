@@ -56,6 +56,12 @@ exports.handler = async (event, context) => {
       resolvedFranquiciados = contactFranquiciados;
     }
 
+    // C. Default Fallback: Assign to Javier Garcia Giner (franqui) as the default master franchise for direct/organic traffic
+    if (!resolvedFranquiciados || resolvedFranquiciados.length === 0) {
+      resolvedFranquiciados = ["recBbqj0xUs1hZGKi"];
+      console.log('No Franquiciados sent or inherited. Falling back to default master franchise: ["recBbqj0xUs1hZGKi"]');
+    }
+
     if (!contactId) {
       // Crear nuevo contacto incluyendo el Franquiciado de forma síncrona
       const contactFields = {
