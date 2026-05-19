@@ -60,6 +60,17 @@ exports.handler = async (event, context) => {
 
     if (data['Franquiciados'] && Array.isArray(data['Franquiciados'])) {
       hipotecaFields['Franquiciados'] = data['Franquiciados'];
+      hipotecaFields['Franquiciado'] = data['Franquiciados'];
+    }
+
+    if (data['franquiciadoName']) {
+      hipotecaFields['Nombre franquiciado'] = data['franquiciadoName'];
+      if (!hipotecaFields['Franquiciado']) {
+        hipotecaFields['Franquiciado'] = [data['franquiciadoName']];
+      }
+      if (!hipotecaFields['Franquiciados']) {
+        hipotecaFields['Franquiciados'] = [data['franquiciadoName']];
+      }
     }
 
     // --- Campos numéricos ---

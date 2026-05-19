@@ -939,6 +939,11 @@ async function submitNewEstudio(event) {
         data['Franquiciados'] = [currentUserFranquiciadoId];
     }
 
+    const userNameEl = document.getElementById('userName');
+    if (userNameEl && userNameEl.textContent) {
+        data['franquiciadoName'] = userNameEl.textContent.trim();
+    }
+
     try {
         const response = await fetch('/.netlify/functions/save-to-airtable', {
             method: 'POST',
