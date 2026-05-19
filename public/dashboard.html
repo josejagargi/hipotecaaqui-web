@@ -21,6 +21,7 @@
                     <li><a href="#" id="nav-actividad" class="active" onclick="switchTab('actividad')"><i class="fas fa-home"></i> Mi Actividad</a></li>
                     <li><a href="#" id="nav-estudios" onclick="switchTab('estudios')"><i class="fas fa-file-invoice-dollar"></i> Mis Estudios</a></li>
                     <li><a href="#" id="nav-contactos" onclick="switchTab('contactos')"><i class="fas fa-user-friends"></i> Mis Contactos</a></li>
+                    <li><a href="#" id="nav-referidos" style="display: none;" onclick="switchTab('referidos')"><i class="fas fa-gift"></i> Programa Referidos</a></li>
                     <li><a href="#" id="nav-ajustes" onclick="switchTab('ajustes')"><i class="fas fa-cog"></i> Ajustes</a></li>
                 </ul>
             </nav>
@@ -218,6 +219,103 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Tab Content: Referidos -->
+            <div id="tab-referidos" class="tab-content" style="display: none;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; box-sizing: border-box; width: 100%;">
+                    
+                    <!-- Left Column: Copy Link & Info -->
+                    <div class="records-table-container" style="padding: 2.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 0.8rem; display: flex; align-items: center; gap: 0.6rem;">
+                            <i class="fas fa-gift" style="color: var(--secondary); font-size: 1.4rem;"></i>
+                            <h3 style="margin: 0; color: var(--primary); font-weight: 800; font-size: 1.3rem;">Referencias y Créditos</h3>
+                        </div>
+                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6; margin: 0;">
+                            Consigue hasta el 100% de financiación para tus amigos y conocidos. Comparte tu enlace personal y gana beneficios por cada recomendado que contrate su hipoteca con nosotros.
+                        </p>
+                        
+                        <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem; width: 100%; box-sizing: border-box;">
+                            <span style="font-size: 0.8rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Tu Enlace de Referencia Personalizado</span>
+                            <div style="display: flex; gap: 0.5rem; width: 100%;">
+                                <input type="text" id="referralLinkInput" readonly value="Cargando enlace..." style="flex: 1; padding: 0.8rem 1rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.88rem; color: var(--primary); font-weight: 600; background: white; outline: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; box-sizing: border-box;">
+                                <button class="btn btn-primary" onclick="copyReferralLink()" style="padding: 0.8rem 1.2rem; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; font-size: 0.9rem;">
+                                    <i class="fas fa-copy"></i> Copiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Share buttons -->
+                        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                            <a id="shareWhatsAppBtn" href="#" target="_blank" class="btn" style="background: #25d366; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600;">
+                                <i class="fab fa-whatsapp"></i> Compartir por WhatsApp
+                            </a>
+                            <a id="shareEmailBtn" href="#" target="_blank" class="btn" style="background: #ea4335; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600;">
+                                <i class="fas fa-envelope"></i> Enviar por Email
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Introduce Referral Form -->
+                    <div class="records-table-container" style="padding: 2.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 0.8rem;">
+                            <h3 style="margin: 0; color: var(--primary); font-weight: 800; font-size: 1.3rem;">Invitar por Correo Electrónico</h3>
+                        </div>
+                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6; margin: 0;">
+                            Introduce los datos de tu recomendado para que nuestro equipo le ofrezca un asesoramiento prioritario de forma 100% gratuita.
+                        </p>
+                        
+                        <form id="inviteReferralForm" onsubmit="submitReferralFromDashboard(event)" style="display: flex; flex-direction: column; gap: 1.2rem; margin-top: 0.5rem; width: 100%;">
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                <label style="font-weight: 700; color: #475569; font-size: 0.85rem;">Nombre y apellidos del recomendado</label>
+                                <input type="text" id="refNombre" required placeholder="Ej: Juan Pérez Gómez" class="form-control" style="padding: 0.8rem 1rem; border: 1.5px solid #ddd; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary); box-sizing: border-box; width: 100%;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                <label style="font-weight: 700; color: #475569; font-size: 0.85rem;">Email del recomendado</label>
+                                <input type="email" id="refEmail" required placeholder="Ej: juan.perez@example.com" class="form-control" style="padding: 0.8rem 1rem; border: 1.5px solid #ddd; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary); box-sizing: border-box; width: 100%;">
+                            </div>
+                            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                                <label style="font-weight: 700; color: #475569; font-size: 0.85rem;">Teléfono del recomendado</label>
+                                <input type="tel" id="refTelefono" required placeholder="Ej: 600 000 000" class="form-control" style="padding: 0.8rem 1rem; border: 1.5px solid #ddd; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary); box-sizing: border-box; width: 100%;">
+                            </div>
+                            <div style="margin-top: 0.5rem;">
+                                <button type="submit" id="btnInviteSubmit" class="btn btn-primary" style="width: 100%; padding: 0.9rem; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                    <i class="fas fa-paper-plane"></i> Enviar Invitación
+                                </button>
+                            </div>
+                            <div id="inviteFormStatus" style="font-size: 0.9rem; font-weight: 600; text-align: center; display: none; padding: 0.5rem; border-radius: 8px;"></div>
+                        </form>
+                    </div>
+
+                    <!-- Full Width: Referred Contacts History -->
+                    <div class="records-table-container" style="grid-column: span 2; padding: 2.5rem; margin-top: 1rem; display: flex; flex-direction: column; gap: 1.5rem; box-sizing: border-box; width: 100%;">
+                        <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 0.8rem;">
+                            <h3 style="margin: 0; color: var(--primary); font-weight: 800; font-size: 1.3rem;">Historial de tus Invitados</h3>
+                        </div>
+                        <p style="color: #64748b; font-size: 0.95rem; line-height: 1.6; margin: 0;">
+                            Sigue el estado en tiempo real de tus referidos y mira cómo progresa su estudio hipotecario.
+                        </p>
+                        
+                        <div class="table-responsive">
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Teléfono</th>
+                                        <th>Estado del Estudio</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="referredContactsBody">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; padding: 3rem; color: #999;">
+                                            Aún no has recomendado a ningún contacto. ¡Comparte tu enlace arriba para empezar!
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
             <script>
                 function switchTab(tabId) {

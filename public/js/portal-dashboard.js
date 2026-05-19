@@ -87,14 +87,16 @@ async function loadDashboardData() {
             return; // Halt dashboard rendering!
         }
 
-        // Hide contacts tab link for clients
+        // Hide contacts tab link for clients, show referidos instead
         const navContactos = document.getElementById('nav-contactos');
+        const navReferidos = document.getElementById('nav-referidos');
+        const isClient = data.user.role === 'client' || portalRole === 'cliente';
+        
         if (navContactos) {
-            if (data.user.role === 'client' || portalRole === 'cliente') {
-                navContactos.parentElement.style.display = 'none';
-            } else {
-                navContactos.parentElement.style.display = 'block';
-            }
+            navContactos.parentElement.style.display = isClient ? 'none' : 'block';
+        }
+        if (navReferidos) {
+            navReferidos.parentElement.style.display = isClient ? 'block' : 'none';
         }
         
         // Update UI
@@ -130,6 +132,46 @@ async function loadDashboardData() {
         // Table
         currentRecords = data.records || [];
         currentContacts = data.contacts || [];
+
+        // Populate Referral Link and render referred contacts for clients
+        if (isClient) {
+            const referralLink = data.user.linkReferidos || `https://hipotecaaqui-draft-javi.netlify.app/referidos/?ref=${data.user.id}`;
+            
+            const referralInput = document.getElementById('referralLinkInput');
+            if (referralInput) {
+                referralInput.value = referralLink;
+            }
+
+            const waBtn = document.getElementById('shareWhatsAppBtn');
+            if (waBtn) {
+                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`¡Hola! Te recomiendo utilizar Hipoteca Aquí para conseguir las mejores condiciones para tu hipoteca de forma 100% gratuita. Analiza tu caso gratis aquí: ` + referralLink)}`;
+            }
+
+            const mailBtn = document.getElementById('shareEmailBtn');
+            if (mailBtn) {
+                mailBtn.href = `mailto:?subject=${encodeURIComponent(`Te recomiendo Hipoteca Aquí`)}&body=${encodeURIComponent(`Hola,\n\nTe recomiendo utilizar Hipoteca Aquí para conseguir las mejores condiciones para tu hipoteca de forma 100% gratuita.\n\nAnaliza tu caso gratis con mi enlace de recomendación:\n` + referralLink)}`;
+            }
+
+            const referredBody = document.getElementById('referredContactsBody');
+            if (referredBody && data.contacts) {
+                if (data.contacts.length === 0) {
+                    referredBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">Aún no has recomendado a ningún contacto. ¡Comparte tu enlace arriba para empezar!</td></tr>';
+                } else {
+                    referredBody.innerHTML = data.contacts.map(c => `
+                        <tr>
+                            <td style="font-weight: 700; color: var(--primary);">${c.name}</td>
+                            <td>${c.email}</td>
+                            <td>${c.phone}</td>
+                            <td>
+                                <span class="status-badge" style="background: ${c.status === 'Cerrado' ? '#dcfce7; color: #16a34a;' : (c.status === 'Rechazado' ? '#fee2e2; color: #ef4444;' : '#fef3c7; color: #d97706;')}">
+                                    ${c.status || 'Pendiente'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        }
 
         populateFilterDropdowns(currentRecords);
         applyFilters();
@@ -992,5 +1034,88 @@ async function submitNewEstudio(event) {
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = originalBtnText;
+    }
+}
+
+async function copyReferralLink() {
+    const copyText = document.getElementById('referralLinkInput');
+    if (!copyText) return;
+    
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        await navigator.clipboard.writeText(copyText.value);
+        alert('¡Enlace de referencia copiado al portapapeles!');
+    } catch (err) {
+        // Fallback
+        document.execCommand('copy');
+        alert('¡Enlace de referencia copiado al portapapeles!');
+    }
+}
+
+async function submitReferralFromDashboard(event) {
+    event.preventDefault();
+    
+    const nombre = document.getElementById('refNombre').value.trim();
+    const email = document.getElementById('refEmail').value.trim();
+    const telefono = document.getElementById('refTelefono').value.trim();
+    const statusEl = document.getElementById('inviteFormStatus');
+    const submitBtn = document.getElementById('btnInviteSubmit');
+    
+    if (!nombre || !email || !telefono) {
+        alert('Por favor, completa todos los campos.');
+        return;
+    }
+    
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    
+    if (statusEl) {
+        statusEl.style.display = 'none';
+    }
+    
+    const refCode = currentUserFranquiciadoId || localStorage.getItem('currentUserFranquiciadoId');
+    
+    try {
+        const res = await fetch('/.netlify/functions/submit-referral', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, email, telefono, refCode: refCode || null })
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok && result.success) {
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#dcfce7';
+                statusEl.style.color = '#16a34a';
+                statusEl.innerHTML = '<i class="fas fa-check-circle"></i> ¡Invitación enviada con éxito!';
+            }
+            document.getElementById('inviteReferralForm').reset();
+            
+            // Reload dashboard to see the new contact in history!
+            loadDashboardData();
+        } else {
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#fee2e2';
+                statusEl.style.color = '#ef4444';
+                statusEl.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${result.error || 'Error al enviar invitación.'}`;
+            }
+        }
+    } catch (err) {
+        console.error('Error sending referral:', err);
+        if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#fee2e2';
+            statusEl.style.color = '#ef4444';
+            statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error de conexión.';
+        }
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
     }
 }

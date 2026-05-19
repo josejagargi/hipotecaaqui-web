@@ -82,6 +82,8 @@ exports.handler = async (event, context) => {
     const existsInContacts = clientData.records && clientData.records.length > 0;
 
     let assocRecordId = null;
+    let clientRecordId = null;
+    let clientLinkReferidos = '';
 
     if (existsInFranquiciados) {
       const recordFields = assocData.records[0].fields;
@@ -90,8 +92,10 @@ exports.handler = async (event, context) => {
       userName = recordFields['Nombre franquiciado'] || recordFields['Nombre y apellidos del representante'] || recordFields['Nombre comunicaciones'] || '';
       console.log(`[DEBUG] Found associate/admin record. ID: ${assocRecordId}, Role: ${role}, Name: ${userName}`);
     } else if (existsInContacts) {
+      clientRecordId = clientData.records[0].id;
+      clientLinkReferidos = clientData.records[0].fields['link referidos'] || '';
       userName = clientData.records[0].fields['Nombre y apellidos'] || '';
-      console.log(`[DEBUG] Found client record. ID: ${clientData.records[0].id}, Name: [${userName}]`);
+      console.log(`[DEBUG] Found client record. ID: ${clientRecordId}, Name: [${userName}], LinkReferidos: [${clientLinkReferidos}]`);
     } else {
       console.warn(`[DEBUG] No record found for [${userEmail}] in Franquiciados or Contacts.`);
       return {
@@ -146,7 +150,7 @@ exports.handler = async (event, context) => {
       fields: r.fields
     }));
 
-    // ── 4. Fetch contacts (for Admin or Associate) ───────────────────────────
+    // ── 4. Fetch contacts (for Admin, Associate or Client Referrals) ────────
     let contacts = [];
     if (role === 'admin' || role === 'associate') {
       let contactsFormula = '';
@@ -173,6 +177,24 @@ exports.handler = async (event, context) => {
         phone: c.fields['Telefono'] || 'Sin teléfono',
         fields: c.fields
       }));
+    } else if (role === 'client' && existsInContacts) {
+      // Fetch referred contacts for the client
+      const contactsFormula = encodeURIComponent(`FIND('${clientRecordId}', {referido por}) > 0`);
+      const contactsUrl = `https://api.airtable.com/v0/${BASE_ID}/Contacts?filterByFormula=${contactsFormula}&sort[0][field]=Created&sort[0][direction]=desc`;
+      const contactsRes = await fetch(
+        contactsUrl,
+        { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
+      );
+      const contactsData = await contactsRes.json();
+      
+      contacts = (contactsData.records || []).map(c => ({
+        id: c.id,
+        name: c.fields['Nombre y apellidos'] || 'Sin nombre',
+        email: c.fields['Email'] || 'Sin email',
+        phone: c.fields['Telefono'] || 'Sin teléfono',
+        status: c.fields['Estado'] || 'Pendiente',
+        fields: c.fields
+      }));
     }
 
     console.log(`Returning data for ${userEmail}: ${records.length} records found. ID: ${assocRecordId}`);
@@ -182,12 +204,13 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         user: {
-          id: assocRecordId,
+          id: existsInFranquiciados ? assocRecordId : clientRecordId,
           email: userEmail,
           role,
           name: userName,
           existsInContacts,
           existsInFranquiciados,
+          linkReferidos: clientLinkReferidos,
           debug_not_found: false
         },
         records,
