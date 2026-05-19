@@ -327,13 +327,13 @@ async function saveRecordChanges(event) {
             'Tipo trabajo sim': document.getElementById('field_tipo_trabajo_sim').value || null,
             'Antiguedad sim': parseInt(document.getElementById('field_antiguedad_sim').value) || null,
             'Ingresos titular 1': parseFloat(document.getElementById('field_ingresos_t1').value) || null,
-            'Num pagas T1': document.getElementById('field_pagas_t1').value || null,
+            'Num pagas T1': parseInt(document.getElementById('field_pagas_t1').value) || null,
             'Ingresos mensuales': parseFloat(document.getElementById('field_ingresos_mensuales').value) || null,
             'Tipo de contrato': document.getElementById('field_tipo_contrato').value || null,
 
             'Ingresos titular 2': parseFloat(document.getElementById('field_ingresos_t2').value) || null,
             'Tipo trabajo T2': document.getElementById('field_tipo_trabajo_t2').value || null,
-            'Num pagas T2': document.getElementById('field_pagas_t2').value || null,
+            'Num pagas T2': parseInt(document.getElementById('field_pagas_t2').value) || null,
             'Antiguedad T2': parseInt(document.getElementById('field_antiguedad_t2').value) || null,
 
             'Otros prestamos mensuales': parseFloat(document.getElementById('field_otros_prestamos').value) || null,
@@ -374,7 +374,9 @@ async function saveRecordChanges(event) {
         });
         
         const responseData = await response.json();
-        if (!response.ok) throw new Error(responseData.error || 'Error al guardar los cambios');
+        if (!response.ok) {
+            throw new Error(responseData.details || responseData.error || 'Error al guardar los cambios');
+        }
         
         alert('Cambios guardados con éxito en Airtable');
         closeEditModal();
