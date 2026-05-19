@@ -308,6 +308,13 @@ function closeEditModal() {
     }
 }
 
+function hasFieldChanged(newValue, originalValue) {
+    const isEmptyNew = newValue === null || newValue === undefined || newValue === '';
+    const isEmptyOrig = originalValue === null || originalValue === undefined || originalValue === '';
+    if (isEmptyNew && isEmptyOrig) return false;
+    return String(newValue).trim() !== String(originalValue).trim();
+}
+
 async function saveRecordChanges(event) {
     event.preventDefault();
     const type = document.getElementById('editRecordType').value;
@@ -316,13 +323,26 @@ async function saveRecordChanges(event) {
     
     let fields = {};
     if (type === 'contact') {
-        fields = {
-            'Nombre y apellidos': document.getElementById('field_name').value,
-            'Email': document.getElementById('field_email').value,
-            'Telefono': document.getElementById('field_phone').value
+        const originalRecord = currentContacts.find(c => c.id === id);
+        const origFields = originalRecord ? (originalRecord.fields || {}) : {};
+        
+        const newFields = {
+            'Nombre y apellidos': document.getElementById('field_name').value.trim(),
+            'Email': document.getElementById('field_email').value.trim(),
+            'Telefono': document.getElementById('field_phone').value.trim()
         };
+        
+        for (const [key, val] of Object.entries(newFields)) {
+            const origVal = origFields[key] !== undefined ? origFields[key] : (originalRecord ? originalRecord[key === 'Telefono' ? 'phone' : (key === 'Email' ? 'email' : 'name')] : null);
+            if (hasFieldChanged(val, origVal)) {
+                fields[key] = val;
+            }
+        }
     } else if (type === 'estudio') {
-        fields = {
+        const originalRecord = currentRecords.find(r => r.id === id);
+        const origFields = originalRecord ? (originalRecord.fields || {}) : {};
+        
+        const newFields = {
             'Edad sim': parseInt(document.getElementById('field_edad_sim').value) || null,
             'Tipo trabajo sim': document.getElementById('field_tipo_trabajo_sim').value || null,
             'Antiguedad sim': parseInt(document.getElementById('field_antiguedad_sim').value) || null,
@@ -353,6 +373,18 @@ async function saveRecordChanges(event) {
             'Provincia': document.getElementById('field_provincia').value || null,
             'Tipo prestamo': document.getElementById('field_tipo_prestamo').value || null
         };
+        
+        for (const [key, val] of Object.entries(newFields)) {
+            if (hasFieldChanged(val, origFields[key])) {
+                fields[key] = val;
+            }
+        }
+    }
+    
+    if (Object.keys(fields).length === 0) {
+        alert('No se detectaron cambios para guardar.');
+        closeEditModal();
+        return;
     }
     
     const originalText = btn.textContent;
@@ -373,7 +405,15 @@ async function saveRecordChanges(event) {
             body: JSON.stringify({ type, id, fields })
         });
         
-        const responseData = await response.json();
+        let responseData = {};
+        const responseText = await response.text();
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (e) {
+            console.error("Non-JSON response from server:", responseText);
+            throw new Error(`Error del servidor (${response.status}): El servidor tardó demasiado en responder (Timeout) o devolvió un formato no válido.`);
+        }
+        
         if (!response.ok) {
             throw new Error(responseData.details || responseData.error || 'Error al guardar los cambios');
         }
