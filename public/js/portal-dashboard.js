@@ -88,8 +88,14 @@ async function loadDashboardData() {
         
         // Update UI
         const displayName = (data.user.name || user.email.split('@')[0]).trim();
-        userNameEl.textContent = displayName;
         currentUserFranquiciadoId = data.user.id || null;
+        if (currentUserFranquiciadoId) {
+            localStorage.setItem('currentUserFranquiciadoId', currentUserFranquiciadoId);
+            localStorage.setItem('currentUserEmail', data.user.email);
+        } else {
+            localStorage.removeItem('currentUserFranquiciadoId');
+            localStorage.removeItem('currentUserEmail');
+        }
         
         let roleDisplay = 'Cliente';
         if (data.user.role === 'associate') roleDisplay = 'Asociado AKIA';

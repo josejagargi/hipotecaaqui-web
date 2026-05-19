@@ -113,6 +113,9 @@ window.sendPasswordReset = async function(email) {
 // ─── Logout ────────────────────────────────────────────────────────────────────
 window.logout = async function() {
     try {
+        localStorage.removeItem('currentUserFranquiciadoId');
+        localStorage.removeItem('currentUserEmail');
+        localStorage.removeItem('portal_role');
         await auth.signOut();
         window.location.href = 'login.html';
     } catch (error) {

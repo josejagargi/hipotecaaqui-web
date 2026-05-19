@@ -199,7 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 delete data['Tipo vivienda'];
                 delete data['Localidad inmueble'];
                 delete data['CP Localidad'];
-                delete data['Tipo prestamo'];
+            }
+
+            // Associate Franchisee automatically if logged in on the same browser session
+            const loggedInFranquiciadoId = localStorage.getItem('currentUserFranquiciadoId');
+            if (loggedInFranquiciadoId) {
+                data['Franquiciados'] = [loggedInFranquiciadoId];
             }
 
             try {
