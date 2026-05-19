@@ -42,25 +42,9 @@ exports.handler = async (event, context) => {
       contactId = existingContacts[0].id;
       contactFranquiciados = existingContacts[0].fields['Franquiciados'] || null;
       console.log('Existing contact found:', contactId, 'linked Franquiciados:', contactFranquiciados);
-    } else {
-      // Crear nuevo contacto
-      const contactFields = {
-        'Nombre y apellidos': nombre,
-        'Email': email,
-      };
-      if (telefono) contactFields['Telefono'] = String(telefono);
-      
-      const newContact = await base('Contacts').create(contactFields);
-      contactId = newContact.id;
-      console.log('New contact created:', contactId);
     }
 
-    // 2. Crear el registro de Hipoteca con mapeo explícito
-    const hipotecaFields = {
-      'Contact': [contactId],
-    };
-
-    // Determine the Franquiciados link
+    // Determine the Franquiciados link BEFORE creating/updating the contact
     let resolvedFranquiciados = null;
     
     // A. Use Franquiciados sent from the frontend payload
@@ -72,21 +56,40 @@ exports.handler = async (event, context) => {
       resolvedFranquiciados = contactFranquiciados;
     }
 
-    if (resolvedFranquiciados) {
-      hipotecaFields['Franquiciados'] = resolvedFranquiciados;
+    if (!contactId) {
+      // Crear nuevo contacto incluyendo el Franquiciado de forma síncrona
+      const contactFields = {
+        'Nombre y apellidos': nombre,
+        'Email': email,
+      };
+      if (telefono) contactFields['Telefono'] = String(telefono);
+      if (resolvedFranquiciados) contactFields['Franquiciados'] = resolvedFranquiciados;
       
-      // Sync back to Contact if it doesn't have the link yet
-      if (!contactFranquiciados || contactFranquiciados.length === 0) {
+      const newContact = await base('Contacts').create(contactFields);
+      contactId = newContact.id;
+      console.log('New contact created with Franquiciados:', contactId, resolvedFranquiciados);
+    } else {
+      // Sincronizar Franquiciado si el contacto existente no lo tiene enlazado todavía
+      if (resolvedFranquiciados && (!contactFranquiciados || contactFranquiciados.length === 0)) {
         try {
           await base('Contacts').update(contactId, {
             'Franquiciados': resolvedFranquiciados
           });
-          console.log(`Successfully synced Contact ${contactId} to Franquiciados ${resolvedFranquiciados}`);
+          console.log(`Successfully synced existing Contact ${contactId} to Franquiciados ${resolvedFranquiciados}`);
         } catch (err) {
-          console.error('Failed to sync Contact to Franquiciados:', err);
+          console.error('Failed to sync existing Contact to Franquiciados:', err);
         }
       }
     }
+
+    // 2. Preparar el registro de Hipoteca
+    const hipotecaFields = {
+      'Contact': [contactId],
+    };
+    if (resolvedFranquiciados) {
+      hipotecaFields['Franquiciados'] = resolvedFranquiciados;
+    }
+
 
     // --- Campos numéricos ---
     hipotecaFields['Edad sim']                  = parseInt(data['Edad sim']) || 0;
@@ -125,6 +128,24 @@ exports.handler = async (event, context) => {
     console.log('Sending fields to Hipoteca:', JSON.stringify(hipotecaFields, null, 2));
 
     const hipotecaRecord = await base('Hipoteca').create(hipotecaFields);
+    console.log('Hipoteca record created:', hipotecaRecord.id);
+
+    // Post-creation patch update to guarantee Airtable links the Franquiciados field.
+    // We wait 2.5 seconds to let any background Airtable automations complete,
+    // ensuring we force-link the correct Franchisee permanently.
+    if (resolvedFranquiciados && resolvedFranquiciados.length > 0) {
+      try {
+        console.log(`Waiting 2.5 seconds for background automations to complete before patching Hipoteca...`);
+        await new Promise(resolve => setTimeout(resolve, 2500));
+        
+        await base('Hipoteca').update(hipotecaRecord.id, {
+          'Franquiciados': resolvedFranquiciados
+        });
+        console.log(`Successfully patched Hipoteca record ${hipotecaRecord.id} with Franquiciados:`, resolvedFranquiciados);
+      } catch (err) {
+        console.error(`Failed to patch Hipoteca record ${hipotecaRecord.id} with Franquiciados:`, err);
+      }
+    }
 
     return {
       statusCode: 200,
