@@ -230,7 +230,6 @@ function openEditModal(type, id) {
         const tipoInmuebleOpts = ['Piso', 'Casa/Chalet', 'Ático', 'Dúplex', 'Local comercial', 'Terreno', 'Otros'];
         const estadoInmuebleOpts = ['Obra nueva', 'Segunda mano', 'A reformar'];
         const finalidadOpts = ['Vivienda habitual', 'Segunda residencia', 'Inversión'];
-        const tipoContratoOpts = ['Indefinido', 'Temporal', 'Autónomo', 'Funcionario', 'Otros'];
         
         const tipoTrabajoOpts = ['Cuenta ajena', 'Funcionario', 'Autonomo', 'Fijo discontinuo'];
         const pagasT1Opts = ['12', '14', '15'];
@@ -247,8 +246,6 @@ function openEditModal(type, id) {
             ${generateFormGroup('Años Antigüedad T1', 'field_antiguedad_sim', 'number', f['Antiguedad sim'])}
             ${generateFormGroup('Ingresos mensuales T1 (€)', 'field_ingresos_t1', 'number', f['Ingresos titular 1'])}
             ${generateFormGroup('Nº pagas T1', 'field_pagas_t1', 'select', f['Num pagas T1'], pagasT1Opts)}
-            ${generateFormGroup('Ingresos mensuales (Airtable-Alt) (€)', 'field_ingresos_mensuales', 'number', f['Ingresos mensuales'])}
-            ${generateFormGroup('Tipo de contrato (Airtable-Alt)', 'field_tipo_contrato', 'select', f['Tipo de contrato'], tipoContratoOpts)}
 
             <!-- Titular 2 -->
             <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 2 (Opcional)</h4></div>
@@ -355,8 +352,6 @@ async function saveRecordChanges(event) {
             'Antiguedad sim': getNumberFromInput('field_antiguedad_sim', true),
             'Ingresos titular 1': getNumberFromInput('field_ingresos_t1'),
             'Num pagas T1': getNumberFromInput('field_pagas_t1', true),
-            'Ingresos mensuales': getNumberFromInput('field_ingresos_mensuales'),
-            'Tipo de contrato': document.getElementById('field_tipo_contrato').value || null,
 
             'Ingresos titular 2': getNumberFromInput('field_ingresos_t2'),
             'Tipo trabajo T2': document.getElementById('field_tipo_trabajo_t2').value || null,
