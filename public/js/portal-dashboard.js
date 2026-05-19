@@ -117,19 +117,19 @@ async function loadDashboardData() {
         }
 
         const rowsHTML = data.records.map(record => `
-            <tr>
+            <tr style="cursor: pointer;" onclick="if (!event.target.closest('button')) openEditModal('estudio', '${record.id}')">
                 <td>${new Date(record.created).toLocaleDateString()}</td>
                 <td>${record.contactName || 'N/A'}</td>
                 <td>${record.loanType || 'Hipotecario'}</td>
                 <td>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem;">
                         <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
-                        <button class="btn" style="padding: 0.15rem 0.5rem; font-size: 0.7rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="openViabilityModal('${record.id}')">
+                        <button class="btn" style="padding: 0.15rem 0.5rem; font-size: 0.7rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="event.stopPropagation(); openViabilityModal('${record.id}')">
                             <i class="fas fa-traffic-light"></i> Viabilidad
                         </button>
                     </div>
                 </td>
-                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
+                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="event.stopPropagation(); openEditModal('estudio', '${record.id}')">Detalles</button></td>
             </tr>
         `).join('');
         
@@ -244,6 +244,47 @@ function openEditModal(type, id) {
         const tipoPrestamoOpts = ['Hipotecario', 'ICO', 'Autopromocion', 'Hipoteca no residente'];
 
         fieldsContainer.innerHTML = `
+            <!-- ANALISIS DE VIABILIDAD (Dashboard Premium en Detalles) -->
+            <div style="grid-column: span 2; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; box-sizing: border-box; width: 100%; margin-bottom: 1.5rem;">
+                <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-traffic-light" style="color: var(--secondary); font-size: 1.2rem;"></i>
+                    <h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif; margin: 0; font-size: 1.1rem;">Análisis de Viabilidad (Calculado)</h4>
+                </div>
+                
+                <!-- Viabilidad & Estabilidad -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; box-sizing: border-box;">
+                    ${renderViabilitySummary(f['Viabilidad'], f['Estabilidad conjunta'])}
+                </div>
+
+                <!-- Métricas Financieras -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; box-sizing: border-box;">
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">Cuota Scoring</span>
+                        <span style="font-size: 1.1rem; font-weight: 800; color: var(--primary); font-family: 'Inter', sans-serif;">${formatCurrency(f['Cuota scoring'])}</span>
+                    </div>
+                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0.8rem 1rem; display: flex; flex-direction: column; gap: 0.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                        <span style="font-size: 0.75rem; color: #64748b; font-weight: 700; font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">Cuota Máx. Endeudamiento</span>
+                        <span style="font-size: 1.1rem; font-weight: 800; color: var(--primary); font-family: 'Inter', sans-serif;">${formatCurrency(f['Cuota maxima endeudamiento'])}</span>
+                    </div>
+                </div>
+
+                <!-- Esfuerzo & Financiacion -->
+                <div style="display: flex; flex-direction: column; gap: 0.8rem; width: 100%; box-sizing: border-box;">
+                    ${renderProgressBar('Esfuerzo Mensual', f['Esfuerzo mensual'], true)}
+                    ${renderProgressBar('% Financiación Solicitada', f['% a financiar'], false)}
+                </div>
+
+                <!-- Semáforos de Riesgo -->
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; width: 100%; box-sizing: border-box;">
+                    <span style="font-size: 0.8rem; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.2rem;">Semáforos de Riesgo</span>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; width: 100%; box-sizing: border-box;">
+                        ${renderSemaforoCard('Estabilidad Laboral', f['SemaforoEstabilidad'])}
+                        ${renderSemaforoCard('Nivel de Esfuerzo', f['SemaforoEsfuerzo'])}
+                        ${renderSemaforoCard('Gasto Imprevisto T2', f['Semafor20masgatos'])}
+                    </div>
+                </div>
+            </div>
+
             <!-- Titular 1 -->
             <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 1</h4></div>
             ${generateFormGroup('Edad Titular 1', 'field_edad_sim', 'number', f['Edad sim'])}
