@@ -443,6 +443,9 @@
 (function () {
     const params = new URLSearchParams(window.location.search);
     const refCode = params.get('ref');
+    const apiBase = window.location.protocol === 'file:' 
+        ? 'https://hipotecaaqui-draft-javi.netlify.app' 
+        : '';
 
     // Show referrer info badge
     if (refCode) {
@@ -454,7 +457,7 @@
         if (badgeText) badgeText.textContent = 'Recomendado por un amigo especial';
 
         // Dynamically fetch and display the actual referrer's name!
-        fetch(`/.netlify/functions/submit-referral?ref=${encodeURIComponent(refCode)}`)
+        fetch(`${apiBase}/.netlify/functions/submit-referral?ref=${encodeURIComponent(refCode)}`)
             .then(res => res.json())
             .then(data => {
                 if (data && data.success && data.name) {
@@ -497,7 +500,7 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
         try {
-            const res = await fetch('/.netlify/functions/submit-referral', {
+            const res = await fetch(`${apiBase}/.netlify/functions/submit-referral`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nombre, email, telefono, refCode: refCode || null })
