@@ -157,10 +157,8 @@ exports.handler = async (event) => {
         // 3. Create the lead in Contacts table
         const newContactFields = {
             'Nombre y apellidos': sanitize(nombre),
-            'Nombre': sanitize(nombre),
             'Email': sanitize(email),
             'Telefono': sanitize(telefono),
-            'Estado': 'Pendiente',
             'Consentimiento': true
         };
 
