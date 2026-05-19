@@ -101,6 +101,7 @@ async function loadDashboardData() {
         if (data.user.role === 'associate') roleDisplay = 'Asociado AKIA';
         if (data.user.role === 'admin') roleDisplay = 'Administrador';
         userRoleEl.textContent = roleDisplay;
+        if (userNameEl) userNameEl.textContent = displayName;
         
         document.getElementById('userInitial').textContent = (displayName.charAt(0) || 'U').toUpperCase();
 
