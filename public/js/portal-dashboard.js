@@ -232,15 +232,51 @@ function openEditModal(type, id) {
         const finalidadOpts = ['Vivienda habitual', 'Segunda residencia', 'Inversión'];
         const tipoContratoOpts = ['Indefinido', 'Temporal', 'Autónomo', 'Funcionario', 'Otros'];
         
+        const tipoTrabajoOpts = ['Cuenta ajena', 'Funcionario', 'Autonomo', 'Fijo discontinuo'];
+        const pagasT1Opts = ['12', '14', '15'];
+        const pagasT2Opts = ['12', '14'];
+        const propiedadEncontradaOpts = ['Buscando', 'Si, no reservada', 'Si, reservada'];
+        const tipoViviendaOpts = ['Nueva', 'Segunda mano'];
+        const tipoPrestamoOpts = ['Hipotecario', 'ICO', 'Autopromocion', 'Hipoteca no residente'];
+
         fieldsContainer.innerHTML = `
+            <!-- Titular 1 -->
+            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 1</h4></div>
+            ${generateFormGroup('Edad Titular 1', 'field_edad_sim', 'number', f['Edad sim'] || '')}
+            ${generateFormGroup('Tipo de trabajo T1', 'field_tipo_trabajo_sim', 'select', f['Tipo trabajo sim'], tipoTrabajoOpts)}
+            ${generateFormGroup('Años Antigüedad T1', 'field_antiguedad_sim', 'number', f['Antiguedad sim'] || '')}
+            ${generateFormGroup('Ingresos mensuales T1 (€)', 'field_ingresos_t1', 'number', f['Ingresos titular 1'] || '')}
+            ${generateFormGroup('Nº pagas T1', 'field_pagas_t1', 'select', f['Num pagas T1'], pagasT1Opts)}
+            ${generateFormGroup('Ingresos mensuales (Airtable-Alt) (€)', 'field_ingresos_mensuales', 'number', f['Ingresos mensuales'] || '')}
+            ${generateFormGroup('Tipo de contrato (Airtable-Alt)', 'field_tipo_contrato', 'select', f['Tipo de contrato'], tipoContratoOpts)}
+
+            <!-- Titular 2 -->
+            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 2 (Opcional)</h4></div>
+            ${generateFormGroup('Ingresos mensuales T2 (€)', 'field_ingresos_t2', 'number', f['Ingresos titular 2'] || '')}
+            ${generateFormGroup('Tipo de trabajo T2', 'field_tipo_trabajo_t2', 'select', f['Tipo trabajo T2'], tipoTrabajoOpts)}
+            ${generateFormGroup('Nº pagas T2', 'field_pagas_t2', 'select', f['Num pagas T2'], pagasT2Opts)}
+            ${generateFormGroup('Años Antigüedad T2', 'field_antiguedad_t2', 'number', f['Antiguedad T2'] || '')}
+
+            <!-- Información Financiera -->
+            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Información Financiera</h4></div>
+            ${generateFormGroup('Otros préstamos mensuales (€)', 'field_otros_prestamos', 'number', f['Otros prestamos mensuales'] || '')}
+            ${generateFormGroup('Capital pendiente devolución (€)', 'field_capital_pendiente', 'number', f['Capital pendiente'] || '')}
+            ${generateFormGroup('Ahorros disponibles (€)', 'field_ahorros', 'number', f['Ahorros'] || '')}
+            ${generateFormGroup('Aportación (€)', 'field_aportacion', 'number', f['Aportación'] || '')}
+
+            <!-- Propiedad y Préstamo -->
+            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Detalles de la Propiedad y Préstamo</h4></div>
+            ${generateFormGroup('¿Habéis encontrado propiedad?', 'field_encontrado_propiedad', 'select', f['Habeis encontrado propiedad'], propiedadEncontradaOpts)}
+            ${generateFormGroup('Precio del inmueble (€)', 'field_precio_inmueble', 'number', f['Precio del inmueble'] || '')}
+            ${generateFormGroup('Precio de compra (€)', 'field_precio_compra', 'number', f['Precio de compra'] || '')}
             ${generateFormGroup('Tipo de inmueble', 'field_tipo_inmueble', 'select', f['Tipo de inmueble'], tipoInmuebleOpts)}
             ${generateFormGroup('Estado del inmueble', 'field_estado_inmueble', 'select', f['Estado del inmueble'], estadoInmuebleOpts)}
-            ${generateFormGroup('Precio de compra (€)', 'field_precio_compra', 'number', f['Precio de compra'] || '')}
-            ${generateFormGroup('Aportación (€)', 'field_aportacion', 'number', f['Aportación'] || '')}
             ${generateFormGroup('Finalidad', 'field_finalidad', 'select', f['Finalidad'], finalidadOpts)}
+            ${generateFormGroup('Tipo vivienda', 'field_tipo_vivienda', 'select', f['Tipo vivienda'], tipoViviendaOpts)}
+            ${generateFormGroup('Localidad inmueble', 'field_localidad_inmueble', 'text', f['Localidad inmueble'] || '')}
+            ${generateFormGroup('CP Localidad', 'field_cp_localidad', 'text', f['CP Localidad'] || '')}
             ${generateFormGroup('Provincia', 'field_provincia', 'text', f['Provincia'] || '')}
-            ${generateFormGroup('Ingresos mensuales (€)', 'field_ingresos_mensuales', 'number', f['Ingresos mensuales'] || '')}
-            ${generateFormGroup('Tipo de contrato', 'field_tipo_contrato', 'select', f['Tipo de contrato'], tipoContratoOpts)}
+            ${generateFormGroup('Tipo préstamo', 'field_tipo_prestamo', 'select', f['Tipo prestamo'], tipoPrestamoOpts)}
         `;
     }
     
@@ -287,14 +323,35 @@ async function saveRecordChanges(event) {
         };
     } else if (type === 'estudio') {
         fields = {
+            'Edad sim': parseInt(document.getElementById('field_edad_sim').value) || null,
+            'Tipo trabajo sim': document.getElementById('field_tipo_trabajo_sim').value || null,
+            'Antiguedad sim': parseInt(document.getElementById('field_antiguedad_sim').value) || null,
+            'Ingresos titular 1': parseFloat(document.getElementById('field_ingresos_t1').value) || null,
+            'Num pagas T1': document.getElementById('field_pagas_t1').value || null,
+            'Ingresos mensuales': parseFloat(document.getElementById('field_ingresos_mensuales').value) || null,
+            'Tipo de contrato': document.getElementById('field_tipo_contrato').value || null,
+
+            'Ingresos titular 2': parseFloat(document.getElementById('field_ingresos_t2').value) || null,
+            'Tipo trabajo T2': document.getElementById('field_tipo_trabajo_t2').value || null,
+            'Num pagas T2': document.getElementById('field_pagas_t2').value || null,
+            'Antiguedad T2': parseInt(document.getElementById('field_antiguedad_t2').value) || null,
+
+            'Otros prestamos mensuales': parseFloat(document.getElementById('field_otros_prestamos').value) || null,
+            'Capital pendiente': parseFloat(document.getElementById('field_capital_pendiente').value) || null,
+            'Ahorros': parseFloat(document.getElementById('field_ahorros').value) || null,
+            'Aportación': parseFloat(document.getElementById('field_aportacion').value) || null,
+
+            'Habeis encontrado propiedad': document.getElementById('field_encontrado_propiedad').value || null,
+            'Precio del inmueble': parseFloat(document.getElementById('field_precio_inmueble').value) || null,
+            'Precio de compra': parseFloat(document.getElementById('field_precio_compra').value) || null,
             'Tipo de inmueble': document.getElementById('field_tipo_inmueble').value || null,
             'Estado del inmueble': document.getElementById('field_estado_inmueble').value || null,
-            'Precio de compra': parseFloat(document.getElementById('field_precio_compra').value) || null,
-            'Aportación': parseFloat(document.getElementById('field_aportacion').value) || null,
             'Finalidad': document.getElementById('field_finalidad').value || null,
+            'Tipo vivienda': document.getElementById('field_tipo_vivienda').value || null,
+            'Localidad inmueble': document.getElementById('field_localidad_inmueble').value || null,
+            'CP Localidad': document.getElementById('field_cp_localidad').value || null,
             'Provincia': document.getElementById('field_provincia').value || null,
-            'Ingresos mensuales': parseFloat(document.getElementById('field_ingresos_mensuales').value) || null,
-            'Tipo de contrato': document.getElementById('field_tipo_contrato').value || null
+            'Tipo prestamo': document.getElementById('field_tipo_prestamo').value || null
         };
     }
     
