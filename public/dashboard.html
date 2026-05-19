@@ -218,6 +218,29 @@
         </div>
     </div>
 
+    <!-- Edit Modal Overlay -->
+    <div id="editModalOverlay" class="edit-modal-overlay">
+        <div class="edit-modal-card">
+            <div class="edit-modal-header">
+                <h3 id="editModalTitle">Editar Registro</h3>
+                <button type="button" class="edit-modal-close" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="editRecordForm" onsubmit="saveRecordChanges(event)">
+                <input type="hidden" id="editRecordType">
+                <input type="hidden" id="editRecordId">
+                <div class="edit-modal-body">
+                    <div id="editFormFields" class="edit-form-grid">
+                        <!-- Dynamic fields will be injected here -->
+                    </div>
+                </div>
+                <div class="edit-modal-footer">
+                    <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.2rem;" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" id="btnSaveRecord" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>

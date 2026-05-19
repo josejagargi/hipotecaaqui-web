@@ -1,3 +1,6 @@
+let currentRecords = [];
+let currentContacts = [];
+
 async function loadDashboardData() {
     const user = firebase.auth().currentUser;
     if (!user) return;
@@ -103,6 +106,9 @@ async function loadDashboardData() {
         approvedRecordsEl.textContent = data.records.filter(r => r.status === 'Aprobado').length;
 
         // Table
+        currentRecords = data.records || [];
+        currentContacts = data.contacts || [];
+
         if (data.records.length === 0) {
             const emptyRow = '<tr><td colspan="5" style="text-align: center; padding: 3rem;">No se encontraron registros vinculados a tu cuenta.</td></tr>';
             recordsBody.innerHTML = emptyRow;
@@ -116,7 +122,7 @@ async function loadDashboardData() {
                 <td>${record.contactName || 'N/A'}</td>
                 <td>${record.loanType || 'Hipotecario'}</td>
                 <td><span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span></td>
-                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="alert('Funcionalidad en desarrollo para abrir el registro ${record.id}')">Detalles</button></td>
+                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
             </tr>
         `).join('');
         
@@ -134,7 +140,7 @@ async function loadDashboardData() {
                         <td>${contact.name}</td>
                         <td>${contact.email}</td>
                         <td>${contact.phone}</td>
-                        <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="alert('Detalles de ${contact.name}')">Ver</button></td>
+                        <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('contact', '${contact.id}')">Detalles</button></td>
                     </tr>
                 `).join('');
             }
@@ -182,6 +188,143 @@ async function updateProfile(event) {
     } catch (error) {
         console.error("Error updating profile:", error);
         alert(error.message);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+// ── Edit Modal Functions ──────────────────────────────────────────────────────
+
+function openEditModal(type, id) {
+    const modalOverlay = document.getElementById('editModalOverlay');
+    const modalTitle = document.getElementById('editModalTitle');
+    const recordTypeInput = document.getElementById('editRecordType');
+    const recordIdInput = document.getElementById('editRecordId');
+    const fieldsContainer = document.getElementById('editFormFields');
+    
+    if (!modalOverlay || !fieldsContainer) return;
+    
+    recordTypeInput.value = type;
+    recordIdInput.value = id;
+    fieldsContainer.innerHTML = '';
+    
+    if (type === 'contact') {
+        modalTitle.textContent = 'Editar Contacto';
+        const contact = currentContacts.find(c => c.id === id);
+        if (!contact) return;
+        
+        const f = contact.fields || {};
+        fieldsContainer.innerHTML = `
+            ${generateFormGroup('Nombre y apellidos', 'field_name', 'text', f['Nombre y apellidos'] || contact.name)}
+            ${generateFormGroup('Email', 'field_email', 'email', f['Email'] || contact.email)}
+            ${generateFormGroup('Teléfono', 'field_phone', 'tel', f['Telefono'] || contact.phone)}
+        `;
+    } else if (type === 'estudio') {
+        modalTitle.textContent = 'Editar Estudio Hipotecario';
+        const record = currentRecords.find(r => r.id === id);
+        if (!record) return;
+        
+        const f = record.fields || {};
+        
+        const tipoInmuebleOpts = ['Piso', 'Casa/Chalet', 'Ático', 'Dúplex', 'Local comercial', 'Terreno', 'Otros'];
+        const estadoInmuebleOpts = ['Obra nueva', 'Segunda mano', 'A reformar'];
+        const finalidadOpts = ['Vivienda habitual', 'Segunda residencia', 'Inversión'];
+        const tipoContratoOpts = ['Indefinido', 'Temporal', 'Autónomo', 'Funcionario', 'Otros'];
+        
+        fieldsContainer.innerHTML = `
+            ${generateFormGroup('Tipo de inmueble', 'field_tipo_inmueble', 'select', f['Tipo de inmueble'], tipoInmuebleOpts)}
+            ${generateFormGroup('Estado del inmueble', 'field_estado_inmueble', 'select', f['Estado del inmueble'], estadoInmuebleOpts)}
+            ${generateFormGroup('Precio de compra (€)', 'field_precio_compra', 'number', f['Precio de compra'] || '')}
+            ${generateFormGroup('Aportación (€)', 'field_aportacion', 'number', f['Aportación'] || '')}
+            ${generateFormGroup('Finalidad', 'field_finalidad', 'select', f['Finalidad'], finalidadOpts)}
+            ${generateFormGroup('Provincia', 'field_provincia', 'text', f['Provincia'] || '')}
+            ${generateFormGroup('Ingresos mensuales (€)', 'field_ingresos_mensuales', 'number', f['Ingresos mensuales'] || '')}
+            ${generateFormGroup('Tipo de contrato', 'field_tipo_contrato', 'select', f['Tipo de contrato'], tipoContratoOpts)}
+        `;
+    }
+    
+    modalOverlay.classList.add('active');
+}
+
+function generateFormGroup(label, id, type, value, options = null) {
+    let inputHTML = '';
+    if (type === 'select' && options) {
+        inputHTML = `<select id="${id}" class="form-control" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; background: white; color: var(--primary);">
+            <option value="" ${!value ? 'selected' : ''}>-- Seleccionar --</option>
+            ${options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`).join('')}
+        </select>`;
+    } else {
+        inputHTML = `<input type="${type}" id="${id}" class="form-control" value="${value || ''}" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary);">`;
+    }
+    return `
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="font-weight: 600; color: #475569; font-size: 0.88rem; text-align: left;">${label}</label>
+            ${inputHTML}
+        </div>
+    `;
+}
+
+function closeEditModal() {
+    const modalOverlay = document.getElementById('editModalOverlay');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('active');
+    }
+}
+
+async function saveRecordChanges(event) {
+    event.preventDefault();
+    const type = document.getElementById('editRecordType').value;
+    const id = document.getElementById('editRecordId').value;
+    const btn = document.getElementById('btnSaveRecord');
+    
+    let fields = {};
+    if (type === 'contact') {
+        fields = {
+            'Nombre y apellidos': document.getElementById('field_name').value,
+            'Email': document.getElementById('field_email').value,
+            'Telefono': document.getElementById('field_phone').value
+        };
+    } else if (type === 'estudio') {
+        fields = {
+            'Tipo de inmueble': document.getElementById('field_tipo_inmueble').value || null,
+            'Estado del inmueble': document.getElementById('field_estado_inmueble').value || null,
+            'Precio de compra': parseFloat(document.getElementById('field_precio_compra').value) || null,
+            'Aportación': parseFloat(document.getElementById('field_aportacion').value) || null,
+            'Finalidad': document.getElementById('field_finalidad').value || null,
+            'Provincia': document.getElementById('field_provincia').value || null,
+            'Ingresos mensuales': parseFloat(document.getElementById('field_ingresos_mensuales').value) || null,
+            'Tipo de contrato': document.getElementById('field_tipo_contrato').value || null
+        };
+    }
+    
+    const originalText = btn.textContent;
+    btn.textContent = 'Guardando...';
+    btn.disabled = true;
+    
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) throw new Error('No estás autenticado');
+        const token = await user.getIdToken();
+        
+        const response = await fetch('/.netlify/functions/update-portal-record', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ type, id, fields })
+        });
+        
+        const responseData = await response.json();
+        if (!response.ok) throw new Error(responseData.error || 'Error al guardar los cambios');
+        
+        alert('Cambios guardados con éxito en Airtable');
+        closeEditModal();
+        loadDashboardData(); // Refresh the grid!
+    } catch (err) {
+        console.error("Error saving changes:", err);
+        alert('Error: ' + err.message);
     } finally {
         btn.textContent = originalText;
         btn.disabled = false;

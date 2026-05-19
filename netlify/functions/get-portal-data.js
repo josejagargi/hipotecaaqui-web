@@ -133,7 +133,8 @@ exports.handler = async (event, context) => {
       contactName: (r.fields['Nombre y apellidos (from Contact)'] || ['N/A'])[0],
       loanType: r.fields['Tipo prestamo'] || 'Hipotecario',
       status: r.fields['OPER - Status'] || r.fields['Etapa'] || 'Pendiente',
-      amount: r.fields['Importe a financiar scoring'] || r.fields['Importe a financiar auto'] || null
+      amount: r.fields['Importe a financiar scoring'] || r.fields['Importe a financiar auto'] || null,
+      fields: r.fields
     }));
 
     // ── 4. Fetch contacts (for Admin or Associate) ───────────────────────────
@@ -160,7 +161,8 @@ exports.handler = async (event, context) => {
         id: c.id,
         name: c.fields['Nombre y apellidos'] || 'Sin nombre',
         email: c.fields['Email'] || 'Sin email',
-        phone: c.fields['Telefono'] || 'Sin teléfono'
+        phone: c.fields['Telefono'] || 'Sin teléfono',
+        fields: c.fields
       }));
     }
 
