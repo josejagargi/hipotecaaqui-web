@@ -72,14 +72,27 @@ exports.handler = async (event, context) => {
       clientRes.json()
     ]);
 
-    const existsInFranquiciados = assocData.records && assocData.records.length > 0;
+    let existsInFranquiciados = (assocData.records && assocData.records.length > 0) || (userEmail.toLowerCase() === 'josejagargi@gmail.com');
     const existsInContacts = clientData.records && clientData.records.length > 0;
 
+    let assocRecordId = null;
+
     if (existsInFranquiciados) {
-      const recordFields = assocData.records[0].fields;
+      let recordFields = {};
+      if (assocData.records && assocData.records.length > 0) {
+        recordFields = assocData.records[0].fields;
+        assocRecordId = assocData.records[0].id;
+      } else if (userEmail.toLowerCase() === 'josejagargi@gmail.com') {
+        // Fallback for Developer's test email to his Franquiciados record ID
+        assocRecordId = 'recjHrWME10syakFk';
+        recordFields = {
+          'Nombre franquiciado': 'Javi franquiciado',
+          'Rol': 'Administrador'
+        };
+      }
       role = recordFields['Rol'] === 'Administrador' ? 'admin' : 'associate';
       userName = recordFields['Nombre franquiciado'] || recordFields['Nombre y apellidos del representante'] || recordFields['Nombre comunicaciones'] || '';
-      console.log(`[DEBUG] Found associate/admin record. ID: ${assocData.records[0].id}, Role: ${role}, Name: ${userName}`);
+      console.log(`[DEBUG] Found associate/admin record. ID: ${assocRecordId}, Role: ${role}, Name: ${userName}`);
     } else if (existsInContacts) {
       userName = clientData.records[0].fields['Nombre y apellidos'] || '';
       console.log(`[DEBUG] Found client record. ID: ${clientData.records[0].id}, Name: [${userName}]`);
@@ -109,8 +122,13 @@ exports.handler = async (event, context) => {
       // Admins see all records
       console.log(`[DEBUG] Role is admin, fetching all Hipoteca records.`);
     } else if (role === 'associate') {
-      filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email franquiciado} & "")) > 0`);
-      console.log(`[DEBUG] Role is associate, filtering Hipoteca by email franquiciado.`);
+      const emails = [userEmail];
+      if (userEmail.toLowerCase() === 'josejagargi@gmail.com') {
+        emails.push('javiergarciaginer@outlook.com');
+      }
+      const emailConditions = emails.map(email => `FIND(LOWER("${email}"), LOWER({email franquiciado} & "")) > 0`).join(', ');
+      filterFormula = encodeURIComponent(`OR(${emailConditions})`);
+      console.log(`[DEBUG] Role is associate, filtering Hipoteca by email conditions: ${emails.join(', ')}.`);
     } else {
       // Client role: use FIND on the lookup field 'email contacto'
       filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email contacto} & "")) > 0`);
@@ -166,10 +184,7 @@ exports.handler = async (event, context) => {
       }));
     }
 
-    console.log(`Returning data for ${userEmail}: ${records.length} records found.`);
-    const assocRecordId = existsInFranquiciados && assocData.records && assocData.records.length > 0
-      ? assocData.records[0].id
-      : null;
+    console.log(`Returning data for ${userEmail}: ${records.length} records found. ID: ${assocRecordId}`);
 
     return {
       statusCode: 200,
