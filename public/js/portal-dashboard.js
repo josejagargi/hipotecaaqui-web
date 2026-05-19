@@ -121,7 +121,14 @@ async function loadDashboardData() {
                 <td>${new Date(record.created).toLocaleDateString()}</td>
                 <td>${record.contactName || 'N/A'}</td>
                 <td>${record.loanType || 'Hipotecario'}</td>
-                <td><span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span></td>
+                <td>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.4rem;">
+                        <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
+                        <button class="btn" style="padding: 0.15rem 0.5rem; font-size: 0.7rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="openViabilityModal('${record.id}')">
+                            <i class="fas fa-traffic-light"></i> Viabilidad
+                        </button>
+                    </div>
+                </td>
                 <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
             </tr>
         `).join('');
@@ -417,6 +424,268 @@ async function saveRecordChanges(event) {
     } finally {
         btn.textContent = originalText;
         btn.disabled = false;
+    }
+}
+
+// ── Viability Modal Functions ──────────────────────────────────────────────────
+
+function formatCurrency(value) {
+    if (value === undefined || value === null) return 'N/D';
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
+}
+
+function renderSemaforoCard(label, val) {
+    let color = '#94a3b8'; // neutral Slate
+    let text = 'N/D';
+    
+    if (val) {
+        const valStr = String(val).toLowerCase();
+        if (valStr.includes('🟢') || valStr.includes('verde') || valStr.includes('green') || valStr.includes('viable') || valStr.includes('alta') || valStr.includes('estable')) {
+            color = '#10b981'; // emerald green
+            text = String(val).replace('🟢', '').trim() || 'Verde';
+        } else if (valStr.includes('🟡') || valStr.includes('🟠') || valStr.includes('naranja') || valStr.includes('orange') || valStr.includes('amarillo') || valStr.includes('yellow') || valStr.includes('media')) {
+            color = '#f59e0b'; // amber orange
+            text = String(val).replace(/[🟡🟠]/g, '').trim() || 'Naranja';
+        } else if (valStr.includes('🔴') || valStr.includes('rojo') || valStr.includes('red') || valStr.includes('baja') || valStr.includes('no viable') || valStr.includes('critico')) {
+            color = '#ef4444'; // red
+            text = String(val).replace('🔴', '').trim() || 'Rojo';
+        } else {
+            text = String(val);
+        }
+    }
+    
+    // Capitalize first letter
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+    
+    return `
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; text-align: center;">
+            <span style="font-size: 0.8rem; color: #64748b; font-weight: 700; font-family: 'Inter', sans-serif;">${label}</span>
+            <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 1rem; font-weight: 800; color: ${color}; font-family: 'Inter', sans-serif;">
+                <span style="width: 12px; height: 12px; border-radius: 50%; background: ${color}; box-shadow: 0 0 10px ${color}; display: inline-block;"></span>
+                <span>${text}</span>
+            </div>
+        </div>
+    `;
+}
+
+function renderProgressBar(label, value, isEffort = false) {
+    if (value === undefined || value === null) {
+        return `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <span style="font-size: 0.85rem; color: #64748b; font-weight: 700; font-family: 'Inter', sans-serif;">${label}</span>
+                <span style="font-weight: 800; color: #94a3b8;">N/D</span>
+            </div>
+        `;
+    }
+    
+    const num = parseFloat(value);
+    if (isNaN(num)) {
+        return `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                <span style="font-size: 0.85rem; color: #64748b; font-weight: 700; font-family: 'Inter', sans-serif;">${label}</span>
+                <span style="font-weight: 800; color: var(--primary);">${value}</span>
+            </div>
+        `;
+    }
+    
+    const finalVal = num <= 1 ? num * 100 : num;
+    let color = '#10b981'; // Green
+    
+    if (isEffort) {
+        if (finalVal > 40) color = '#ef4444';
+        else if (finalVal > 35) color = '#f59e0b';
+    } else {
+        if (finalVal > 90) color = '#ef4444';
+        else if (finalVal > 80) color = '#f59e0b';
+    }
+    
+    return `
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'Inter', sans-serif;">
+                <span style="font-size: 0.85rem; color: #64748b; font-weight: 700;">${label}</span>
+                <span style="font-size: 1.1rem; font-weight: 800; color: var(--primary);">${finalVal.toFixed(0)}%</span>
+            </div>
+            <div style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 10px; overflow: hidden;">
+                <div style="width: ${Math.min(finalVal, 100)}%; height: 100%; background: ${color}; border-radius: 10px; transition: width 0.5s ease-out;"></div>
+            </div>
+        </div>
+    `;
+}
+
+function renderViabilitySummary(viableVal, estabilidadVal) {
+    let viableColor = '#94a3b8';
+    let viableBg = '#f1f5f9';
+    let viableText = 'No analizado';
+    let viableDesc = 'No se ha calculado la viabilidad aún.';
+    
+    if (viableVal) {
+        const str = String(viableVal).toLowerCase();
+        if (str.includes('no viable') || str.includes('no_viable') || str.includes('🔴')) {
+            viableColor = '#ef4444';
+            viableBg = '#fee2e2';
+            viableText = 'No Viable';
+            viableDesc = 'El estudio presenta un nivel de riesgo por encima de los límites recomendados.';
+        } else if (str.includes('viable') || str.includes('🟢')) {
+            viableColor = '#10b981';
+            viableBg = '#dcfce7';
+            viableText = 'Viable';
+            viableDesc = '¡Excelente! El perfil del cliente cumple con los estándares óptimos de viabilidad.';
+        } else {
+            viableText = viableVal;
+            viableDesc = 'Estado actual de la viabilidad.';
+        }
+    }
+    
+    let estColor = '#94a3b8';
+    let estBg = '#f1f5f9';
+    let estText = 'N/D';
+    
+    if (estabilidadVal) {
+        const str = String(estabilidadVal).toLowerCase();
+        if (str.includes('estable')) {
+            estColor = '#10b981';
+            estBg = '#dcfce7';
+            estText = 'Estable';
+        } else if (str.includes('no estable') || str.includes('inestable')) {
+            estColor = '#ef4444';
+            estBg = '#fee2e2';
+            estText = 'No Estable';
+        } else {
+            estText = String(estabilidadVal);
+        }
+    }
+    
+    return `
+        <div style="background: ${viableBg}; border: 1.5px solid ${viableColor}; border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; box-sizing: border-box; width: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-family: 'Inter', sans-serif;">
+                <span style="font-size: 0.9rem; color: #475569; font-weight: 700;">Resultado Viabilidad</span>
+                <span style="padding: 0.4rem 1rem; border-radius: 50px; background: white; border: 1.5px solid ${viableColor}; color: ${viableColor}; font-weight: 800; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: ${viableColor}; animation: pulse 1.5s infinite;"></span>
+                    ${viableText}
+                </span>
+            </div>
+            <p style="font-size: 0.95rem; color: #1e293b; font-weight: 500; line-height: 1.4; margin: 0.5rem 0 0 0; font-family: 'Inter', sans-serif;">${viableDesc}</p>
+        </div>
+        
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; font-family: 'Inter', sans-serif; box-sizing: border-box; width: 100%;">
+            <span style="font-size: 0.95rem; color: #475569; font-weight: 700;">Estabilidad Conjunta</span>
+            <span style="padding: 0.4rem 1rem; border-radius: 8px; background: ${estBg}; color: ${estColor}; font-weight: 800; font-size: 0.9rem;">
+                ${estText}
+            </span>
+        </div>
+    `;
+}
+
+function openViabilityModal(recordId) {
+    const record = currentRecords.find(r => r.id === recordId);
+    if (!record) {
+        alert('No se pudo encontrar el registro.');
+        return;
+    }
+
+    const f = record.fields || {};
+    
+    // Ensure styles are injected
+    if (!document.getElementById('viabilityStyles')) {
+        const style = document.createElement('style');
+        style.id = 'viabilityStyles';
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(0.95); opacity: 0.6; }
+                50% { transform: scale(1.05); opacity: 1; }
+                100% { transform: scale(0.95); opacity: 0.6; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Get modal DOM elements (or create programmatically if they don't exist yet)
+    let modalOverlay = document.getElementById('viabilityModalOverlay');
+    if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'viabilityModalOverlay';
+        modalOverlay.className = 'edit-modal-overlay';
+        modalOverlay.innerHTML = `
+            <div class="edit-modal-card" style="max-width: 650px; width: 100%; max-height: 90vh; display: flex; flex-direction: column;">
+                <div class="edit-modal-header" style="border-bottom: 1px solid #e2e8f0; padding: 1.5rem 2rem;">
+                    <h3 id="viabilityModalTitle" style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                        <i class="fas fa-traffic-light" style="color: var(--secondary);"></i> Análisis de Viabilidad
+                    </h3>
+                    <button type="button" class="edit-modal-close" onclick="closeViabilityModal()"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="edit-modal-body" style="padding: 2rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 1.5rem;">
+                    <div id="viabilityFieldsContainer" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
+                        <!-- Content will be injected here -->
+                    </div>
+                </div>
+                <div class="edit-modal-footer" style="border-top: 1px solid #e2e8f0; padding: 1.5rem 2rem; background: #f8fafc;">
+                    <button type="button" class="btn btn-primary" style="padding: 0.6rem 1.5rem;" onclick="closeViabilityModal()">Entendido</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalOverlay);
+    }
+
+    const container = document.getElementById('viabilityFieldsContainer');
+    if (!container) return;
+
+    const contactName = record.contactName || 'N/A';
+    const createdDate = new Date(record.created).toLocaleDateString();
+
+    let html = `
+        <!-- Sub-header metadata -->
+        <div style="background: #f8fafc; border-radius: 12px; padding: 1rem; border-left: 4px solid var(--secondary); font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box;">
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 700;">Expediente del Cliente</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-top: 0.2rem;">${contactName}</div>
+            <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.1rem;">Fecha de creación: ${createdDate}</div>
+        </div>
+
+        <!-- Viabilidad & Estabilidad Conjunta -->
+        ${renderViabilitySummary(f['Viabilidad'], f['Estabilidad conjunta'])}
+
+        <!-- Key Financial Metrics Section -->
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 1.5rem; width: 100%; box-sizing: border-box;">
+            <h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif; font-size: 1rem; margin: 0 0 1rem 0;">Métricas Financieras Clave</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; width: 100%; box-sizing: border-box;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.3rem;">
+                    <span style="font-size: 0.8rem; color: #64748b; font-weight: 700; font-family: 'Inter', sans-serif;">Cuota Scoring</span>
+                    <span style="font-size: 1.2rem; font-weight: 800; color: var(--primary); font-family: 'Inter', sans-serif;">${formatCurrency(f['Cuota scoring'])}</span>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.3rem;">
+                    <span style="font-size: 0.8rem; color: #64748b; font-weight: 700; font-family: 'Inter', sans-serif;">Cuota Máxima Endeudamiento</span>
+                    <span style="font-size: 1.2rem; font-weight: 800; color: var(--primary); font-family: 'Inter', sans-serif;">${formatCurrency(f['Cuota maxima endeudamiento'])}</span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.2rem; width: 100%; box-sizing: border-box;">
+                ${renderProgressBar('Esfuerzo Mensual', f['Esfuerzo mensual'], true)}
+                ${renderProgressBar('% Financiación Solicitada', f['% a financiar'], false)}
+            </div>
+        </div>
+
+        <!-- Semáforos de Riesgo Section -->
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 1.5rem; margin-bottom: 0.5rem; width: 100%; box-sizing: border-box;">
+            <h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif; font-size: 1rem; margin: 0 0 1rem 0;">Semáforos de Riesgo</h4>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; width: 100%; box-sizing: border-box;">
+                ${renderSemaforoCard('Estabilidad Laboral', f['SemaforoEstabilidad'])}
+                ${renderSemaforoCard('Nivel de Esfuerzo', f['SemaforoEsfuerzo'])}
+                ${renderSemaforoCard('Gasto Imprevisto T2', f['Semafor20masgatos'])}
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+    modalOverlay.classList.add('active');
+}
+
+function closeViabilityModal() {
+    const modalOverlay = document.getElementById('viabilityModalOverlay');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('active');
     }
 }
 
