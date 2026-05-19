@@ -50,16 +50,22 @@ exports.handler = async (event, context) => {
       return { statusCode: 401, headers, body: JSON.stringify({ error: 'Token has no email' }) };
     }
 
-    console.log(`Processing portal data for email: [${userEmail}]`);
+    // Normalize test emails for Javier to resolve his real Franquiciados record natively
+    let searchEmail = userEmail;
+    if (userEmail.toLowerCase() === 'javiergarciaginer@outlook.com' || userEmail.toLowerCase() === 'josejagargi@gmail.com') {
+      searchEmail = 'josejagargi@gmail.com';
+    }
+
+    console.log(`Processing portal data for email: [${userEmail}] (searchEmail: [${searchEmail}])`);
 
     // 2. Determine role: Associate or Client ───────────────────────────────
     let role = 'client';
     let userName = '';
 
     // Check if Associate or Admin (💼 Franquiciados table)
-    const assocFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({Email} & "")) > 0`);
+    const assocFormula = encodeURIComponent(`FIND(LOWER("${searchEmail}"), LOWER({Email} & "")) > 0`);
     // Check if Client (Contacts table)
-    const clientFormula = encodeURIComponent(`LOWER({Email}) = LOWER("${userEmail}")`);
+    const clientFormula = encodeURIComponent(`LOWER({Email}) = LOWER("${searchEmail}")`);
 
     console.log(`[DEBUG] Querying Airtable for Associate and Client records in parallel...`);
     const [assocRes, clientRes] = await Promise.all([
@@ -112,11 +118,11 @@ exports.handler = async (event, context) => {
       // Admins see all records
       console.log(`[DEBUG] Role is admin, fetching all Hipoteca records.`);
     } else if (role === 'associate') {
-      filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email franquiciado} & "")) > 0`);
+      filterFormula = encodeURIComponent(`FIND(LOWER("${searchEmail}"), LOWER({email franquiciado} & "")) > 0`);
       console.log(`[DEBUG] Role is associate, filtering Hipoteca by email franquiciado.`);
     } else {
       // Client role: use FIND on the lookup field 'email contacto'
-      filterFormula = encodeURIComponent(`FIND(LOWER("${userEmail}"), LOWER({email contacto} & "")) > 0`);
+      filterFormula = encodeURIComponent(`FIND(LOWER("${searchEmail}"), LOWER({email contacto} & "")) > 0`);
       console.log(`[DEBUG] Role is client, filtering Hipoteca by email contacto.`);
     }
 
