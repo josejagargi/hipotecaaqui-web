@@ -58,19 +58,11 @@ exports.handler = async (event, context) => {
       'Contact': [contactId],
     };
 
-    if (data['Franquiciados'] && Array.isArray(data['Franquiciados'])) {
-      hipotecaFields['Franquiciados'] = data['Franquiciados'];
-      hipotecaFields['Franquiciado'] = data['Franquiciados'];
-    }
-
     if (data['franquiciadoName']) {
-      hipotecaFields['Nombre franquiciado'] = data['franquiciadoName'];
-      if (!hipotecaFields['Franquiciado']) {
-        hipotecaFields['Franquiciado'] = [data['franquiciadoName']];
-      }
-      if (!hipotecaFields['Franquiciados']) {
-        hipotecaFields['Franquiciados'] = [data['franquiciadoName']];
-      }
+      // Pass the name string inside the array to match and link the record in Franquiciados
+      hipotecaFields['Franquiciados'] = [data['franquiciadoName']];
+    } else if (data['Franquiciados'] && Array.isArray(data['Franquiciados'])) {
+      hipotecaFields['Franquiciados'] = data['Franquiciados'];
     }
 
     // --- Campos numéricos ---
