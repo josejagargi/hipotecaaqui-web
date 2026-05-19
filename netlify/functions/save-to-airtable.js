@@ -32,6 +32,7 @@ exports.handler = async (event, context) => {
 
     // Buscar si ya existe el contacto
     let contactId;
+    let contactFranquiciados = null;
     const existingContacts = await base('Contacts').select({
       filterByFormula: `{Email} = '${email}'`,
       maxRecords: 1
@@ -39,7 +40,8 @@ exports.handler = async (event, context) => {
 
     if (existingContacts && existingContacts.length > 0) {
       contactId = existingContacts[0].id;
-      console.log('Existing contact found:', contactId);
+      contactFranquiciados = existingContacts[0].fields['Franquiciados'] || null;
+      console.log('Existing contact found:', contactId, 'linked Franquiciados:', contactFranquiciados);
     } else {
       // Crear nuevo contacto
       const contactFields = {
@@ -58,8 +60,32 @@ exports.handler = async (event, context) => {
       'Contact': [contactId],
     };
 
-    if (data['Franquiciados'] && Array.isArray(data['Franquiciados'])) {
-      hipotecaFields['Franquiciados'] = data['Franquiciados'];
+    // Determine the Franquiciados link
+    let resolvedFranquiciados = null;
+    
+    // A. Use Franquiciados sent from the frontend payload
+    if (data['Franquiciados'] && Array.isArray(data['Franquiciados']) && data['Franquiciados'].length > 0) {
+      resolvedFranquiciados = data['Franquiciados'];
+    }
+    // B. Fallback: Inherit from existing contact if not sent in payload
+    else if (contactFranquiciados && Array.isArray(contactFranquiciados) && contactFranquiciados.length > 0) {
+      resolvedFranquiciados = contactFranquiciados;
+    }
+
+    if (resolvedFranquiciados) {
+      hipotecaFields['Franquiciados'] = resolvedFranquiciados;
+      
+      // Sync back to Contact if it doesn't have the link yet
+      if (!contactFranquiciados || contactFranquiciados.length === 0) {
+        try {
+          await base('Contacts').update(contactId, {
+            'Franquiciados': resolvedFranquiciados
+          });
+          console.log(`Successfully synced Contact ${contactId} to Franquiciados ${resolvedFranquiciados}`);
+        } catch (err) {
+          console.error('Failed to sync Contact to Franquiciados:', err);
+        }
+      }
     }
 
     // --- Campos numéricos ---
