@@ -1,27 +1,38 @@
-# Hipoteca Aquí - Web
+🏢 Hipoteca Aquí — Web
+Professional repository for the Hipoteca Aquí website.
 
-Repositorio profesional para el sitio web de Hipoteca Aquí.
+📂 Project Structure
+public/: Contains the static files (HTML, CSS, JS, images) deployed on Netlify.
 
-## Estructura del Proyecto
-- `public/`: Contiene los archivos estáticos (HTML, CSS, JS, imágenes) que se despliegan en Netlify.
-- `netlify/functions/`: Funciones serverless para la integración con Airtable.
-- `AIRTABLE_SCHEMA.md`: Documentación del mapeo de campos.
+netlify/functions/: Serverless functions for Airtable integration.
 
-## Despliegue
-El sitio se despliega automáticamente en Netlify cada vez que se hace un `push` a la rama `main`.
-URL: https://hipotecaaqui.com
+AIRTABLE_SCHEMA.md: Technical documentation for field mapping.
 
-## Desarrollo Local
-Para probar localmente las funciones de Netlify:
-```bash
+TOKENS SAVINGS: 
+1. The language of this project is english
+2. 🚫 DO NOT USE THE BROWSER IN THE PROJECT
+
+🚀 Deployment
+The site deploys automatically to Netlify every time a push is made to the main branch.
+
+Staging URL: https://hipotecaaqui-draft-javi.netlify.app/
+
+Production URL (Future redirect): https://hipotecaaqui.com
+
+💻 Local Development
+To test Netlify functions locally, run the following command in your terminal:
+
+Bash
 netlify dev
-```
+👥 User Types
+The system manages two distinct user profiles:
 
-USERS:
+1. Clients
+Access: Can view their mortgage status in real time.
 
-2 TYPE OF USERS:
+Unregistered users: Must be prompted by the website to complete a credit scoring process in order to register.
 
-1. CLIENTES: Pueden ver el estado de su hipoteca en tiempo real.
-- No cliente registrado: deben ser invitados por la web a realizar un scoring, para asi registrarse
-2. ASOCIADOS: Pueden ver el estado de sus hipotecas y las de sus clientes.
-- No asociado registrado: deben ser invitados a ser asociados, para una vez ser asociados, poder utilizar los servicios. 
+2. Associates
+Access: Can monitor the status of their own mortgages as well as those of their client portfolio.
+
+Unregistered users: Must receive a formal invitation to become associates; once accepted, they will gain access to the platform services.
