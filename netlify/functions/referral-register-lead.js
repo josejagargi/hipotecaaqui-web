@@ -25,7 +25,7 @@ exports.handler = async (event, context) => {
 
     const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const CONTACTS_TABLE = 'tblGkytoApy3azp3O';
+    const CONTACTS_TABLE = 'Contacts';
 
     // Check if lead already exists
     const checkFormula = encodeURIComponent(`{Email} = '${email}'`);

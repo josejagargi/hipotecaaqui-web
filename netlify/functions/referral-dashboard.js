@@ -2,7 +2,7 @@
 // Returns referral dashboard data for an authenticated referrer.
 // Flow: Frontend -> This function -> Airtable API (API key never exposed to client)
 
-const CONTACTS_TABLE = 'tblGkytoApy3azp3O';    // 🧑‍💼Contacts
+const CONTACTS_TABLE = 'Contacts';    // 🧑‍💼Contacts
 const RECOMPENSAS_TABLE = 'tblnnpzFyLvwevySF'; // Recompensas Referidos
 
 const headers = {

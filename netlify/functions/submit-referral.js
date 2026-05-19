@@ -2,7 +2,7 @@
 // Public endpoint: creates a new lead in Contacts table linked to their referrer.
 // Validates on server-side to prevent spam. Never exposes API key to client.
 
-const CONTACTS_TABLE = 'tblGkytoApy3azp3O'; // 🧑‍💼Contacts
+const CONTACTS_TABLE = 'Contacts'; // 🧑‍💼Contacts
 
 const headers = {
     'Content-Type': 'application/json',
