@@ -109,6 +109,39 @@
                         <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('La funcionalidad de crear un nuevo estudio desde aquí se conectará con el formulario.')">+ Nuevo Estudio</button>
                     </div>
                     <p style="color: #666; margin-bottom: 2rem;">Aquí puedes consultar y editar el detalle de tus estudios hipotecarios.</p>
+                    
+                    <!-- Filtros de Estudios -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.2rem; margin-bottom: 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; box-sizing: border-box; width: 100%;">
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #475569; font-family: 'Inter', sans-serif;">Contacto (Buscar)</label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <i class="fas fa-search" style="position: absolute; left: 12px; color: #94a3b8; font-size: 0.9rem;"></i>
+                                <input type="text" id="filter-contacto" placeholder="Buscar por nombre..." style="padding: 0.7rem 0.7rem 0.7rem 2.2rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--primary); width: 100%; box-sizing: border-box;" oninput="applyFilters()">
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #475569; font-family: 'Inter', sans-serif;">Estado</label>
+                            <select id="filter-estado" style="padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--primary); background: white; width: 100%; box-sizing: border-box;" onchange="applyFilters()">
+                                <option value="">Todos los estados</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #475569; font-family: 'Inter', sans-serif;">Etapa</label>
+                            <select id="filter-etapa" style="padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--primary); background: white; width: 100%; box-sizing: border-box;" onchange="applyFilters()">
+                                <option value="">Todas las etapas</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #475569; font-family: 'Inter', sans-serif;">Viabilidad</label>
+                            <select id="filter-viabilidad" style="padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--primary); background: white; width: 100%; box-sizing: border-box;" onchange="applyFilters()">
+                                <option value="">Cualquier viabilidad</option>
+                                <option value="viable">🟢 Viable</option>
+                                <option value="no viable">🔴 No viable</option>
+                                <option value="pendiente">⚪ Sin analizar</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table id="estudiosTable">
                             <thead>

@@ -109,36 +109,8 @@ async function loadDashboardData() {
         currentRecords = data.records || [];
         currentContacts = data.contacts || [];
 
-        if (data.records.length === 0) {
-            const emptyRow = '<tr><td colspan="5" style="text-align: center; padding: 3rem;">No se encontraron registros vinculados a tu cuenta.</td></tr>';
-            recordsBody.innerHTML = emptyRow;
-            if (estudiosBody) estudiosBody.innerHTML = emptyRow;
-            return;
-        }
-
-        const rowsHTML = data.records.map(record => `
-            <tr style="cursor: pointer;">
-                <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${new Date(record.created).toLocaleDateString()}</td>
-                <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">
-                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                        <span style="font-weight: 700;">${record.contactName || 'N/A'}</span>
-                        <div style="display: flex; margin-top: 0.1rem;">
-                            <button class="btn" style="padding: 0.15rem 0.45rem; font-size: 0.65rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="event.stopPropagation(); openViabilityModal('${record.id}')">
-                                <i class="fas fa-traffic-light"></i> Viabilidad
-                            </button>
-                        </div>
-                    </div>
-                </td>
-                <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${record.loanType || 'Hipotecario'}</td>
-                <td style="vertical-align: middle;">
-                    <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
-                </td>
-                <td style="vertical-align: middle;"><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
-            </tr>
-        `).join('');
-        
-        recordsBody.innerHTML = rowsHTML;
-        if (estudiosBody) estudiosBody.innerHTML = rowsHTML;
+        populateFilterDropdowns(currentRecords);
+        applyFilters();
 
         // Render Contacts (if provided)
         const contactsTabBody = document.querySelector('#tab-contactos tbody');
@@ -740,3 +712,130 @@ firebase.auth().onAuthStateChanged(user => {
         loadDashboardData();
     }
 });
+
+// ── Studies Filtering Functions ───────────────────────────────────────────────
+
+function populateFilterDropdowns(records) {
+    const estadoSelect = document.getElementById('filter-estado');
+    const etapaSelect = document.getElementById('filter-etapa');
+    
+    if (!estadoSelect || !etapaSelect) return;
+    
+    // Save current selection to restore it if possible
+    const prevEstado = estadoSelect.value;
+    const prevEtapa = etapaSelect.value;
+
+    // Reset selects but keep first option
+    estadoSelect.innerHTML = '<option value="">Todos los estados</option>';
+    etapaSelect.innerHTML = '<option value="">Todas las etapas</option>';
+
+    const uniqueEstados = new Set();
+    const uniqueEtapas = new Set();
+
+    records.forEach(r => {
+        const f = r.fields || {};
+        if (r.status) uniqueEstados.add(r.status);
+        if (f['Etapa']) uniqueEtapas.add(f['Etapa']);
+    });
+
+    // Populate unique estados
+    Array.from(uniqueEstados).sort().forEach(est => {
+        const opt = document.createElement('option');
+        opt.value = est;
+        opt.textContent = est;
+        if (est === prevEstado) opt.selected = true;
+        estadoSelect.appendChild(opt);
+    });
+
+    // Populate unique etapas
+    Array.from(uniqueEtapas).sort().forEach(etp => {
+        const opt = document.createElement('option');
+        opt.value = etp;
+        opt.textContent = etp;
+        if (etp === prevEtapa) opt.selected = true;
+        etapaSelect.appendChild(opt);
+    });
+}
+
+function applyFilters() {
+    const contactQuery = document.getElementById('filter-contacto').value.toLowerCase().trim();
+    const selectedEstado = document.getElementById('filter-estado').value;
+    const selectedEtapa = document.getElementById('filter-etapa').value;
+    const selectedViabilidad = document.getElementById('filter-viabilidad').value;
+
+    const filtered = currentRecords.filter(record => {
+        const f = record.fields || {};
+        
+        // 1. Contacto filter (search name)
+        const name = (record.contactName || 'N/A').toLowerCase();
+        if (contactQuery && !name.includes(contactQuery)) {
+            return false;
+        }
+
+        // 2. Estado filter
+        const estado = record.status || 'Pendiente';
+        if (selectedEstado && estado !== selectedEstado) {
+            return false;
+        }
+
+        // 3. Etapa filter
+        const etapa = f['Etapa'] || '';
+        if (selectedEtapa && etapa !== selectedEtapa) {
+            return false;
+        }
+
+        // 4. Viabilidad filter
+        const viabilidad = (f['Viabilidad'] || '').toLowerCase();
+        if (selectedViabilidad) {
+            if (selectedViabilidad === 'viable') {
+                if (!viabilidad.includes('viable') || viabilidad.includes('no viable') || viabilidad.includes('🔴') || viabilidad.includes('no_viable')) return false;
+            } else if (selectedViabilidad === 'no viable') {
+                if (!viabilidad.includes('no viable') && !viabilidad.includes('🔴') && !viabilidad.includes('no_viable')) return false;
+            } else if (selectedViabilidad === 'pendiente') {
+                if (viabilidad) return false;
+            }
+        }
+
+        return true;
+    });
+
+    renderEstudiosTable(filtered);
+}
+
+function renderEstudiosTable(records) {
+    const recordsBody = document.getElementById('recordsBody');
+    const estudiosBody = document.getElementById('estudiosBody');
+    
+    if (!recordsBody) return;
+
+    if (records.length === 0) {
+        const emptyRow = '<tr><td colspan="5" style="text-align: center; padding: 3rem; color: #999;">No se encontraron registros que coincidan con los filtros.</td></tr>';
+        recordsBody.innerHTML = emptyRow;
+        if (estudiosBody) estudiosBody.innerHTML = emptyRow;
+        return;
+    }
+
+    const rowsHTML = records.map(record => `
+        <tr style="cursor: pointer;">
+            <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${new Date(record.created).toLocaleDateString()}</td>
+            <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">
+                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                    <span style="font-weight: 700;">${record.contactName || 'N/A'}</span>
+                    <div style="display: flex; margin-top: 0.1rem;">
+                        <button class="btn" style="padding: 0.15rem 0.45rem; font-size: 0.65rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="event.stopPropagation(); openViabilityModal('${record.id}')">
+                            <i class="fas fa-traffic-light"></i> Viabilidad
+                        </button>
+                    </div>
+                </div>
+            </td>
+            <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${record.loanType || 'Hipotecario'}</td>
+            <td style="vertical-align: middle;">
+                <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
+            </td>
+            <td style="vertical-align: middle;"><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
+        </tr>
+    `).join('');
+    
+    recordsBody.innerHTML = rowsHTML;
+    if (estudiosBody) estudiosBody.innerHTML = rowsHTML;
+}
