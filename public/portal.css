@@ -452,7 +452,7 @@ tbody tr:hover {
     background: white;
     border-radius: 24px;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
-    max-width: 700px;
+    max-width: 1400px;
     width: 100%;
     max-height: 90vh;
     display: flex;
@@ -518,8 +518,14 @@ tbody tr:hover {
 
 .edit-form-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .edit-form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 640px) {
@@ -527,4 +533,94 @@ tbody tr:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* Compatible Products Table styles */
+.compatible-products-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    margin-top: 0.5rem;
+}
+
+.compatible-products-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+}
+
+.compatible-products-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    padding: 1rem 1.25rem;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+}
+
+.compatible-products-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.compatible-products-table tr:last-child td {
+    border-bottom: none;
+}
+
+.compatible-products-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.product-tag {
+    display: inline-flex;
+    align-items: center;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    border: 1px solid #bae6fd;
+}
+
+.percentage-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #ecfdf5;
+    color: #047857;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid #d1fae5;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    background: #f8fafc;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 16px;
+    color: #64748b;
+    gap: 0.75rem;
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    color: #94a3b8;
+}
+
 

@@ -37,7 +37,7 @@ exports.handler = async (event, context) => {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'type, id, and fields are required' }) };
     }
 
-    if (type !== 'contact' && type !== 'estudio') {
+    if (type !== 'contact' && type !== 'estudio' && type !== 'comparador') {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid record type' }) };
     }
 
@@ -71,7 +71,9 @@ exports.handler = async (event, context) => {
       return { statusCode: 403, headers, body: JSON.stringify({ error: 'Unauthorized: Only Associates and Admins can modify records.' }) };
     }
 
-    const tableName = type === 'contact' ? 'Contacts' : 'Hipoteca';
+    let tableName = 'Hipoteca';
+    if (type === 'contact') tableName = 'Contacts';
+    else if (type === 'comparador') tableName = 'comparador';
     console.log(`[DEBUG] Updating ${tableName} record ${id} for associate ${userEmail}`);
 
     // 3. Patch Airtable record

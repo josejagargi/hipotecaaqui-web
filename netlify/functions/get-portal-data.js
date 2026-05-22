@@ -150,14 +150,33 @@ exports.handler = async (event, context) => {
       fields: r.fields
     }));
 
+    // Gather all contact IDs linked to the fetched studies
+    const linkedContactIds = new Set();
+    (hipotecaData.records || []).forEach(r => {
+      const contactsArr = r.fields['Contact'];
+      if (Array.isArray(contactsArr)) {
+        contactsArr.forEach(id => { if (id) linkedContactIds.add(id); });
+      } else if (contactsArr) {
+        linkedContactIds.add(contactsArr);
+      }
+    });
+
     // ── 4. Fetch contacts (for Admin, Associate or Client Referrals) ────────
     let contacts = [];
     if (role === 'admin' || role === 'associate') {
       let contactsFormula = '';
       if (role === 'associate' && assocData.records && assocData.records.length > 0) {
         const assocId = assocData.records[0].id;
-        // Search where the Franquiciados array contains the associate's ID
-        contactsFormula = encodeURIComponent(`FIND('${assocId}', {Franquiciados}) > 0`);
+        let formulaParts = [`FIND('${assocId}', {Franquiciados}) > 0`];
+        if (linkedContactIds.size > 0) {
+          const idChecks = Array.from(linkedContactIds).map(id => `RECORD_ID() = '${id}'`);
+          formulaParts.push(...idChecks);
+        }
+        if (formulaParts.length > 1) {
+          contactsFormula = encodeURIComponent(`OR(${formulaParts.join(', ')})`);
+        } else {
+          contactsFormula = encodeURIComponent(formulaParts[0]);
+        }
       }
       
       const contactsUrl = contactsFormula 

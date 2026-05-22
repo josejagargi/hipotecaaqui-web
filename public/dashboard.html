@@ -48,28 +48,35 @@
             <div id="tab-actividad" class="tab-content" style="display: block;">
                 <!-- Stats Overview -->
                 <section class="stats-overview">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-info">
-                        <h4>Total Estudios</h4>
-                        <p id="totalRecords">0</p>
+                    <!-- Total Estudios -->
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fas fa-chart-line"></i></div>
+                        <div class="stat-info">
+                            <h4>Total Estudios</h4>
+                            <p id="totalRecords">0</p>
+                        </div>
                     </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><i class="fas fa-clock"></i></div>
-                    <div class="stat-info">
-                        <h4>En Proceso</h4>
-                        <p id="pendingRecords">0</p>
+                    <!-- Etapa Widget -->
+                    <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 0.8rem; min-height: 140px; box-sizing: border-box;">
+                        <div style="display: flex; align-items: center; gap: 0.8rem; width: 100%;">
+                            <div class="stat-icon" style="background: #fef3c7; color: #d97706; width: 35px; height: 35px; border-radius: 8px; font-size: 0.95rem; flex-shrink: 0;"><i class="fas fa-tasks"></i></div>
+                            <h4 style="font-size: 0.9rem; color: #475569; font-weight: 700; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Fases del Proceso (Etapa)</h4>
+                        </div>
+                        <div id="etapaChartContainer" style="display: flex; flex-direction: column; gap: 0.6rem; width: 100%; font-family: 'Inter', sans-serif;">
+                            <span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Cargando etapas...</span>
+                        </div>
                     </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #dcfce7; color: #16a34a;"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-info">
-                        <h4>Aprobados</h4>
-                        <p id="approvedRecords">0</p>
+                    <!-- Viabilidad Widget -->
+                    <div class="stat-card" style="flex-direction: column; align-items: flex-start; gap: 0.8rem; min-height: 140px; box-sizing: border-box;">
+                        <div style="display: flex; align-items: center; gap: 0.8rem; width: 100%;">
+                            <div class="stat-icon" style="background: #dcfce7; color: #16a34a; width: 35px; height: 35px; border-radius: 8px; font-size: 0.95rem; flex-shrink: 0;"><i class="fas fa-traffic-light"></i></div>
+                            <h4 style="font-size: 0.9rem; color: #475569; font-weight: 700; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Análisis de Viabilidad</h4>
+                        </div>
+                        <div id="viabilidadChartContainer" style="display: flex; flex-direction: column; gap: 0.6rem; width: 100%; font-family: 'Inter', sans-serif;">
+                            <span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Cargando viabilidad...</span>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
             <!-- Records Table -->
             <div class="records-table-container">
@@ -140,6 +147,11 @@
                                 <option value="pendiente">⚪ Sin analizar</option>
                             </select>
                         </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem; justify-content: flex-end;">
+                            <button id="btn-reset-filters" class="btn btn-outline" onclick="resetEstudiosFilters()" style="padding: 0.7rem; font-family: 'Inter', sans-serif; font-size: 0.9rem; height: 42px; display: flex; align-items: center; justify-content: center; gap: 0.5rem; width: 100%; box-sizing: border-box; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-undo"></i> Limpiar Filtros
+                            </button>
+                        </div>
                     </div>
 
                     <div class="table-responsive">
@@ -147,15 +159,18 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
+                                    <th>ID Estudio</th>
                                     <th>Contacto</th>
-                                    <th>Tipo Préstamo</th>
+                                    <th>Teléfono</th>
+                                    <th>Etapa</th>
+                                    <th>Viabilidad</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="estudiosBody">
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 3rem; color: #999;">
+                                    <td colspan="8" style="text-align: center; padding: 3rem; color: #999;">
                                         Cargando estudios...
                                     </td>
                                 </tr>
@@ -170,7 +185,7 @@
                 <div class="records-table-container">
                     <div class="table-header">
                         <h3 id="contactsTabTitle">Directorio de Contactos</h3>
-                        <button id="contactsTabNewBtn" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('Se abrirá un modal para añadir un contacto.')">+ Nuevo Contacto</button>
+                        <button id="contactsTabNewBtn" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="openNewContactModal()">+ Nuevo Contacto</button>
                     </div>
                     <p id="contactsTabDesc" style="color: #666; margin-bottom: 2rem;">Gestiona la información de tus clientes y contactos.</p>
                     
@@ -199,6 +214,17 @@
                             <a id="shareEmailBtn" href="#" target="_blank" class="btn" style="background: #ea4335; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer;">
                                 <i class="fas fa-envelope"></i> Enviar por Email
                             </a>
+                        </div>
+                    </div>
+
+                    <!-- Filtros de Contactos -->
+                    <div id="contactFiltersContainer" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.2rem; margin-bottom: 2rem; display: grid; grid-template-columns: 1fr; gap: 1rem; box-sizing: border-box; width: 100%;">
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-size: 0.8rem; font-weight: 700; color: #475569; font-family: 'Inter', sans-serif;">Buscar Contacto</label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <i class="fas fa-search" style="position: absolute; left: 12px; color: #94a3b8; font-size: 0.9rem;"></i>
+                                <input type="text" id="filter-contactos-general" placeholder="Buscar por nombre, email o teléfono..." style="padding: 0.7rem 0.7rem 0.7rem 2.2rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--primary); width: 100%; box-sizing: border-box;" oninput="applyContactFilters()">
+                            </div>
                         </div>
                     </div>
 
@@ -400,6 +426,55 @@
         </div>
     </div>
 
+    <!-- Euribor Settings Modal Overlay -->
+    <div id="euriborModalOverlay" class="edit-modal-overlay">
+        <div class="edit-modal-card" style="max-width: 600px;">
+            <div class="edit-modal-header" style="padding: 1.5rem 2rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="euriborModalTitle" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--primary);">Ajustes Euribor</h3>
+                <button type="button" class="edit-modal-close" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b;" onclick="closeEuriborModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="euriborForm" onsubmit="saveEuriborChanges(event)" style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
+                <input type="hidden" id="euriborProductId">
+                <div class="edit-modal-body" style="padding: 2rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 1.5rem;">
+                    
+                    <p style="color: #64748b; font-size: 0.9rem; font-family: 'Inter', sans-serif; line-height: 1.5; margin: 0;">
+                        Modifica los valores del escenario Euribor para este producto hipotecario compatible. Introduce los valores como porcentajes directos (ej. 2.149 para 2.149%).
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; width: 100%; box-sizing: border-box;">
+                        <!-- Euribor -->
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem; font-family: 'Inter', sans-serif;">% Euribor</label>
+                            <input type="number" step="any" id="field_euribor" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem;" placeholder="Ej: 2.149">
+                        </div>
+
+                        <!-- Mejor Euribor -->
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem; font-family: 'Inter', sans-serif;">% Mejor Euribor</label>
+                            <input type="number" step="any" id="field_mejor_euribor" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem;" placeholder="Ej: -0.505">
+                        </div>
+
+                        <!-- Euribor promedio -->
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem; font-family: 'Inter', sans-serif;">% Euribor promedio</label>
+                            <input type="number" step="any" id="field_euribor_promedio" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem;" placeholder="Ej: 1.902">
+                        </div>
+
+                        <!-- Peor Euribor -->
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem; font-family: 'Inter', sans-serif;">% Peor Euribor</label>
+                            <input type="number" step="any" id="field_peor_euribor" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.95rem;" placeholder="Ej: 5.393">
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-modal-footer" style="padding: 1.5rem 2rem; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 1rem; background: #f8fafc;">
+                    <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.2rem; cursor: pointer;" onclick="closeEuriborModal()">Cancelar</button>
+                    <button type="submit" id="btnSaveEuribor" class="btn btn-primary" style="padding: 0.6rem 1.2rem; cursor: pointer;">Guardar Ajustes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- New Estudio Modal Overlay -->
     <div id="newEstudioModalOverlay" class="edit-modal-overlay">
         <div class="edit-modal-card" style="max-width: 800px;">
@@ -555,6 +630,38 @@
                 <div class="edit-modal-footer">
                     <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.2rem;" onclick="closeNewEstudioModal()">Cancelar</button>
                     <button type="submit" id="btnSaveNewEstudio" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">Enviar Solicitud</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Contact Modal Overlay -->
+    <div id="newContactModalOverlay" class="edit-modal-overlay">
+        <div class="edit-modal-card" style="max-width: 500px;">
+            <div class="edit-modal-header" style="padding: 1.5rem 2rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--primary);">+ Nuevo Contacto</h3>
+                <button type="button" class="edit-modal-close" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b;" onclick="closeNewContactModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="newContactForm" onsubmit="submitNewContact(event)" style="display: flex; flex-direction: column; overflow: hidden; flex: 1;">
+                <div class="edit-modal-body" style="padding: 2rem; overflow-y: auto; flex: 1;">
+                    <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Nombre y Apellidos *</label>
+                            <input type="text" id="newContactName" name="Nombre y apellidos" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif;" placeholder="Nombre completo">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Email *</label>
+                            <input type="email" id="newContactEmail" name="Email" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif;" placeholder="email@correo.com">
+                        </div>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                            <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Teléfono *</label>
+                            <input type="tel" id="newContactPhone" name="Telefono" required pattern="[0-9]{9}" title="El teléfono debe tener exactamente 9 dígitos" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Inter', sans-serif;" placeholder="Ej: 600000000">
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-modal-footer" style="padding: 1.5rem 2rem; border-top: 1px solid #f1f5f9; background: #f8fafc; display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.2rem;" onclick="closeNewContactModal()">Cancelar</button>
+                    <button type="submit" id="btnSaveNewContact" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">Guardar Contacto</button>
                 </div>
             </form>
         </div>

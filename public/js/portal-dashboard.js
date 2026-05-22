@@ -1,6 +1,8 @@
 let currentRecords = [];
 let currentContacts = [];
 let currentUserFranquiciadoId = null;
+let currentCompatibleProducts = [];
+let activeStudyLinkedContactIds = [];
 
 // Instant Greeting from localStorage to prevent any loading flashes or caching issues
 const cachedName = localStorage.getItem('currentUserDisplayName');
@@ -22,8 +24,6 @@ async function loadDashboardData() {
     const recordsBody = document.getElementById('recordsBody');
     const estudiosBody = document.getElementById('estudiosBody');
     const totalRecordsEl = document.getElementById('totalRecords');
-    const pendingRecordsEl = document.getElementById('pendingRecords');
-    const approvedRecordsEl = document.getElementById('approvedRecords');
     const profileNameEl = document.getElementById('profileName');
     const profileEmailEl = document.getElementById('profileEmail');
 
@@ -126,9 +126,8 @@ async function loadDashboardData() {
         if (profileEmailEl) profileEmailEl.value = user.email;
 
         // Stats
-        totalRecordsEl.textContent = data.records.length;
-        pendingRecordsEl.textContent = data.records.filter(r => r.status === 'En proceso' || !r.status).length;
-        approvedRecordsEl.textContent = data.records.filter(r => r.status === 'Aprobado').length;
+        if (totalRecordsEl) totalRecordsEl.textContent = data.records.length;
+        renderProcessGraphics(data.records);
 
         // Table
         currentRecords = data.records || [];
@@ -182,25 +181,7 @@ async function loadDashboardData() {
                 `;
             }
 
-            // Populate referred list
-            if (tabBody && data.contacts) {
-                if (data.contacts.length === 0) {
-                    tabBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">Aún no has recomendado a ningún contacto. ¡Comparte tu enlace de arriba para empezar!</td></tr>';
-                } else {
-                    tabBody.innerHTML = data.contacts.map(c => `
-                        <tr>
-                            <td style="font-weight: 700; color: var(--primary);">${c.name}</td>
-                            <td>${c.email}</td>
-                            <td>${c.phone}</td>
-                            <td>
-                                <span class="status-badge" style="background: ${c.status === 'Cerrado' ? '#dcfce7; color: #16a34a;' : (c.status === 'Rechazado' ? '#fee2e2; color: #ef4444;' : '#fef3c7; color: #d97706;')}">
-                                    ${c.status || 'Pendiente'}
-                                </span>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-            }
+            renderContactsTable(currentContacts, true);
         } else {
             // Setup Directory of Contacts view for Associate role
             if (tabTitle) tabTitle.textContent = 'Directorio de Contactos';
@@ -219,24 +200,18 @@ async function loadDashboardData() {
                 `;
             }
 
-            if (tabBody && data.contacts) {
-                if (data.contacts.length === 0) {
-                    tabBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">No hay contactos disponibles actualmente.</td></tr>';
-                } else {
-                    tabBody.innerHTML = data.contacts.map(contact => `
-                        <tr>
-                            <td>${contact.name}</td>
-                            <td>${contact.email}</td>
-                            <td>${contact.phone}</td>
-                            <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('contact', '${contact.id}')">Detalles</button></td>
-                        </tr>
-                    `).join('');
-                }
-            }
+            renderContactsTable(currentContacts, false);
         }
 
         populateFilterDropdowns(currentRecords);
         applyFilters();
+
+        // Dynamically refresh the linked contacts inside study modal if active
+        const modalOverlay = document.getElementById('editModalOverlay');
+        const recordTypeInput = document.getElementById('editRecordType');
+        if (modalOverlay && modalOverlay.classList.contains('active') && recordTypeInput && recordTypeInput.value === 'estudio') {
+            renderLinkedContactsSection();
+        }
 
     } catch (error) {
         console.error("Dashboard data error:", error);
@@ -331,7 +306,7 @@ function openEditModal(type, id) {
 
         fieldsContainer.innerHTML = `
             <!-- ANALISIS DE VIABILIDAD (Dashboard Premium en Detalles) -->
-            <div style="grid-column: span 2; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; box-sizing: border-box; width: 100%; margin-bottom: 1.5rem;">
+            <div style="grid-column: 1 / -1; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem; box-sizing: border-box; width: 100%; margin-bottom: 1.5rem;">
                 <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fas fa-traffic-light" style="color: var(--secondary); font-size: 1.2rem;"></i>
                     <h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif; margin: 0; font-size: 1.1rem;">Análisis de Viabilidad (Calculado)</h4>
@@ -366,13 +341,13 @@ function openEditModal(type, id) {
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; width: 100%; box-sizing: border-box;">
                         ${renderSemaforoCard('Estabilidad Laboral', f['SemaforoEstabilidad'])}
                         ${renderSemaforoCard('Nivel de Esfuerzo', f['SemaforoEsfuerzo'])}
-                        ${renderSemaforoCard('Gasto Imprevisto T2', f['Semafor20masgatos'])}
+                        ${renderSemaforoCard('20% + gastos', f['Semafor20masgatos'])}
                     </div>
                 </div>
             </div>
 
             <!-- Titular 1 -->
-            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 1</h4></div>
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 1</h4></div>
             ${generateFormGroup('Edad Titular 1', 'field_edad_sim', 'number', f['Edad sim'])}
             ${generateFormGroup('Tipo de trabajo T1', 'field_tipo_trabajo_sim', 'select', f['Tipo trabajo sim'], tipoTrabajoOpts)}
             ${generateFormGroup('Años Antigüedad T1', 'field_antiguedad_sim', 'number', f['Antiguedad sim'])}
@@ -380,31 +355,401 @@ function openEditModal(type, id) {
             ${generateFormGroup('Nº pagas T1', 'field_pagas_t1', 'select', f['Num pagas T1'], pagasT1Opts)}
 
             <!-- Titular 2 -->
-            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 2 (Opcional)</h4></div>
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Datos del Titular 2 (Opcional)</h4></div>
             ${generateFormGroup('Ingresos mensuales T2 (€)', 'field_ingresos_t2', 'number', f['Ingresos titular 2'])}
             ${generateFormGroup('Tipo de trabajo T2', 'field_tipo_trabajo_t2', 'select', f['Tipo trabajo T2'], tipoTrabajoOpts)}
             ${generateFormGroup('Nº pagas T2', 'field_pagas_t2', 'select', f['Num pagas T2'], pagasT2Opts)}
             ${generateFormGroup('Años Antigüedad T2', 'field_antiguedad_t2', 'number', f['Antiguedad T2'])}
 
             <!-- Información Financiera -->
-            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Información Financiera</h4></div>
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Información Financiera</h4></div>
             ${generateFormGroup('Otros préstamos mensuales (€)', 'field_otros_prestamos', 'number', f['Otros prestamos mensuales'])}
             ${generateFormGroup('Capital pendiente devolución (€)', 'field_capital_pendiente', 'number', f['Capital pendiente'])}
             ${generateFormGroup('Ahorros disponibles (€)', 'field_ahorros', 'number', f['Ahorros'])}
+            ${generateFormGroup('Años hipoteca', 'field_anos_hipoteca', 'number', f['Años hipoteca'])}
 
             <!-- Propiedad y Préstamo -->
-            <div style="grid-column: span 2; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Detalles de la Propiedad y Préstamo</h4></div>
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Detalles de la Propiedad y Préstamo</h4></div>
             ${generateFormGroup('¿Habéis encontrado propiedad?', 'field_encontrado_propiedad', 'select', f['Habeis encontrado propiedad'], propiedadEncontradaOpts)}
             ${generateFormGroup('Precio del inmueble (€)', 'field_precio_inmueble', 'number', f['Precio del inmueble'])}
             ${generateFormGroup('Finalidad', 'field_finalidad', 'select', f['Finalidad'], finalidadOpts)}
             ${generateFormGroup('Tipo vivienda', 'field_tipo_vivienda', 'select', f['Tipo vivienda'], tipoViviendaOpts)}
             ${generateFormGroup('Localidad inmueble', 'field_localidad_inmueble', 'text', f['Localidad inmueble'])}
             ${generateFormGroup('CP Localidad', 'field_cp_localidad', 'text', f['CP Localidad'])}
+            ${generateFormGroup('Provincia', 'field_provincia', 'readonly', (f['Provincia'] || [])[0] || f['Provincia'] || '')}
             ${generateFormGroup('Tipo préstamo', 'field_tipo_prestamo', 'select', f['Tipo prestamo'], tipoPrestamoOpts)}
+
+            <!-- Detalle Gastos Operación -->
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Detalle Gastos operación</h4></div>
+            ${generateFormGroup('Deducción ITP', 'field_deduccion_itp', 'select', f['Deduccion ITP'], ['1%', '2%', '2.5%', '3%', '3.33%', '4%', '5%', '6%', '7%', '7.5%', '8%', '9%', '10%'])}
+            ${generateFormGroup('ITP', 'field_itp', 'readonly', (() => {
+                const itpVal = (f['ITP'] || [])[0] !== undefined ? (f['ITP'] || [])[0] : f['ITP'];
+                return itpVal !== undefined && itpVal !== null ? `${(parseFloat(itpVal) * 100).toFixed(2).replace(/\.00$/, '')}%` : '';
+            })())}
+            ${generateFormGroup('Notaría compraventa', 'field_notaria_compraventa', 'readonly', formatCurrency(f['Notaria compraventa']))}
+            ${generateFormGroup('Tasación (€)', 'field_tasacion', 'number', f['Tasacion'])}
+            ${generateFormGroup('Registro compraventa', 'field_registro_compraventa', 'readonly', formatCurrency(f['Registro compraventa']))}
+            ${generateFormGroup('AJD compraventa', 'field_ajd_compraventa', 'readonly', formatCurrency(f['AJD compraventa']))}
+            ${generateFormGroup('Impuesto transmisión', 'field_impuesto_transmision', 'readonly', formatCurrency(f['Impuesto transmision']))}
+            ${generateFormGroup('Honorarios', 'field_honorarios', 'readonly', formatCurrency(f['Honorarios']))}
+
+            <!-- Límite según cuota de esfuerzo máximo -->
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Límite según cuota de esfuerzo máximo</h4></div>
+            ${generateFormGroup('Otros gastos operación', 'field_limite_otros_gastos', 'readonly', formatCurrency(f['Otros gastos operación']))}
+            ${generateFormGroup('20% Valor Compra', 'field_limite_20_valor_compra', 'readonly', formatCurrency(f['20%ValorCompra']))}
+            ${generateFormGroup('Financiación máx.', 'field_limite_financiacion_max', 'readonly', formatCurrency(f['Financiacion max']))}
+            ${generateFormGroup('Financiación máx. con avalista', 'field_limite_financiacion_max_avalista', 'readonly', formatCurrency(f['Financiacion max con avalista']))}
+            ${generateFormGroup('Precio máximo', 'field_limite_precio_maximo', 'readonly', formatCurrency(f['Precio maximo']))}
+            ${generateFormGroup('Ahorros', 'field_limite_ahorros', 'readonly', formatCurrency(f['Ahorros']))}
+            ${generateFormGroup('Aportación necesaria', 'field_limite_aportacion_necesaria', 'readonly', formatCurrency(f['Aportacion necesaria']))}
+            ${generateFormGroup('Semáforo 20% + gastos', 'field_limite_semaforo', 'readonly', f['Semafor20masgatos'] || '')}
+
+            <!-- Viabilidad Scoring -->
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Viabilidad Scoring</h4></div>
+            ${generateFormGroup('Viabilidad', 'field_scoring_viabilidad', 'readonly', f['Viabilidad'] || '')}
+            ${generateFormGroup('Nº viables', 'field_scoring_viables', 'readonly', f['Nº viables'] !== undefined ? f['Nº viables'] : '')}
+            ${generateFormGroup('Nº estudiar', 'field_scoring_estudiar', 'readonly', f['Nº estudiar'] !== undefined ? f['Nº estudiar'] : '')}
+            ${generateFormGroup('Mejor cuota Fija', 'field_scoring_cuota_fija', 'readonly', formatCurrency(Array.isArray(f['Mejor cuota Fija']) ? f['Mejor cuota Fija'][0] : f['Mejor cuota Fija']))}
+            ${generateFormGroup('Mejor cuota Mixta', 'field_scoring_cuota_mixta', 'readonly', formatCurrency(Array.isArray(f['Mejor cuota Mixta']) ? f['Mejor cuota Mixta'][0] : f['Mejor cuota Mixta']))}
+            ${generateFormGroup('Mejor cuota Variable', 'field_scoring_cuota_variable', 'readonly', formatCurrency(Array.isArray(f['Mejor cuota Variable']) ? f['Mejor cuota Variable'][0] : f['Mejor cuota Variable']))}
+            ${generateFormGroup('Nº comparado', 'field_scoring_comparado', 'readonly', f['Nº comparado'] !== undefined ? f['Nº comparado'] : '')}
+            <!-- Clientes Asociados -->
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Clientes</h4></div>
+            <div id="linked-contacts-section-container" style="grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; gap: 1rem; box-sizing: border-box;">
+                <!-- Dynamically populated by renderLinkedContactsSection -->
+            </div>
+
+            <!-- Documentos -->
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Documentos</h4></div>
+            <div id="documentos-section-container" style="grid-column: 1 / -1; width: 100%; display: flex; flex-direction: column; gap: 1rem; box-sizing: border-box;">
+                <!-- Dynamically populated by renderDocumentosSection -->
+            </div>
+
+            <!-- Productos hipotecarios compatibles -->
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Productos hipotecarios compatibles</h4></div>
+            <div id="compatible-products-container" style="grid-column: 1 / -1; width: 100%; min-height: 100px; display: flex; flex-direction: column; gap: 0.5rem; justify-content: center; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem; color: #64748b;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--secondary);"></i>
+                    <span style="font-family: 'Inter', sans-serif; font-size: 0.95rem;">Cargando productos compatibles...</span>
+                </div>
+            </div>
+
+            <!-- Productos hipotecarios a estudiar -->
+            <div style="grid-column: 1 / -1; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; margin-top: 1.5rem;"><h4 style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif;">Productos hipotecarios a estudiar</h4></div>
+            <div id="estudiar-products-container" style="grid-column: 1 / -1; width: 100%; min-height: 100px; display: flex; flex-direction: column; gap: 0.5rem; justify-content: center; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem; color: #64748b;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--secondary);"></i>
+                    <span style="font-family: 'Inter', sans-serif; font-size: 0.95rem;">Cargando productos a estudiar...</span>
+                </div>
+            </div>
         `;
+        
+        // Initialize and render Clientes section dynamically
+        let rawContacts = f['Contact'] || [];
+        if (!Array.isArray(rawContacts)) {
+            rawContacts = rawContacts ? [rawContacts] : [];
+        }
+        activeStudyLinkedContactIds = [...rawContacts];
+        renderLinkedContactsSection();
+
+        // Render Documentos section
+        renderDocumentosSection();
+
+        // Carga asíncrona de los productos compatibles y a estudiar
+        loadCompatibleProducts(id);
     }
     
     modalOverlay.classList.add('active');
+}
+
+async function loadCompatibleProducts(studyId) {
+    const container = document.getElementById('compatible-products-container');
+    const estudiarContainer = document.getElementById('estudiar-products-container');
+    if (!container || !estudiarContainer) return;
+
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) throw new Error('No estás autenticado');
+        const token = await user.getIdToken();
+
+        const response = await fetch(`/.netlify/functions/get-comparador-data?studyId=${studyId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Error al obtener productos');
+
+        const products = data.products || [];
+
+        // Store globally to prevent quoting issues when passing variables to inline event handlers
+        currentCompatibleProducts = products;
+
+        // Split products by outcome
+        const viableProducts = products.filter(p => p.resultado === 'Viable');
+        const estudiarProducts = products.filter(p => p.resultado === 'Estudiar');
+
+        // Render Viable (Compatible) Products Table
+        if (viableProducts.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-info-circle"></i>
+                    <div style="font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: #475569;">Sin productos compatibles</div>
+                    <div style="font-size: 0.85rem; color: #64748b; font-family: 'Inter', sans-serif;">No hay propuestas viables asociadas a este estudio.</div>
+                </div>
+            `;
+        } else {
+            // Sort viable products by interests ascending
+            viableProducts.sort((a, b) => {
+                const intA = a.intereses !== null && a.intereses !== undefined ? parseFloat(a.intereses) : Infinity;
+                const intB = b.intereses !== null && b.intereses !== undefined ? parseFloat(b.intereses) : Infinity;
+                return intA - intB;
+            });
+
+            container.innerHTML = `
+                <div class="compatible-products-table-wrapper">
+                    <table class="compatible-products-table">
+                        <thead>
+                            <tr>
+                                <th>Hipoteca</th>
+                                <th style="text-align: right;">Total intereses pagados</th>
+                                <th style="text-align: right;">Cuota Periodo Inicial</th>
+                                <th style="text-align: right;">Cuota Periodo final</th>
+                                <th style="text-align: center;">TIN Bonificado</th>
+                                <th>Detalle hipoteca</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${viableProducts.map(p => {
+                                const tinBonifPct = p.tinBonif !== null && p.tinBonif !== undefined
+                                    ? `${(parseFloat(p.tinBonif) * 100).toFixed(2)}%`
+                                    : 'N/D';
+                                
+                                const cleanDetails = p.detalle 
+                                    ? p.detalle.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim() 
+                                    : 'Sin detalles';
+
+                                return `
+                                    <tr>
+                                        <td>
+                                            <span class="product-tag">${p.producto || 'N/D'}</span>
+                                        </td>
+                                        <td style="text-align: right; font-weight: 600;">
+                                            ${formatCurrency(p.intereses)}
+                                        </td>
+                                        <td style="text-align: right; font-weight: 600; color: var(--primary);">
+                                            ${formatCurrency(p.cuotaP1)}
+                                        </td>
+                                        <td style="text-align: right; font-weight: 600; color: var(--primary);">
+                                            ${formatCurrency(p.cuotaP2)}
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="percentage-badge">${tinBonifPct}</span>
+                                        </td>
+                                        <td style="font-size: 0.85rem; color: #475569; max-width: 500px; white-space: normal; word-break: break-word;">
+                                            ${cleanDetails}
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <button type="button" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 6px; font-family: 'Inter', sans-serif; background: #64748b; border: none; color: white; cursor: pointer; font-weight: 600;" onclick="openEuriborModal('${p.id}')">Euribor</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Render Estudiar Products Table
+        if (estudiarProducts.length === 0) {
+            estudiarContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-info-circle"></i>
+                    <div style="font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: #475569;">Sin productos a estudiar</div>
+                    <div style="font-size: 0.85rem; color: #64748b; font-family: 'Inter', sans-serif;">No hay propuestas a estudiar asociadas a este estudio.</div>
+                </div>
+            `;
+        } else {
+            // Sort estudiar products by interests ascending
+            estudiarProducts.sort((a, b) => {
+                const intA = a.intereses !== null && a.intereses !== undefined ? parseFloat(a.intereses) : Infinity;
+                const intB = b.intereses !== null && b.intereses !== undefined ? parseFloat(b.intereses) : Infinity;
+                return intA - intB;
+            });
+
+            estudiarContainer.innerHTML = `
+                <div class="compatible-products-table-wrapper">
+                    <table class="compatible-products-table">
+                        <thead>
+                            <tr>
+                                <th>Hipoteca</th>
+                                <th style="text-align: right;">Total intereses pagados</th>
+                                <th style="text-align: right;">Cuota Periodo Inicial</th>
+                                <th style="text-align: right;">Cuota Periodo final</th>
+                                <th style="text-align: center;">TIN Bonificado</th>
+                                <th>💡Requisitos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${estudiarProducts.map(p => {
+                                const tinBonifPct = p.tinBonif !== null && p.tinBonif !== undefined
+                                    ? `${(parseFloat(p.tinBonif) * 100).toFixed(2)}%`
+                                    : 'N/D';
+                                
+                                const cleanRequisitos = p.requisitos 
+                                    ? p.requisitos.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim() 
+                                    : 'Sin requisitos';
+
+                                return `
+                                    <tr>
+                                        <td>
+                                            <span class="product-tag" style="background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5;">${p.producto || 'N/D'}</span>
+                                        </td>
+                                        <td style="text-align: right; font-weight: 600;">
+                                            ${formatCurrency(p.intereses)}
+                                        </td>
+                                        <td style="text-align: right; font-weight: 600; color: var(--primary);">
+                                            ${formatCurrency(p.cuotaP1)}
+                                        </td>
+                                        <td style="text-align: right; font-weight: 600; color: var(--primary);">
+                                            ${formatCurrency(p.cuotaP2)}
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <span class="percentage-badge" style="background: #fffbeb; color: #b45309;">${tinBonifPct}</span>
+                                        </td>
+                                        <td style="font-size: 0.85rem; color: #475569; max-width: 500px; white-space: normal; word-break: break-word;">
+                                            ${cleanRequisitos}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+    } catch (err) {
+        console.error("Error loading products:", err);
+        const errMsg = `
+            <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px; padding: 1rem; color: #b91c1c; display: flex; align-items: center; gap: 0.5rem; font-family: 'Inter', sans-serif; font-size: 0.9rem;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Error al cargar productos: ${err.message}</span>
+            </div>
+        `;
+        container.innerHTML = errMsg;
+        estudiarContainer.innerHTML = errMsg;
+    }
+}
+
+function openEuriborModal(productId) {
+    const product = currentCompatibleProducts.find(p => p.id === productId);
+    if (!product) return;
+
+    const modalOverlay = document.getElementById('euriborModalOverlay');
+    const modalTitle = document.getElementById('euriborModalTitle');
+    const productIdInput = document.getElementById('euriborProductId');
+    
+    const fEuribor = document.getElementById('field_euribor');
+    const fMejorEuribor = document.getElementById('field_mejor_euribor');
+    const fEuriborPromedio = document.getElementById('field_euribor_promedio');
+    const fPeorEuribor = document.getElementById('field_peor_euribor');
+
+    if (!modalOverlay || !productIdInput) return;
+
+    modalOverlay.style.zIndex = '20000';
+
+    modalTitle.textContent = `Ajustes Euribor - ${product.producto || 'N/D'}`;
+    productIdInput.value = productId;
+
+    const euribor = product.euribor;
+    const mejorEuribor = product.mejorEuribor;
+    const euriborPromedio = product.euriborPromedio;
+    const peorEuribor = product.peorEuribor;
+
+    // Display values in % form (multiply by 100). If null/undefined, keep empty.
+    fEuribor.value = euribor !== null && euribor !== undefined ? parseFloat((parseFloat(euribor) * 100).toFixed(3)) : '';
+    fMejorEuribor.value = mejorEuribor !== null && mejorEuribor !== undefined ? parseFloat((parseFloat(mejorEuribor) * 100).toFixed(3)) : '';
+    fEuriborPromedio.value = euriborPromedio !== null && euriborPromedio !== undefined ? parseFloat((parseFloat(euriborPromedio) * 100).toFixed(3)) : '';
+    fPeorEuribor.value = peorEuribor !== null && peorEuribor !== undefined ? parseFloat((parseFloat(peorEuribor) * 100).toFixed(3)) : '';
+
+    modalOverlay.classList.add('active');
+}
+
+function closeEuriborModal() {
+    const modalOverlay = document.getElementById('euriborModalOverlay');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('active');
+    }
+}
+
+async function saveEuriborChanges(event) {
+    event.preventDefault();
+    const id = document.getElementById('euriborProductId').value;
+    const btn = document.getElementById('btnSaveEuribor');
+
+    const fEuribor = document.getElementById('field_euribor').value.trim();
+    const fMejorEuribor = document.getElementById('field_mejor_euribor').value.trim();
+    const fEuriborPromedio = document.getElementById('field_euribor_promedio').value.trim();
+    const fPeorEuribor = document.getElementById('field_peor_euribor').value.trim();
+
+    // Convert % to decimal (divide by 100) or null if empty
+    const fields = {
+        'Euribor': fEuribor !== '' ? parseFloat(fEuribor) / 100 : null,
+        'Mejor Euribor': fMejorEuribor !== '' ? parseFloat(fMejorEuribor) / 100 : null,
+        'Euribor promedio': fEuriborPromedio !== '' ? parseFloat(fEuriborPromedio) / 100 : null,
+        'Peor Euribor': fPeorEuribor !== '' ? parseFloat(fPeorEuribor) / 100 : null
+    };
+
+    const originalText = btn.textContent;
+    btn.textContent = 'Guardando...';
+    btn.disabled = true;
+
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) throw new Error('No estás autenticado');
+        const token = await user.getIdToken();
+
+        const response = await fetch('/.netlify/functions/update-portal-record', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ type: 'comparador', id, fields })
+        });
+
+        let responseData = {};
+        const responseText = await response.text();
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (e) {
+            console.error("Non-JSON response from server:", responseText);
+            throw new Error(`Error del servidor (${response.status}): devuelto un formato no válido.`);
+        }
+
+        if (!response.ok) {
+            throw new Error(responseData.details || responseData.error || 'Error al guardar los cambios');
+        }
+
+        alert('Ajustes de Euribor guardados con éxito');
+        closeEuriborModal();
+        
+        // Refresh the compatible products table! We need the active studyId.
+        const studyIdInput = document.getElementById('editRecordId');
+        if (studyIdInput && studyIdInput.value) {
+            loadCompatibleProducts(studyIdInput.value);
+        }
+    } catch (err) {
+        console.error("Error saving Euribor changes:", err);
+        alert('Error: ' + err.message);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
 }
 
 function generateFormGroup(label, id, type, value, options = null) {
@@ -414,6 +759,8 @@ function generateFormGroup(label, id, type, value, options = null) {
             <option value="" ${value === undefined || value === null || value === '' ? 'selected' : ''}>-- Seleccionar --</option>
             ${options.map(opt => `<option value="${opt}" ${String(opt) === String(value) ? 'selected' : ''}>${opt}</option>`).join('')}
         </select>`;
+    } else if (type === 'readonly') {
+        inputHTML = `<input type="text" id="${id}" class="form-control" value="${value !== undefined && value !== null ? value : ''}" readonly style="padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; background-color: #f8fafc; color: #64748b; cursor: not-allowed;">`;
     } else {
         inputHTML = `<input type="${type}" id="${id}" class="form-control" value="${value !== undefined && value !== null ? value : ''}" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary);">`;
     }
@@ -423,6 +770,499 @@ function generateFormGroup(label, id, type, value, options = null) {
             ${inputHTML}
         </div>
     `;
+}
+
+// ── Clientes Management Functions inside Estudio Hipotecario Modal ───────────────────
+function renderLinkedContactsSection() {
+    const container = document.getElementById('linked-contacts-section-container');
+    if (!container) return;
+
+    // Find the active study in currentRecords
+    const activeStudyIdInput = document.getElementById('editRecordId');
+    if (!activeStudyIdInput || !activeStudyIdInput.value) return;
+    const record = currentRecords.find(r => r.id === activeStudyIdInput.value);
+    const f = record ? (record.fields || {}) : {};
+
+    // Map through the active study's linked contact IDs
+    const linkedContacts = activeStudyLinkedContactIds.map(contactId => {
+        const cc = currentContacts.find(c => c.id === contactId);
+        if (cc) {
+            return {
+                id: cc.id,
+                name: cc.name || 'Sin nombre',
+                email: cc.email || 'Sin email',
+                phone: cc.phone || 'Sin teléfono',
+                isExternal: false
+            };
+        } else {
+            // Find in study rollups as fallback
+            const index = activeStudyLinkedContactIds.indexOf(contactId);
+            let name = 'Contacto Externo';
+            let phone = 'N/D';
+            
+            if (index !== -1) {
+                if (f['Nombre y apellidos (from Contact)'] && f['Nombre y apellidos (from Contact)'][index]) {
+                    name = f['Nombre y apellidos (from Contact)'][index];
+                }
+                if (f['Telefono'] && f['Telefono'][index]) {
+                    phone = f['Telefono'][index];
+                }
+            }
+            return {
+                id: contactId,
+                name: name,
+                email: 'N/D',
+                phone: phone,
+                isExternal: true
+            };
+        }
+    });
+
+    // Find contacts available to link (present in currentContacts but not already linked)
+    // Filter to ensure associates/admins only see contacts matching the active study's associate record(s)
+    const studyAssocIds = f['Franquiciados'] || [];
+    const loggedInAssocId = currentUserFranquiciadoId || localStorage.getItem('currentUserFranquiciadoId');
+
+    const availableContacts = currentContacts.filter(c => {
+        // Must not be already linked
+        if (activeStudyLinkedContactIds.includes(c.id)) return false;
+
+        // Filter to ensure associate sees only their own clients
+        const contactAssocIds = c.fields?.['Franquiciados'] || [];
+
+        // 1. If study is linked to specific associates, the contact must belong to one of those associates
+        if (studyAssocIds.length > 0) {
+            return contactAssocIds.some(id => studyAssocIds.includes(id));
+        }
+
+        // 2. If study is not linked to any associate yet, check if the contact belongs to the logged-in associate
+        if (loggedInAssocId) {
+            return contactAssocIds.includes(loggedInAssocId);
+        }
+
+        // 3. Fallback: allow if no associate IDs are defined anywhere
+        return true;
+    });
+
+    let contactsGridHTML = '';
+    if (linkedContacts.length === 0) {
+        contactsGridHTML = `
+            <div style="background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 16px; padding: 2.5rem 1.5rem; text-align: center; color: #64748b;">
+                <i class="fas fa-user-friends" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.75rem;"></i>
+                <div style="font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: #475569;">Sin clientes vinculados</div>
+                <div style="font-size: 0.85rem; color: #64748b; font-family: 'Inter', sans-serif; margin-top: 0.25rem;">Vincule un cliente existente abajo o cree uno nuevo.</div>
+            </div>
+        `;
+    } else {
+        contactsGridHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; width: 100%; box-sizing: border-box;">
+                ${linkedContacts.map(c => {
+                    const nameParts = c.name.trim().split(/\s+/);
+                    const initials = (nameParts[0]?.charAt(0) || '') + (nameParts[1]?.charAt(0) || '');
+                    
+                    return `
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.2rem; position: relative; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)'; this.style.borderColor='var(--secondary)'; this.querySelector('.edit-pencil-icon').style.opacity='1'; this.querySelector('.edit-pencil-icon').style.transform='scale(1.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)'; this.style.borderColor='#e2e8f0'; this.querySelector('.edit-pencil-icon').style.opacity='0.4'; this.querySelector('.edit-pencil-icon').style.transform='none';" onclick="openContactDetailOverlay('${c.id}')">
+                            <div style="width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); color: #1d4ed8; font-size: 1rem; flex-shrink: 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);">
+                                ${initials.toUpperCase()}
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; overflow: hidden; font-family: 'Inter', sans-serif;">
+                                <span style="font-weight: 800; color: var(--primary); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;" title="${c.name}">
+                                    ${c.name}
+                                </span>
+                                <span style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;" title="${c.email}">
+                                    <i class="fas fa-envelope" style="font-size: 0.75rem; color: #94a3b8;"></i> ${c.email}
+                                </span>
+                                <span style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+                                    <i class="fas fa-phone-alt" style="font-size: 0.75rem; color: #94a3b8;"></i> ${c.phone}
+                                </span>
+                            </div>
+                            
+                            <!-- Edit Pencil Icon -->
+                            <div class="edit-pencil-icon" style="position: absolute; bottom: 0.8rem; right: 0.8rem; font-size: 0.85rem; color: var(--secondary); opacity: 0.4; transition: all 0.2s; pointer-events: none;" title="Editar ficha de cliente">
+                                <i class="fas fa-pencil-alt"></i>
+                            </div>
+
+                            <!-- Unlink Action -->
+                            <button type="button" style="position: absolute; top: 0.6rem; right: 0.6rem; background: none; border: none; color: #cbd5e1; font-size: 0.9rem; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border-radius: 50%; width: 22px; height: 22px;" onmouseover="this.style.color='#ef4444'; this.style.background='#fef2f2';" onmouseout="this.style.color='#cbd5e1'; this.style.background='none';" onclick="event.stopPropagation(); unlinkContactFromActiveStudy('${c.id}')" title="Desvincular cliente">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; box-sizing: border-box;">
+            <!-- Linked grid -->
+            ${contactsGridHTML}
+
+            <!-- Link new client panel -->
+            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; box-sizing: border-box;">
+                <div style="font-size: 0.85rem; font-weight: 800; color: #475569; display: flex; align-items: center; justify-content: space-between; font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <span>Vincular un cliente existente</span>
+                    <button type="button" style="background: none; border: none; color: var(--secondary); font-weight: 800; cursor: pointer; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.3rem; font-family: 'Inter', sans-serif; padding: 0;" onclick="openNewContactModal()">
+                        <i class="fas fa-plus-circle" style="font-size: 0.9rem;"></i> + Crear Nuevo
+                    </button>
+                </div>
+                <div style="display: flex; gap: 0.75rem; width: 100%; box-sizing: border-box; align-items: center;">
+                    <select id="select-contact-to-link" style="flex: 1; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.92rem; background: white; color: var(--primary); outline: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--secondary)'" onblur="this.style.borderColor='#cbd5e1'">
+                        <option value="">-- Seleccionar cliente --</option>
+                        ${availableContacts.length === 0 
+                            ? `<option value="" disabled>Todos tus contactos ya están vinculados</option>` 
+                            : availableContacts.map(c => `<option value="${c.id}">${c.name} (${c.email})</option>`).join('')}
+                    </select>
+                    <button type="button" class="btn btn-secondary" style="padding: 0.75rem 1.5rem; font-size: 0.88rem; font-family: 'Inter', sans-serif; font-weight: 700; border-radius: 10px; cursor: pointer;" onclick="linkContactToActiveStudy()">
+                        Vincular
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function linkContactToActiveStudy() {
+    const select = document.getElementById('select-contact-to-link');
+    if (!select) return;
+    const contactId = select.value;
+    if (!contactId) {
+        alert('Por favor, selecciona un contacto para vincular.');
+        return;
+    }
+    
+    if (!activeStudyLinkedContactIds.includes(contactId)) {
+        activeStudyLinkedContactIds.push(contactId);
+        renderLinkedContactsSection();
+    }
+}
+
+function unlinkContactFromActiveStudy(contactId) {
+    activeStudyLinkedContactIds = activeStudyLinkedContactIds.filter(id => id !== contactId);
+    renderLinkedContactsSection();
+}
+
+function openContactDetailOverlay(contactId) {
+    let contact = currentContacts.find(c => c.id === contactId);
+    let f = contact ? (contact.fields || {}) : {};
+
+    if (!contact) {
+        // Fallback builder using active study rollup fields
+        const activeStudyIdInput = document.getElementById('editRecordId');
+        const record = activeStudyIdInput ? currentRecords.find(r => r.id === activeStudyIdInput.value) : null;
+        const studyFields = record ? (record.fields || {}) : {};
+        
+        const index = activeStudyLinkedContactIds.indexOf(contactId);
+        let fallbackName = 'Contacto Externo';
+        let fallbackPhone = '';
+        let fallbackEmail = '';
+        
+        if (index !== -1) {
+            if (studyFields['Nombre y apellidos (from Contact)'] && studyFields['Nombre y apellidos (from Contact)'][index]) {
+                fallbackName = studyFields['Nombre y apellidos (from Contact)'][index];
+            }
+            if (studyFields['Telefono'] && studyFields['Telefono'][index]) {
+                fallbackPhone = studyFields['Telefono'][index];
+            }
+            if (studyFields['Email (from Contact)'] && studyFields['Email (from Contact)'][index]) {
+                fallbackEmail = studyFields['Email (from Contact)'][index];
+            } else if (studyFields['email contacto'] && studyFields['email contacto'][index]) {
+                fallbackEmail = studyFields['email contacto'][index];
+            } else if (studyFields['Email'] && studyFields['Email'][index]) {
+                fallbackEmail = studyFields['Email'][index];
+            }
+        }
+
+        contact = {
+            id: contactId,
+            name: fallbackName,
+            email: fallbackEmail || 'N/D',
+            phone: fallbackPhone || 'N/D',
+            fields: {
+                'Nombre y apellidos': fallbackName,
+                'Email': fallbackEmail,
+                'Telefono': fallbackPhone,
+                'Numero documento': '',
+                'Notas': ''
+            }
+        };
+        f = contact.fields;
+    }
+
+    let modalOverlay = document.getElementById('contactDetailModalOverlay');
+    if (!modalOverlay) {
+        modalOverlay = document.createElement('div');
+        modalOverlay.id = 'contactDetailModalOverlay';
+        modalOverlay.className = 'edit-modal-overlay';
+        document.body.appendChild(modalOverlay);
+    }
+    modalOverlay.style.zIndex = '20000';
+
+    modalOverlay.innerHTML = `
+        <div class="edit-modal-card" style="max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+            <div class="edit-modal-header" style="border-bottom: 1px solid #e2e8f0; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="contactDetailModalTitle" style="color: var(--primary); font-weight: 800; font-family: 'Inter', sans-serif; display: flex; align-items: center; gap: 0.5rem; margin: 0; font-size: 1.25rem;">
+                    <i class="fas fa-id-card" style="color: var(--secondary);"></i> Editar Ficha del Cliente
+                </h3>
+                <button type="button" class="edit-modal-close" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b;" onclick="closeContactDetailOverlay()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="edit-modal-body" id="contactDetailModalBody" style="padding: 2rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Content will be injected dynamically -->
+            </div>
+            <div class="edit-modal-footer" style="border-top: 1px solid #e2e8f0; padding: 1.5rem 2rem; background: #f8fafc; display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.5rem;" onclick="closeContactDetailOverlay()">Cancelar</button>
+                <button type="button" id="btnSaveOverlayContact" class="btn btn-primary" style="padding: 0.6rem 1.5rem;" onclick="saveOverlayContactChanges('${contactId}')">Guardar Cambios</button>
+            </div>
+        </div>
+    `;
+
+    const body = document.getElementById('contactDetailModalBody');
+    if (!body) return;
+
+    const nameParts = contact.name.trim().split(/\s+/);
+    const initials = (nameParts[0]?.charAt(0) || '') + (nameParts[1]?.charAt(0) || '');
+
+    const status = f['Estado'] || 'Pendiente';
+    let statusBg = '#fef3c7';
+    let statusColor = '#d97706';
+    if (status === 'Cerrado' || status === 'Aprobado') {
+        statusBg = '#dcfce7';
+        statusColor = '#16a34a';
+    } else if (status === 'Rechazado' || status === 'Baja') {
+        statusBg = '#fee2e2';
+        statusColor = '#ef4444';
+    }
+
+    body.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 1.5rem; background: #f8fafc; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0;">
+            <div style="width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.75rem; background: linear-gradient(135deg, var(--secondary) 0%, #1e3a8a 100%); color: white;">
+                ${initials.toUpperCase()}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.35rem; font-family: 'Inter', sans-serif;">
+                <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">${contact.name}</span>
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; background: ${statusBg}; color: ${statusColor}; width: fit-content; text-transform: uppercase;">
+                    ${status}
+                </span>
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1.2rem; font-family: 'Inter', sans-serif;">
+            <h4 style="color: var(--primary); font-weight: 800; font-size: 1rem; margin: 0 0 0.2rem 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem;">Datos de Contacto (Editables)</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.2rem;">
+                ${generateFormGroup('Nombre y apellidos', 'overlay_contact_name', 'text', contact.name)}
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem;">
+                ${generateFormGroup('Email', 'overlay_contact_email', 'email', contact.email)}
+                ${generateFormGroup('Teléfono', 'overlay_contact_phone', 'tel', contact.phone)}
+            </div>
+
+            <h4 style="color: var(--primary); font-weight: 800; font-size: 1rem; margin: 1rem 0 0.2rem 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem;">Información Adicional (Editable)</h4>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem;">
+                ${generateFormGroup('NIF/NIE', 'overlay_contact_nif', 'text', f['Numero documento'] || f['NIF'] || f['DNI'] || f['NIF (from Contact)'] || '')}
+                ${generateFormGroup('Origen / Recomendado por (Lectura)', 'overlay_contact_origen', 'readonly', f['referido por'] || f['Recomendado por'] || 'Directo')}
+                
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; grid-column: span 2;">
+                    <label style="font-weight: 600; color: #475569; font-size: 0.88rem; text-align: left;">Notas / Comentarios</label>
+                    <textarea id="overlay_contact_notas" class="form-control" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary); min-height: 80px; box-sizing: border-box; resize: vertical;">${f['Notas'] || f['Comentarios'] || ''}</textarea>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modalOverlay.classList.add('active');
+}
+
+function closeContactDetailOverlay() {
+    const modalOverlay = document.getElementById('contactDetailModalOverlay');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('active');
+    }
+}
+
+async function saveOverlayContactChanges(contactId) {
+    const btn = document.getElementById('btnSaveOverlayContact');
+    if (!btn) return;
+
+    const name = document.getElementById('overlay_contact_name').value.trim();
+    const email = document.getElementById('overlay_contact_email').value.trim();
+    const phone = document.getElementById('overlay_contact_phone').value.trim();
+    const nif = document.getElementById('overlay_contact_nif').value.trim();
+    const notas = document.getElementById('overlay_contact_notas').value.trim();
+
+    if (!name || !email || !phone) {
+        alert('Nombre, Email y Teléfono son obligatorios.');
+        return;
+    }
+
+    const phoneRegex = /^[0-9]{9}$/;
+    if (!phoneRegex.test(phone)) {
+        alert('El teléfono debe tener exactamente 9 dígitos.');
+        return;
+    }
+
+    const originalText = btn.textContent;
+    btn.textContent = 'Guardando...';
+    btn.disabled = true;
+
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) throw new Error('No estás autenticado');
+        const token = await user.getIdToken();
+
+        const fields = {
+            'Nombre y apellidos': name,
+            'Email': email,
+            'Telefono': phone,
+            'Numero documento': nif,
+            'Notas': notas
+        };
+
+        const response = await fetch('/.netlify/functions/update-portal-record', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ type: 'contact', id: contactId, fields })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Error al guardar los cambios del cliente');
+
+        alert('¡Cliente actualizado correctamente!');
+        closeContactDetailOverlay();
+        await loadDashboardData();
+    } catch (err) {
+        console.error("Error saving overlay contact:", err);
+        alert('Error: ' + err.message);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+// ── Documentos Section inside Estudio Hipotecario Modal ───────────────────
+function renderDocumentosSection() {
+    const container = document.getElementById('documentos-section-container');
+    if (!container) return;
+
+    const activeStudyIdInput = document.getElementById('editRecordId');
+    if (!activeStudyIdInput || !activeStudyIdInput.value) return;
+    const studyId = activeStudyIdInput.value;
+    const record = currentRecords.find(r => r.id === studyId);
+    if (!record) return;
+    const f = record.fields || {};
+
+    const aeropageUrl = f['Aeropage'] || '';
+    const enviarFirma = !!f['Enviar a firma'];
+
+    // Descargar Análisis PDF Button styling
+    let downloadBtnHTML = '';
+    if (aeropageUrl) {
+        downloadBtnHTML = `
+            <a href="${aeropageUrl}" target="_blank" class="btn" style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.95rem; text-decoration: none; transition: all 0.2s ease; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; border: none; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.2), 0 2px 4px -1px rgba(37,99,235,0.1); cursor: pointer; text-align: center; box-sizing: border-box;">
+                <i class="fas fa-file-pdf" style="font-size: 1.2rem;"></i>
+                Descargar análisis pdf
+            </a>
+        `;
+    } else {
+        downloadBtnHTML = `
+            <button class="btn" disabled style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.95rem; background: #e2e8f0; color: #94a3b8; border: none; cursor: not-allowed; opacity: 0.7; text-align: center; box-sizing: border-box;">
+                <i class="fas fa-file-pdf" style="font-size: 1.2rem;"></i>
+                Descargar análisis pdf (No disponible)
+            </button>
+        `;
+    }
+
+    // Enviar a firma digital Button styling
+    let signatureBtnHTML = '';
+    if (enviarFirma) {
+        signatureBtnHTML = `
+            <button onclick="toggleEnviarFirma('${studyId}', false)" class="btn" style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.2s ease; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.2), 0 2px 4px -1px rgba(16,185,129,0.1); cursor: pointer; text-align: center; box-sizing: border-box;">
+                <i class="fas fa-file-signature" style="font-size: 1.2rem;"></i>
+                Enviado a firma digital (Desmarcar)
+            </button>
+        `;
+    } else {
+        signatureBtnHTML = `
+            <button onclick="toggleEnviarFirma('${studyId}', true)" class="btn" style="flex: 1; min-width: 200px; display: inline-flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 0.9rem 1.5rem; border-radius: 12px; font-weight: 700; font-family: 'Inter', sans-serif; font-size: 0.95rem; transition: all 0.2s ease; background: transparent; color: #475569; border: 2px solid #cbd5e1; cursor: pointer; text-align: center; box-sizing: border-box;">
+                <i class="fas fa-file-signature" style="font-size: 1.2rem; color: #64748b;"></i>
+                Enviar a firma digital
+            </button>
+        `;
+    }
+
+    container.innerHTML = `
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; width: 100%; box-sizing: border-box;">
+            ${downloadBtnHTML}
+            ${signatureBtnHTML}
+        </div>
+    `;
+}
+
+async function toggleEnviarFirma(studyId, targetValue) {
+    const container = document.getElementById('documentos-section-container');
+    if (!container) return;
+    
+    const originalHTML = container.innerHTML;
+    
+    container.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem; color: #64748b; width: 100%;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--secondary);"></i>
+            <span style="font-family: 'Inter', sans-serif; font-size: 0.95rem;">Actualizando firma digital...</span>
+        </div>
+    `;
+
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) throw new Error('No estás autenticado');
+        const token = await user.getIdToken();
+
+        const fields = {
+            'Enviar a firma': targetValue
+        };
+
+        const response = await fetch('/.netlify/functions/update-portal-record', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ type: 'estudio', id: studyId, fields })
+        });
+
+        let responseData = {};
+        const responseText = await response.text();
+        try {
+            responseData = JSON.parse(responseText);
+        } catch (e) {
+            console.error("Non-JSON response from server:", responseText);
+            throw new Error(`Error del servidor (${response.status}): Formato no válido.`);
+        }
+
+        if (!response.ok) {
+            throw new Error(responseData.details || responseData.error || 'Error al actualizar firma');
+        }
+
+        const record = currentRecords.find(r => r.id === studyId);
+        if (record) {
+            if (!record.fields) record.fields = {};
+            record.fields['Enviar a firma'] = targetValue;
+        }
+
+        renderDocumentosSection();
+        
+        loadDashboardData().catch(err => console.error("Error refreshing dashboard background:", err));
+
+        alert(targetValue ? '¡Solicitud de firma digital activada con éxito!' : '¡Solicitud de firma digital desactivada con éxito!');
+    } catch (err) {
+        console.error("Error toggling signature:", err);
+        alert('Error: ' + err.message);
+        container.innerHTML = originalHTML;
+    }
 }
 
 function closeEditModal() {
@@ -488,6 +1328,7 @@ async function saveRecordChanges(event) {
             'Otros prestamos mensuales': getNumberFromInput('field_otros_prestamos'),
             'Capital pendiente': getNumberFromInput('field_capital_pendiente'),
             'Ahorros': getNumberFromInput('field_ahorros'),
+            'Años hipoteca': getNumberFromInput('field_anos_hipoteca', true),
 
             'Habeis encontrado propiedad': document.getElementById('field_encontrado_propiedad').value || null,
             'Precio del inmueble': getNumberFromInput('field_precio_inmueble'),
@@ -495,13 +1336,30 @@ async function saveRecordChanges(event) {
             'Tipo vivienda': document.getElementById('field_tipo_vivienda').value || null,
             'Localidad inmueble': document.getElementById('field_localidad_inmueble').value || null,
             'CP Localidad': document.getElementById('field_cp_localidad').value || null,
-            'Tipo prestamo': document.getElementById('field_tipo_prestamo').value || null
+            'Tipo prestamo': document.getElementById('field_tipo_prestamo').value || null,
+            'Deduccion ITP': document.getElementById('field_deduccion_itp').value || null,
+            'Tasacion': getNumberFromInput('field_tasacion')
         };
         
         for (const [key, val] of Object.entries(newFields)) {
             if (hasFieldChanged(val, origFields[key])) {
                 fields[key] = val;
             }
+        }
+
+        // Compare Contact array carefully to see if clients linkage has changed
+        const origContact = origFields['Contact'] || [];
+        const activeContact = activeStudyLinkedContactIds || [];
+        
+        // Sort both arrays to ensure order differences don't trigger a false change
+        const sortedOrig = [...origContact].sort();
+        const sortedActive = [...activeContact].sort();
+        
+        const contactsChanged = sortedOrig.length !== sortedActive.length || 
+                                sortedOrig.some((val, idx) => val !== sortedActive[idx]);
+        
+        if (contactsChanged) {
+            fields['Contact'] = activeStudyLinkedContactIds;
         }
     }
     
@@ -800,7 +1658,7 @@ function openViabilityModal(recordId) {
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; width: 100%; box-sizing: border-box;">
                 ${renderSemaforoCard('Estabilidad Laboral', f['SemaforoEstabilidad'])}
                 ${renderSemaforoCard('Nivel de Esfuerzo', f['SemaforoEsfuerzo'])}
-                ${renderSemaforoCard('Gasto Imprevisto T2', f['Semafor20masgatos'])}
+                ${renderSemaforoCard('20% + gastos', f['Semafor20masgatos'])}
             </div>
         </div>
     `;
@@ -912,42 +1770,158 @@ function applyFilters() {
     renderEstudiosTable(filtered);
 }
 
+function getStageColor(etapa) {
+    const map = {
+        'Op. No Viable': '#ef4444',       // Rojo brillante (Riesgo/Negativo)
+        'Baja': '#b91c1c',                // Rojo oscuro
+        'No contrata': '#f87171',         // Rojo claro/salmón
+        'Lead': '#f97316',                // Naranja (Inicio)
+        'Viable': '#f59e0b',              // Naranja-Amarillo
+        'Etapa 1 Presentada': '#eab308',   // Amarillo
+        'Etapa 2 Pte tasación': '#a3e635',  // Amarillo-Verde / Verde Lima
+        'Etapa 3 FEIN': '#4ade80',          // Verde Claro
+        'Pendiente firma': '#10b981',      // Verde Esmeralda
+        'Firmada': '#059669',              // Verde Éxito
+        'Etapa 4 Firmada': '#047857'       // Verde Éxito Profundo
+    };
+    return map[etapa] || '#94a3b8'; // Slate grey for unmapped
+}
+
+function resetEstudiosFilters() {
+    const contactInput = document.getElementById('filter-contacto');
+    const estadoSelect = document.getElementById('filter-estado');
+    const etapaSelect = document.getElementById('filter-etapa');
+    const viabilidadSelect = document.getElementById('filter-viabilidad');
+    
+    if (contactInput) contactInput.value = '';
+    if (estadoSelect) estadoSelect.value = '';
+    if (etapaSelect) etapaSelect.value = '';
+    if (viabilidadSelect) viabilidadSelect.value = '';
+    
+    applyFilters();
+}
+
 function renderEstudiosTable(records) {
     const recordsBody = document.getElementById('recordsBody');
     const estudiosBody = document.getElementById('estudiosBody');
     
     if (!recordsBody) return;
 
+    // 1. Render Recent Records (Home Page - 5 Columns)
     if (records.length === 0) {
-        const emptyRow = '<tr><td colspan="5" style="text-align: center; padding: 3rem; color: #999;">No se encontraron registros que coincidan con los filtros.</td></tr>';
-        recordsBody.innerHTML = emptyRow;
-        if (estudiosBody) estudiosBody.innerHTML = emptyRow;
-        return;
+        const emptyRowRecent = '<tr><td colspan="5" style="text-align: center; padding: 3rem; color: #999;">No se encontraron registros que coincidan con los filtros.</td></tr>';
+        recordsBody.innerHTML = emptyRowRecent;
+    } else {
+        const rowsRecentHTML = records.slice(0, 5).map(record => `
+            <tr style="cursor: pointer;">
+                <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${new Date(record.created).toLocaleDateString()}</td>
+                <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <span style="font-weight: 700;">${record.contactName || 'N/A'}</span>
+                        <div style="display: flex; margin-top: 0.1rem;">
+                            <button class="btn" style="padding: 0.15rem 0.45rem; font-size: 0.65rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="event.stopPropagation(); openViabilityModal('${record.id}')">
+                                <i class="fas fa-traffic-light"></i> Viabilidad
+                            </button>
+                        </div>
+                    </div>
+                </td>
+                <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${record.loanType || 'Hipotecario'}</td>
+                <td style="vertical-align: middle;">
+                    <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
+                </td>
+                <td style="vertical-align: middle;"><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
+            </tr>
+        `).join('');
+        recordsBody.innerHTML = rowsRecentHTML;
     }
 
-    const rowsHTML = records.map(record => `
-        <tr style="cursor: pointer;">
-            <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${new Date(record.created).toLocaleDateString()}</td>
-            <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">
-                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <span style="font-weight: 700;">${record.contactName || 'N/A'}</span>
-                    <div style="display: flex; margin-top: 0.1rem;">
-                        <button class="btn" style="padding: 0.15rem 0.45rem; font-size: 0.65rem; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem; font-weight: 700; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="event.stopPropagation(); openViabilityModal('${record.id}')">
-                            <i class="fas fa-traffic-light"></i> Viabilidad
-                        </button>
-                    </div>
-                </div>
-            </td>
-            <td onclick="openEditModal('estudio', '${record.id}')" style="vertical-align: middle;">${record.loanType || 'Hipotecario'}</td>
-            <td style="vertical-align: middle;">
-                <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
-            </td>
-            <td style="vertical-align: middle;"><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('estudio', '${record.id}')">Detalles</button></td>
-        </tr>
-    `).join('');
-    
-    recordsBody.innerHTML = rowsHTML;
-    if (estudiosBody) estudiosBody.innerHTML = rowsHTML;
+    // 2. Render Estudios Management (Mis Estudios Tab - 8 Columns with ID Estudio and Telefono, removing Tipo prestamo)
+    if (estudiosBody) {
+        if (records.length === 0) {
+            const emptyRowEstudios = '<tr><td colspan="8" style="text-align: center; padding: 3rem; color: #999;">No se encontraron registros que coincidan con los filtros.</td></tr>';
+            estudiosBody.innerHTML = emptyRowEstudios;
+        } else {
+            const rowsEstudiosHTML = records.map(record => {
+                const f = record.fields || {};
+                const etapa = f['Etapa'] || 'Lead';
+                const viabilidadVal = (f['Viabilidad'] || '').toLowerCase();
+                
+                // Get ID Estudio safely
+                const idEstudio = f['ID Estudio'] || record.id || 'N/A';
+                
+                // Get Telefono from fields lookup (can be array or string)
+                let telefono = 'N/A';
+                if (f['Telefono']) {
+                    if (Array.isArray(f['Telefono'])) {
+                        telefono = f['Telefono'][0] || 'N/A';
+                    } else {
+                        telefono = f['Telefono'];
+                    }
+                }
+
+                // Format Telefono as tel link
+                let telefonoHTML = '';
+                if (telefono !== 'N/A') {
+                    telefonoHTML = `
+                        <a href="tel:${telefono}" onclick="event.stopPropagation();" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='inherit'">
+                            <i class="fas fa-phone-alt" style="color: var(--secondary); font-size: 0.8rem;"></i> ${telefono}
+                        </a>`;
+                } else {
+                    telefonoHTML = `<span style="color: #94a3b8;">N/A</span>`;
+                }
+                
+                let viabilidadHTML = '';
+                if (viabilidadVal.includes('no viable') || viabilidadVal.includes('🔴') || viabilidadVal.includes('no_viable')) {
+                    viabilidadHTML = `
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; cursor: pointer; transition: all 0.2s;" onclick="event.stopPropagation(); openViabilityModal('${record.id}')" title="Ver análisis de viabilidad">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
+                            No Viable
+                        </span>`;
+                } else if (viabilidadVal.includes('viable') || viabilidadVal.includes('🟢')) {
+                    viabilidadHTML = `
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; background: #ecfdf5; color: #10b981; border: 1px solid #a7f3d0; cursor: pointer; transition: all 0.2s;" onclick="event.stopPropagation(); openViabilityModal('${record.id}')" title="Ver análisis de viabilidad">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+                            Viable
+                        </span>`;
+                } else {
+                    viabilidadHTML = `
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; background: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;" onclick="event.stopPropagation(); openViabilityModal('${record.id}')" title="Ver análisis de viabilidad">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #94a3b8;"></span>
+                            Sin analizar
+                        </span>`;
+                }
+
+                const etapaColor = getStageColor(etapa);
+                const etapaHTML = `
+                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; background: ${etapaColor}15; color: ${etapaColor}; border: 1px solid ${etapaColor}30;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: ${etapaColor};"></span>
+                        ${etapa}
+                    </span>`;
+
+                return `
+                    <tr style="cursor: pointer;" onclick="openEditModal('estudio', '${record.id}')">
+                        <td style="vertical-align: middle;">${new Date(record.created).toLocaleDateString()}</td>
+                        <td style="vertical-align: middle;">
+                            <span style="font-weight: 700; color: #475569; background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.8rem; border: 1px solid #e2e8f0; font-family: monospace;">
+                                #${idEstudio}
+                            </span>
+                        </td>
+                        <td style="vertical-align: middle; font-weight: 700; color: var(--primary);">${record.contactName || 'N/A'}</td>
+                        <td style="vertical-align: middle;">${telefonoHTML}</td>
+                        <td style="vertical-align: middle;">${etapaHTML}</td>
+                        <td style="vertical-align: middle;">${viabilidadHTML}</td>
+                        <td style="vertical-align: middle;">
+                            <span class="status-badge status-${(record.status || 'pendiente').toLowerCase().replace(/\s+/g, '-')}">${record.status || 'Pendiente'}</span>
+                        </td>
+                        <td style="vertical-align: middle;">
+                            <button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="event.stopPropagation(); openEditModal('estudio', '${record.id}')">Detalles</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            estudiosBody.innerHTML = rowsEstudiosHTML;
+        }
+    }
 }
 
 // ── +Nuevo Estudio Modal Functions ───────────────────────────────────────────
@@ -1164,3 +2138,251 @@ async function submitReferralFromDashboard(event) {
         submitBtn.innerHTML = originalText;
     }
 }
+
+// ── Contact Management & Filtering Functions ─────────────────────────────────
+
+function renderContactsTable(contacts, isClient) {
+    const tabBody = document.getElementById('contactsTabBody');
+    if (!tabBody) return;
+
+    if (contacts.length === 0) {
+        tabBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">${isClient ? 'Aún no has recomendado a ningún contacto. ¡Comparte tu enlace de arriba para empezar!' : 'No hay contactos disponibles.'}</td></tr>`;
+        return;
+    }
+
+    if (isClient) {
+        tabBody.innerHTML = contacts.map(c => `
+            <tr>
+                <td style="font-weight: 700; color: var(--primary);">${c.name}</td>
+                <td>${c.email}</td>
+                <td>${c.phone}</td>
+                <td>
+                    <span class="status-badge" style="background: ${c.status === 'Cerrado' ? '#dcfce7; color: #16a34a;' : (c.status === 'Rechazado' ? '#fee2e2; color: #ef4444;' : '#fef3c7; color: #d97706;')}">
+                        ${c.status || 'Pendiente'}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+    } else {
+        tabBody.innerHTML = contacts.map(contact => `
+            <tr>
+                <td style="font-weight: 700; color: var(--primary);">${contact.name}</td>
+                <td>${contact.email}</td>
+                <td>${contact.phone}</td>
+                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('contact', '${contact.id}')">Detalles</button></td>
+            </tr>
+        `).join('');
+    }
+}
+
+function applyContactFilters() {
+    const query = (document.getElementById('filter-contactos-general')?.value || '').toLowerCase().trim();
+    const portalRole = localStorage.getItem('portal_role') || 'cliente';
+    const isClient = portalRole === 'cliente';
+
+    if (!query) {
+        renderContactsTable(currentContacts, isClient);
+        return;
+    }
+
+    const filtered = currentContacts.filter(c => {
+        const name = (c.name || '').toLowerCase();
+        const email = (c.email || '').toLowerCase();
+        const phone = (c.phone || '').toLowerCase();
+        return name.includes(query) || email.includes(query) || phone.includes(query);
+    });
+
+    renderContactsTable(filtered, isClient);
+}
+
+function openNewContactModal() {
+    const modal = document.getElementById('newContactModalOverlay');
+    if (modal) {
+        modal.style.zIndex = '20000';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeNewContactModal() {
+    const modal = document.getElementById('newContactModalOverlay');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        document.getElementById('newContactForm').reset();
+    }
+}
+
+async function submitNewContact(event) {
+    event.preventDefault();
+    const btn = document.getElementById('btnSaveNewContact');
+    const name = document.getElementById('newContactName').value.trim();
+    const email = document.getElementById('newContactEmail').value.trim();
+    const phone = document.getElementById('newContactPhone').value.trim();
+
+    if (!name || !email || !phone) {
+        alert('Nombre, Email y Teléfono son obligatorios.');
+        return;
+    }
+
+    const phoneRegex = /^[0-9]{9}$/;
+    if (!phoneRegex.test(phone)) {
+        alert('El teléfono debe tener exactamente 9 dígitos.');
+        return;
+    }
+
+    const originalText = btn.textContent;
+    btn.textContent = 'Guardando...';
+    btn.disabled = true;
+
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) throw new Error('No estás autenticado');
+        const token = await user.getIdToken();
+
+        const response = await fetch('/.netlify/functions/create-portal-contact', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, email, phone })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Error al guardar el contacto');
+
+        alert('¡Contacto creado correctamente!');
+        
+        // Auto-attach to active study if edit modal is active
+        const editModal = document.getElementById('editModalOverlay');
+        const editType = document.getElementById('editRecordType');
+        if (editModal && editModal.classList.contains('active') && editType && editType.value === 'estudio') {
+            if (data.contact && data.contact.id) {
+                activeStudyLinkedContactIds.push(data.contact.id);
+            }
+        }
+
+        closeNewContactModal();
+        await loadDashboardData(); // Refresh list
+    } catch (err) {
+        console.error("Error creating contact:", err);
+        alert(err.message);
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+function renderProcessGraphics(records) {
+    const etapaContainer = document.getElementById('etapaChartContainer');
+    const viabilidadContainer = document.getElementById('viabilidadChartContainer');
+
+    if (!records || records.length === 0) {
+        if (etapaContainer) etapaContainer.innerHTML = '<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Sin estudios registrados</span>';
+        if (viabilidadContainer) viabilidadContainer.innerHTML = '<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Sin estudios registrados</span>';
+        return;
+    }
+
+    const total = records.length;
+
+    // 1. Process "Etapa" (Funnel)
+    const etapaCounts = {};
+    records.forEach(r => {
+        const f = r.fields || {};
+        const etapa = f['Etapa'] || 'Sin asignar';
+        etapaCounts[etapa] = (etapaCounts[etapa] || 0) + 1;
+    });
+
+    // Logical Sort Order defined by the user
+    const logicalSortOrder = [
+        'Lead',
+        'Op. No Viable',
+        'Viable',
+        'No contrata',
+        'Etapa 1 Presentada',
+        'Etapa 2 Pte tasación',
+        'Etapa 3 FEIN',
+        'Pendiente firma',
+        'Firmada',
+        'Etapa 4 Firmada',
+        'Baja'
+    ];
+
+    // Helper to get progressive colors is now defined globally for table and chart reuse
+
+    const sortedEtapas = Object.entries(etapaCounts).sort((a, b) => {
+        const idxA = logicalSortOrder.indexOf(a[0]);
+        const idxB = logicalSortOrder.indexOf(b[0]);
+        const valA = idxA === -1 ? 999 : idxA;
+        const valB = idxB === -1 ? 999 : idxB;
+        return valA - valB;
+    });
+
+    if (etapaContainer) {
+        etapaContainer.innerHTML = sortedEtapas.map(([etapa, count]) => {
+            const pct = (count / total) * 100;
+            const barColor = getStageColor(etapa);
+            return `
+                <div style="display: flex; flex-direction: column; gap: 0.2rem; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 600; color: #475569;">
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75%; font-family: 'Inter', sans-serif;">${etapa}</span>
+                        <span style="color: var(--primary); font-weight: 700; font-family: 'Inter', sans-serif;">${count} (${pct.toFixed(0)}%)</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${pct}%; height: 100%; background: ${barColor}; border-radius: 4px; transition: width 0.6s ease-out;"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 2. Process "Viabilidad"
+    let viableCount = 0;
+    let noViableCount = 0;
+    let pendienteCount = 0;
+
+    records.forEach(r => {
+        const f = r.fields || {};
+        const viabilidad = (f['Viabilidad'] || '').toLowerCase();
+        
+        if (viabilidad.includes('no viable') || viabilidad.includes('🔴') || viabilidad.includes('no_viable')) {
+            noViableCount++;
+        } else if (viabilidad.includes('viable') || viabilidad.includes('🟢')) {
+            viableCount++;
+        } else {
+            pendienteCount++;
+        }
+    });
+
+    if (viabilidadContainer) {
+        const viablePct = (viableCount / total) * 100;
+        const noViablePct = (noViableCount / total) * 100;
+        const pendientePct = (pendienteCount / total) * 100;
+
+        viabilidadContainer.innerHTML = `
+            <!-- Segmented Bar -->
+            <div style="width: 100%; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; display: flex; box-shadow: inset 0 1px 2px rgba(0,0,0,0.06); margin-bottom: 0.4rem;">
+                ${viableCount > 0 ? `<div style="width: ${viablePct}%; height: 100%; background: #10b981; transition: width 0.6s ease-out;" title="Viables: ${viableCount}"></div>` : ''}
+                ${noViableCount > 0 ? `<div style="width: ${noViablePct}%; height: 100%; background: #ef4444; transition: width 0.6s ease-out;" title="No Viables: ${noViableCount}"></div>` : ''}
+                ${pendienteCount > 0 ? `<div style="width: ${pendientePct}%; height: 100%; background: #94a3b8; transition: width 0.6s ease-out;" title="Sin Analizar: ${pendienteCount}"></div>` : ''}
+            </div>
+            <!-- Legend and Details -->
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; font-family: 'Inter', sans-serif; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                    <span style="color: #10b981;">Viables: ${viableCount}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                    <span style="color: #ef4444;">No Viables: ${noViableCount}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; display: inline-block;"></span>
+                    <span style="color: #64748b;">Pendientes: ${pendienteCount}</span>
+                </div>
+            </div>
+        `;
+    }
+}
+
