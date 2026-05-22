@@ -298,8 +298,8 @@ function openEditModal(type, id) {
         const finalidadOpts = ['Vivienda habitual', 'Segunda residencia', 'Inversión'];
         
         const tipoTrabajoOpts = ['Cuenta ajena', 'Funcionario', 'Autonomo', 'Fijo discontinuo'];
-        const pagasT1Opts = ['12', '14', '15'];
-        const pagasT2Opts = ['12', '14'];
+        const pagasT1Opts = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15'];
+        const pagasT2Opts = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15'];
         const propiedadEncontradaOpts = ['Buscando', 'Si, no reservada', 'Si, reservada'];
         const tipoViviendaOpts = ['Nueva', 'Segunda mano'];
         const tipoPrestamoOpts = ['Hipotecario', 'ICO', 'Autopromocion', 'Hipoteca no residente'];
