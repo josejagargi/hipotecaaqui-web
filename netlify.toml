@@ -6,7 +6,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
@@ -19,3 +19,19 @@
   from = "/referidos/dashboard"
   to = "/referidos/dashboard.html"
   status = 200
+
+[[redirects]]
+  from = "/logo-firma"
+  to = "/logo-firma.png"
+  status = 301
+
+[[redirects]]
+  from = "/logo-email"
+  to = "/logo-email.png"
+  status = 301
+
+[[redirects]]
+  from = "/logo"
+  to = "/logo.png"
+  status = 301
+
