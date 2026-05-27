@@ -91,6 +91,7 @@ exports.handler = async (event, context) => {
     // 2. Preparar el registro de Hipoteca
     const hipotecaFields = {
       'Contact': [contactId],
+      'Enviar scoring': true,
     };
     if (resolvedFranquiciados) {
       hipotecaFields['Franquiciados'] = resolvedFranquiciados;
