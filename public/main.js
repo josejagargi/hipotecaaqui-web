@@ -273,6 +273,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const antiguedadSim = data['Antiguedad sim'] !== undefined ? Number(data['Antiguedad sim']) : null;
+            if (antiguedadSim !== null && !isNaN(antiguedadSim) && (antiguedadSim < 0 || antiguedadSim > 60)) {
+                alert('Los Años Antigüedad T1 deben ser mayores o iguales a cero y menores o iguales a 60.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                }
+                return;
+            }
+
+            const antiguedadT2 = data['Antiguedad T2'] !== undefined ? Number(data['Antiguedad T2']) : null;
+            if (isT2 && antiguedadT2 !== null && !isNaN(antiguedadT2) && (antiguedadT2 < 0 || antiguedadT2 > 60)) {
+                alert('Los Años Antigüedad T2 deben ser mayores o iguales a cero y menores o iguales a 60.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                }
+                return;
+            }
+
             // If no second titular, remove related fields to prevent Airtable errors
             if (!isT2) {
                 delete data['Ingresos titular 2'];

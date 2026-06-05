@@ -808,6 +808,8 @@ function generateFormGroup(label, id, type, value, options = null) {
             extraAttrs = ' min="1" max="99999"';
         } else if (id === 'field_otros_prestamos' || id === 'field_capital_pendiente' || id === 'field_ahorros' || id === 'field_precio_inmueble') {
             extraAttrs = ' min="0" max="999999"';
+        } else if (id === 'field_antiguedad_sim' || id === 'field_antiguedad_t2') {
+            extraAttrs = ' min="0" max="60"';
         }
         inputHTML = `<input type="${type}" id="${id}" class="form-control" value="${value !== undefined && value !== null ? value : ''}"${extraAttrs} style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary);">`;
     }
@@ -1409,6 +1411,18 @@ async function saveRecordChanges(event) {
         const precioInmueble = getNumberFromInput('field_precio_inmueble');
         if (precioInmueble !== null && (precioInmueble < 0 || precioInmueble >= 1000000)) {
             alert('El Precio del inmueble debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+            return;
+        }
+
+        const antiguedadSim = getNumberFromInput('field_antiguedad_sim', true);
+        if (antiguedadSim !== null && (antiguedadSim < 0 || antiguedadSim > 60)) {
+            alert('Los Años Antigüedad T1 deben ser mayores o iguales a cero y menores o iguales a 60.');
+            return;
+        }
+
+        const antiguedadT2 = getNumberFromInput('field_antiguedad_t2', true);
+        if (antiguedadT2 !== null && (antiguedadT2 < 0 || antiguedadT2 > 60)) {
+            alert('Los Años Antigüedad T2 deben ser mayores o iguales a cero y menores o iguales a 60.');
             return;
         }
 
@@ -2153,6 +2167,22 @@ async function submitNewEstudio(event) {
     const precioInmueble = data['Precio del inmueble'] !== undefined ? parseFloat(data['Precio del inmueble']) : null;
     if (precioInmueble !== null && !isNaN(precioInmueble) && (precioInmueble < 0 || precioInmueble >= 1000000)) {
         alert('El Precio del inmueble debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const antiguedadSim = data['Antiguedad sim'] !== undefined ? parseInt(data['Antiguedad sim'], 10) : null;
+    if (antiguedadSim !== null && !isNaN(antiguedadSim) && (antiguedadSim < 0 || antiguedadSim > 60)) {
+        alert('Los Años Antigüedad T1 deben ser mayores o iguales a cero y menores o iguales a 60.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const antiguedadT2 = data['Antiguedad T2'] !== undefined ? parseInt(data['Antiguedad T2'], 10) : null;
+    if (isT2 && antiguedadT2 !== null && !isNaN(antiguedadT2) && (antiguedadT2 < 0 || antiguedadT2 > 60)) {
+        alert('Los Años Antigüedad T2 deben ser mayores o iguales a cero y menores o iguales a 60.');
         submitBtn.disabled = false;
         submitBtn.innerText = originalBtnText;
         return;
