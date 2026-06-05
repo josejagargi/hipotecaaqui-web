@@ -89,6 +89,7 @@ async function loadDashboardData() {
 
         // Setup Contacts / Referidos sidebar navigation based on role
         const navContactos = document.getElementById('nav-contactos');
+        const navDocumentos = document.getElementById('nav-documentos');
         const isClient = data.user.role === 'client' || portalRole === 'cliente';
         
         if (navContactos) {
@@ -98,6 +99,25 @@ async function loadDashboardData() {
                 navContactos.innerHTML = '<i class="fas fa-user-friends"></i> Mis Contactos';
             }
             navContactos.parentElement.style.display = 'block'; // Always visible!
+        }
+
+        if (navDocumentos) {
+            if (isClient && data.user.id) {
+                navDocumentos.parentElement.style.display = 'block';
+                // Configure Documents iframe and direct button
+                const iframe = document.getElementById('iframe-documentos');
+                const openBtn = document.getElementById('btnAbrirUploaderNuevaPestana');
+                const clientLink = `./subir.html?c=${data.user.id}`;
+                
+                if (iframe) {
+                    iframe.src = `${clientLink}&embed=true`;
+                }
+                if (openBtn) {
+                    openBtn.href = clientLink;
+                }
+            } else {
+                navDocumentos.parentElement.style.display = 'none';
+            }
         }
         
         // Update UI
@@ -195,6 +215,7 @@ async function loadDashboardData() {
                         <th>Nombre</th>
                         <th>Email</th>
                         <th>Teléfono</th>
+                        <th>Progreso Doc.</th>
                         <th>Acciones</th>
                     </tr>
                 `;
@@ -283,10 +304,28 @@ function openEditModal(type, id) {
         if (!contact) return;
         
         const f = contact.fields || {};
+        const waLink = getWhatsAppShareLink(contact.phone, contact.id, contact.name);
         fieldsContainer.innerHTML = `
             ${generateFormGroup('Nombre y apellidos', 'field_name', 'text', f['Nombre y apellidos'] !== undefined ? f['Nombre y apellidos'] : contact.name)}
             ${generateFormGroup('Email', 'field_email', 'email', f['Email'] !== undefined ? f['Email'] : contact.email)}
             ${generateFormGroup('Teléfono', 'field_phone', 'tel', f['Telefono'] !== undefined ? f['Telefono'] : contact.phone)}
+            
+            <!-- Acciones de documentación del cliente -->
+            <div style="grid-column: 1 / -1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; font-family: 'Inter', sans-serif; margin-top: 0.8rem; box-sizing: border-box; width: 100%;">
+                <span style="font-size: 0.8rem; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">Enlace de Subida de Documentos</span>
+                <div style="display: flex; gap: 0.5rem; width: 100%; box-sizing: border-box;">
+                    <input type="text" readonly value="https://hipotecaaqui.com/subir.html?c=${contact.id}" style="flex: 1; padding: 0.65rem 0.8rem; border: 1px solid #bbf7d0; border-radius: 8px; font-family: monospace; font-size: 0.82rem; color: #166534; background: white; outline: none; text-overflow: ellipsis; box-sizing: border-box;">
+                    <a href="https://hipotecaaqui.com/subir.html?c=${contact.id}" target="_blank" class="btn" style="padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                        <i class="fas fa-external-link-alt"></i> Documentos
+                    </a>
+                    <button type="button" class="btn" style="padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="copyClientUploaderLink('${contact.id}', '${contact.name}')">
+                        <i class="fas fa-copy"></i> Copiar
+                    </button>
+                    <a href="${waLink}" target="_blank" class="btn" style="padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; background: #25d366; color: white; border: none; border-radius: 8px; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                        <i class="fab fa-whatsapp"></i> Compartir
+                    </a>
+                </div>
+            </div>
         `;
     } else if (type === 'estudio') {
         modalTitle.textContent = 'Editar Estudio Hipotecario';
@@ -298,8 +337,8 @@ function openEditModal(type, id) {
         const finalidadOpts = ['Vivienda habitual', 'Segunda residencia', 'Inversión'];
         
         const tipoTrabajoOpts = ['Cuenta ajena', 'Funcionario', 'Autonomo', 'Fijo discontinuo'];
-        const pagasT1Opts = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15'];
-        const pagasT2Opts = ['6', '7', '8', '9', '10', '11', '12', '13', '14', '15'];
+        const pagasT1Opts = ['6', '7', '8', '9', '10', '11', '12', '13', '14'];
+        const pagasT2Opts = ['6', '7', '8', '9', '10', '11', '12', '13', '14'];
         const propiedadEncontradaOpts = ['Buscando', 'Si, no reservada', 'Si, reservada'];
         const tipoViviendaOpts = ['Nueva', 'Segunda mano'];
         const tipoPrestamoOpts = ['Hipotecario', 'ICO', 'Autopromocion', 'Hipoteca no residente'];
@@ -762,7 +801,15 @@ function generateFormGroup(label, id, type, value, options = null) {
     } else if (type === 'readonly') {
         inputHTML = `<input type="text" id="${id}" class="form-control" value="${value !== undefined && value !== null ? value : ''}" readonly style="padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; background-color: #f8fafc; color: #64748b; cursor: not-allowed;">`;
     } else {
-        inputHTML = `<input type="${type}" id="${id}" class="form-control" value="${value !== undefined && value !== null ? value : ''}" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary);">`;
+        let extraAttrs = '';
+        if (id === 'field_edad_sim') {
+            extraAttrs = ' min="18" max="80"';
+        } else if (id === 'field_ingresos_t1' || id === 'field_ingresos_t2') {
+            extraAttrs = ' min="1" max="99999"';
+        } else if (id === 'field_otros_prestamos' || id === 'field_capital_pendiente' || id === 'field_ahorros' || id === 'field_precio_inmueble') {
+            extraAttrs = ' min="0" max="999999"';
+        }
+        inputHTML = `<input type="${type}" id="${id}" class="form-control" value="${value !== undefined && value !== null ? value : ''}"${extraAttrs} style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: var(--primary);">`;
     }
     return `
         <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -1046,6 +1093,23 @@ function openContactDetailOverlay(contactId) {
             </div>
         </div>
 
+        <!-- Enlace de Subida y Compartido de Documentación -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; font-family: 'Inter', sans-serif; box-sizing: border-box; width: 100%;">
+            <span style="font-size: 0.8rem; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.5px; text-align: left;">Enlace de Subida de Documentos</span>
+            <div style="display: flex; gap: 0.5rem; width: 100%; box-sizing: border-box;">
+                <input type="text" readonly value="https://hipotecaaqui.com/subir.html?c=${contact.id}" style="flex: 1; padding: 0.65rem 0.8rem; border: 1px solid #bbf7d0; border-radius: 8px; font-family: monospace; font-size: 0.82rem; color: #166534; background: white; outline: none; text-overflow: ellipsis; box-sizing: border-box;">
+                <a href="https://hipotecaaqui.com/subir.html?c=${contact.id}" target="_blank" class="btn" style="padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                    <i class="fas fa-external-link-alt"></i> Documentos
+                </a>
+                <button type="button" class="btn" style="padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 8px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="copyClientUploaderLink('${contact.id}', '${contact.name}')">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+                <a href="${getWhatsAppShareLink(contact.phone, contact.id, contact.name)}" target="_blank" class="btn" style="padding: 0.65rem 1rem; font-size: 0.85rem; font-weight: 700; background: #25d366; color: white; border: none; border-radius: 8px; text-decoration: none; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    <i class="fab fa-whatsapp"></i> Compartir
+                </a>
+            </div>
+        </div>
+
         <div style="display: flex; flex-direction: column; gap: 1.2rem; font-family: 'Inter', sans-serif;">
             <h4 style="color: var(--primary); font-weight: 800; font-size: 1rem; margin: 0 0 0.2rem 0; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.4rem;">Datos de Contacto (Editables)</h4>
             
@@ -1310,17 +1374,55 @@ async function saveRecordChanges(event) {
             }
         }
     } else if (type === 'estudio') {
+        const edadSim = getNumberFromInput('field_edad_sim', true);
+        if (edadSim !== null && (edadSim < 18 || edadSim > 80)) {
+            alert('La edad del Titular 1 debe estar entre 18 y 80 años.');
+            return;
+        }
+        const ingresosT1 = getNumberFromInput('field_ingresos_t1');
+        if (ingresosT1 !== null && (ingresosT1 <= 0 || ingresosT1 >= 100000)) {
+            alert('Los ingresos mensuales del Titular 1 deben ser mayores que cero y menores de 100.000 €.');
+            return;
+        }
+        const ingresosT2 = getNumberFromInput('field_ingresos_t2');
+        if (ingresosT2 !== null && (ingresosT2 <= 0 || ingresosT2 >= 100000)) {
+            alert('Los ingresos mensuales del Titular 2 deben ser mayores que cero y menores de 100.000 €.');
+            return;
+        }
+
+        const otrosPrestamos = getNumberFromInput('field_otros_prestamos');
+        if (otrosPrestamos !== null && (otrosPrestamos < 0 || otrosPrestamos >= 1000000)) {
+            alert('El importe de Otros préstamos mensuales debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+            return;
+        }
+        const capitalPendiente = getNumberFromInput('field_capital_pendiente');
+        if (capitalPendiente !== null && (capitalPendiente < 0 || capitalPendiente >= 1000000)) {
+            alert('El Capital pendiente de devolución debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+            return;
+        }
+        const ahorros = getNumberFromInput('field_ahorros');
+        if (ahorros !== null && (ahorros < 0 || ahorros >= 1000000)) {
+            alert('Los Ahorros disponibles deben ser mayores o iguales a cero y tener un máximo de 6 dígitos.');
+            return;
+        }
+
+        const precioInmueble = getNumberFromInput('field_precio_inmueble');
+        if (precioInmueble !== null && (precioInmueble < 0 || precioInmueble >= 1000000)) {
+            alert('El Precio del inmueble debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+            return;
+        }
+
         const originalRecord = currentRecords.find(r => r.id === id);
         const origFields = originalRecord ? (originalRecord.fields || {}) : {};
         
         const newFields = {
-            'Edad sim': getNumberFromInput('field_edad_sim', true),
+            'Edad sim': edadSim,
             'Tipo trabajo sim': document.getElementById('field_tipo_trabajo_sim').value || null,
             'Antiguedad sim': getNumberFromInput('field_antiguedad_sim', true),
-            'Ingresos titular 1': getNumberFromInput('field_ingresos_t1'),
+            'Ingresos titular 1': ingresosT1,
             'Num pagas T1': getNumberFromInput('field_pagas_t1', true),
 
-            'Ingresos titular 2': getNumberFromInput('field_ingresos_t2'),
+            'Ingresos titular 2': ingresosT2,
             'Tipo trabajo T2': document.getElementById('field_tipo_trabajo_t2').value || null,
             'Num pagas T2': getNumberFromInput('field_pagas_t2', true),
             'Antiguedad T2': getNumberFromInput('field_antiguedad_t2', true),
@@ -1965,12 +2067,13 @@ function toggleNewPropBlock() {
     const inputPrecio = document.getElementById('new_precio_inmueble');
     const inputLocalidad = document.getElementById('new_localidad_inmueble');
     
+    // Always display the property details block
+    block.style.display = 'block';
+    
     if (val !== 'Buscando') {
-        block.style.display = 'block';
         if (inputPrecio) inputPrecio.required = true;
         if (inputLocalidad) inputLocalidad.required = true;
     } else {
-        block.style.display = 'none';
         if (inputPrecio) inputPrecio.required = false;
         if (inputLocalidad) inputLocalidad.required = false;
     }
@@ -1998,6 +2101,63 @@ async function submitNewEstudio(event) {
     const isT2 = document.getElementById('new_hay_segundo_titular').checked;
     data['Hay segundo titular'] = isT2 ? 'Si' : 'No';
 
+    // Validation checks
+    const edadSim = data['Edad sim'] !== undefined ? parseInt(data['Edad sim'], 10) : null;
+    if (edadSim !== null && !isNaN(edadSim) && (edadSim < 18 || edadSim > 80)) {
+        alert('La edad del Titular 1 debe estar entre 18 y 80 años.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const ingresosT1 = data['Ingresos titular 1'] !== undefined ? parseFloat(data['Ingresos titular 1']) : null;
+    if (ingresosT1 !== null && !isNaN(ingresosT1) && (ingresosT1 <= 0 || ingresosT1 >= 100000)) {
+        alert('Los ingresos mensuales del Titular 1 deben ser mayores que cero y menores de 100.000 €.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const ingresosT2 = data['Ingresos titular 2'] !== undefined ? parseFloat(data['Ingresos titular 2']) : null;
+    if (isT2 && ingresosT2 !== null && !isNaN(ingresosT2) && (ingresosT2 <= 0 || ingresosT2 >= 100000)) {
+        alert('Los ingresos mensuales del Titular 2 deben ser mayores que cero y menores de 100.000 €.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const otrosPrestamos = data['Otros prestamos mensuales'] !== undefined ? parseFloat(data['Otros prestamos mensuales']) : null;
+    if (otrosPrestamos !== null && !isNaN(otrosPrestamos) && (otrosPrestamos < 0 || otrosPrestamos >= 1000000)) {
+        alert('El importe de Otros préstamos mensuales debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const capitalPendiente = data['Capital pendiente'] !== undefined ? parseFloat(data['Capital pendiente']) : null;
+    if (capitalPendiente !== null && !isNaN(capitalPendiente) && (capitalPendiente < 0 || capitalPendiente >= 1000000)) {
+        alert('El Capital pendiente de devolución debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const ahorros = data['Ahorros'] !== undefined ? parseFloat(data['Ahorros']) : null;
+    if (ahorros !== null && !isNaN(ahorros) && (ahorros < 0 || ahorros >= 1000000)) {
+        alert('Los Ahorros disponibles deben ser mayores o iguales a cero y tener un máximo de 6 dígitos.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
+    const precioInmueble = data['Precio del inmueble'] !== undefined ? parseFloat(data['Precio del inmueble']) : null;
+    if (precioInmueble !== null && !isNaN(precioInmueble) && (precioInmueble < 0 || precioInmueble >= 1000000)) {
+        alert('El Precio del inmueble debe ser mayor o igual a cero y tener un máximo de 6 dígitos.');
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalBtnText;
+        return;
+    }
+
     // If no second titular, remove related fields to prevent Airtable errors
     if (!isT2) {
         delete data['Ingresos titular 2'];
@@ -2006,15 +2166,7 @@ async function submitNewEstudio(event) {
         delete data['Antiguedad T2'];
     }
 
-    // If property not found, remove property details
-    const toggleProp = document.getElementById('new_encontrado_propiedad');
-    if (toggleProp && toggleProp.value === 'Buscando') {
-        delete data['Precio del inmueble'];
-        delete data['Tipo vivienda'];
-        delete data['Localidad inmueble'];
-        delete data['CP Localidad'];
-        delete data['Tipo prestamo'];
-    }
+    // Keep property details regardless of finding status so they are saved if filled
 
     // If franquiciado ID is available, link this Hipoteca record to the Franquiciado!
     if (currentUserFranquiciadoId) {
@@ -2039,7 +2191,7 @@ async function submitNewEstudio(event) {
             
             // Reset toggles visual states
             document.getElementById('new-titular-2-block').style.display = 'none';
-            document.getElementById('new-propiedad-block').style.display = 'none';
+            document.getElementById('new-propiedad-block').style.display = 'block';
             
             // Reload the table!
             loadDashboardData();
@@ -2146,7 +2298,7 @@ function renderContactsTable(contacts, isClient) {
     if (!tabBody) return;
 
     if (contacts.length === 0) {
-        tabBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 3rem; color: #999;">${isClient ? 'Aún no has recomendado a ningún contacto. ¡Comparte tu enlace de arriba para empezar!' : 'No hay contactos disponibles.'}</td></tr>`;
+        tabBody.innerHTML = `<tr><td colspan="${isClient ? 4 : 5}" style="text-align: center; padding: 3rem; color: #999;">${isClient ? 'Aún no has recomendado a ningún contacto. ¡Comparte tu enlace de arriba para empezar!' : 'No hay contactos disponibles.'}</td></tr>`;
         return;
     }
 
@@ -2164,14 +2316,48 @@ function renderContactsTable(contacts, isClient) {
             </tr>
         `).join('');
     } else {
-        tabBody.innerHTML = contacts.map(contact => `
+        tabBody.innerHTML = contacts.map(contact => {
+            const waLink = getWhatsAppShareLink(contact.phone, contact.id, contact.name);
+            const progress = calculateContactProgress(contact);
+            return `
             <tr>
                 <td style="font-weight: 700; color: var(--primary);">${contact.name}</td>
                 <td>${contact.email}</td>
                 <td>${contact.phone}</td>
-                <td><button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" onclick="openEditModal('contact', '${contact.id}')">Detalles</button></td>
+                <td style="vertical-align: middle;">
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem; font-family: 'Inter', sans-serif; min-width: 130px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.76rem; font-weight: 700; color: #475569;">
+                            <span>${progress.completed}/${progress.total} Docs</span>
+                            <span style="color: ${progress.percent === 100 ? 'var(--accent)' : 'var(--secondary)'};">${progress.percent}%</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; display: flex;">
+                            <div style="width: ${progress.percent}%; height: 100%; background: linear-gradient(90deg, var(--secondary) 0%, var(--accent) 100%); border-radius: 4px; transition: width 0.3s ease;"></div>
+                        </div>
+                        <span style="font-size: 0.68rem; color: #94a3b8; font-weight: 600; display: inline-flex; align-items: center; gap: 0.2rem; text-align: left;">
+                            <i class="fas ${progress.lopdAccepted ? 'fa-user-shield' : 'fa-exclamation-triangle'}" style="color: ${progress.lopdAccepted ? '#10b981' : '#f59e0b'};"></i> 
+                            ${progress.lopdAccepted ? 'LOPD Firmada' : 'LOPD Pendiente'}
+                        </span>
+                    </div>
+                </td>
+                <td style="vertical-align: middle;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button class="btn btn-outline" style="padding: 0.35rem 0.8rem; font-size: 0.8rem; cursor: pointer;" onclick="openEditModal('contact', '${contact.id}')">
+                            <i class="fas fa-pencil-alt"></i> Detalles
+                        </button>
+                        <a href="https://hipotecaaqui.com/subir.html?c=${contact.id}" target="_blank" class="btn" style="padding: 0.35rem 0.8rem; font-size: 0.8rem; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.3rem; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'" title="Abrir y revisar portal de documentación del cliente">
+                            <i class="fas fa-external-link-alt"></i> Documentos
+                        </a>
+                        <button class="btn" style="padding: 0.35rem 0.8rem; font-size: 0.8rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-weight: 600; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.3rem; transition: all 0.2s;" onmouseover="this.style.background='#bae6fd'" onmouseout="this.style.background='#e0f2fe'" onclick="copyClientUploaderLink('${contact.id}', '${contact.name}')" title="Copiar enlace de documentación">
+                            <i class="fas fa-copy"></i> Copiar Enlace
+                        </button>
+                        <a href="${waLink}" target="_blank" class="btn" style="padding: 0.35rem 0.8rem; font-size: 0.8rem; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-weight: 600; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.3rem; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='#bbf7d0'" onmouseout="this.style.background='#dcfce7'" title="Enviar por WhatsApp">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                    </div>
+                </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     }
 }
 
@@ -2386,3 +2572,55 @@ function renderProcessGraphics(records) {
     }
 }
 
+// Helper functions for client document uploader links and WhatsApp shares
+function copyClientUploaderLink(contactId, clientName) {
+    const link = `https://hipotecaaqui.com/subir.html?c=${contactId}`;
+    navigator.clipboard.writeText(link).then(() => {
+        alert(`¡Enlace de subida de ${clientName || 'documentos'} copiado al portapapeles!`);
+    }).catch(err => {
+        window.prompt('Copia manual del enlace de subida:', link);
+    });
+}
+window.copyClientUploaderLink = copyClientUploaderLink;
+
+function getWhatsAppShareLink(phone, contactId, clientName) {
+    let sanitizedPhone = String(phone).replace(/\D/g, '');
+    if (sanitizedPhone.length === 9) {
+        sanitizedPhone = '34' + sanitizedPhone;
+    }
+    const link = `https://hipotecaaqui.com/subir.html?c=${contactId}`;
+    const message = `Hola ${clientName || ''}, te comparto el siguiente enlace para que puedas subir la documentación necesaria para tramitar tu expediente de forma segura: ${link}`;
+    return `https://api.whatsapp.com/send?phone=${sanitizedPhone}&text=${encodeURIComponent(message)}`;
+}
+
+function calculateContactProgress(contact) {
+    const f = contact.fields || {};
+    
+    const nifCount = Array.isArray(f['NIF']) ? f['NIF'].length : 0;
+    const nominasCount = Array.isArray(f['Nominas']) ? f['Nominas'].length : 0;
+    const vidaLaboralCount = Array.isArray(f['Vida laboral']) ? f['Vida laboral'].length : 0;
+    const rentaCount = Array.isArray(f['Renta']) ? f['Renta'].length : 0;
+    const extractosCount = Array.isArray(f['Extractos bancarios']) ? f['Extractos bancarios'].length : 0;
+    const otrosCount = Array.isArray(f['Otros adjuntos']) ? f['Otros adjuntos'].length : 0;
+    const lopdAccepted = !!f['Aceptacion LOPD'];
+    
+    // Auto-detect autonomous based on upload patterns (others uploaded, but no nominas)
+    const isAutonomous = nominasCount === 0 && otrosCount > 0;
+    
+    let completed = 0;
+    let total = 5;
+    
+    if (nifCount >= 2) completed++;
+    if (isAutonomous) {
+        if (otrosCount >= 1) completed++;
+    } else {
+        if (nominasCount >= 3) completed++;
+    }
+    if (vidaLaboralCount >= 1) completed++;
+    if (rentaCount >= 1) completed++;
+    if (extractosCount >= 1) completed++;
+    
+    const percent = Math.round((completed / total) * 100);
+    return { completed, total, percent, lopdAccepted };
+}
+window.calculateContactProgress = calculateContactProgress;

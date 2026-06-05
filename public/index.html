@@ -164,7 +164,7 @@
                     <p>AKIA es la plataforma diseñada para profesionales que quieren aumentar cierres y generar nuevas líneas de ingresos recurrentes.</p>
                     <p>Combinamos inteligencia artificial, soporte humano y conocimiento bancario avanzado para desbloquear ventas complejas.</p>
                     <div class="hero-btns" style="margin-top: 2rem;">
-                        <a href="#contacto" class="btn btn-primary">QUIERO SER ASOCIADO</a>
+                        <a href="asociados-info.html" class="btn btn-primary">QUIERO SER ASOCIADO</a>
                     </div>
                 </div>
                 <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem;">
@@ -250,7 +250,7 @@
                 <div class="faq-item">
                     <div class="faq-question">¿Puedo conseguir financiación al 100%? <i data-lucide="chevron-down"></i></div>
                     <div class="faq-answer">
-                        <p>Sí. Gestionamos de forma habitual hipotecas al 100% e incluso, en determinados perfiles, financiación que cubre también los gastos de compra. Si la operación es viable, en Hipoteca Aquí encontraremos la mejor solución para conseguirla.</p>
+                        <p>Sí. Gestionamos de forma habitual hipotecas al 100% e incluso, en determinados perfiles, financiación que cubre también gastos de la compra. Si la operación es viable, en Hipoteca Aquí encontraremos la mejor solución para conseguirla.</p>
                     </div>
                 </div>
 
@@ -397,7 +397,7 @@
 
                         <div class="form-group">
                             <label for="edad_sim">Edad Titular 1 *</label>
-                            <input type="number" id="edad_sim" name="Edad sim" required placeholder="Ej: 35">
+                            <input type="number" id="edad_sim" name="Edad sim" required min="18" max="80" placeholder="Ej: 35">
                         </div>
                         <div class="form-group">
                             <label for="tipo_trabajo_sim">Tipo de trabajo Titular 1 *</label>
@@ -416,14 +416,20 @@
                         </div>
                         <div class="form-group">
                             <label for="ingresos_t1">Ingresos mensuales T1 (€) *</label>
-                            <input type="number" id="ingresos_t1" name="Ingresos titular 1" required placeholder="Ej: 2000">
+                            <input type="number" id="ingresos_t1" name="Ingresos titular 1" required min="1" max="99999" placeholder="Ej: 2000">
                         </div>
                         <div class="form-group">
                             <label for="pagas_t1">Nº pagas T1 *</label>
                             <select id="pagas_t1" name="Num pagas T1" required>
-                                <option value="12">12 pagas</option>
+                                <option value="6">6 pagas</option>
+                                <option value="7">7 pagas</option>
+                                <option value="8">8 pagas</option>
+                                <option value="9">9 pagas</option>
+                                <option value="10">10 pagas</option>
+                                <option value="11">11 pagas</option>
+                                <option value="12" selected>12 pagas</option>
+                                <option value="13">13 pagas</option>
                                 <option value="14">14 pagas</option>
-                                <option value="15">15 pagas</option>
                             </select>
                         </div>
 
@@ -440,7 +446,7 @@
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="ingresos_t2">Ingresos mensuales T2 (€)</label>
-                                    <input type="number" id="ingresos_t2" name="Ingresos titular 2" placeholder="Ej: 1500">
+                                    <input type="number" id="ingresos_t2" name="Ingresos titular 2" min="1" max="99999" placeholder="Ej: 1500">
                                 </div>
                                 <div class="form-group">
                                     <label for="tipo_trabajo_t2">Tipo de trabajo Titular 2</label>
@@ -455,7 +461,14 @@
                                 <div class="form-group">
                                     <label for="pagas_t2">Nº pagas T2</label>
                                     <select id="pagas_t2" name="Num pagas T2">
-                                        <option value="12">12 pagas</option>
+                                        <option value="6">6 pagas</option>
+                                        <option value="7">7 pagas</option>
+                                        <option value="8">8 pagas</option>
+                                        <option value="9">9 pagas</option>
+                                        <option value="10">10 pagas</option>
+                                        <option value="11">11 pagas</option>
+                                        <option value="12" selected>12 pagas</option>
+                                        <option value="13">13 pagas</option>
                                         <option value="14">14 pagas</option>
                                     </select>
                                 </div>
@@ -469,15 +482,15 @@
                         <!-- Financial Info -->
                         <div class="form-group">
                             <label for="otros_prestamos">Otros préstamos mensuales (€) *</label>
-                            <input type="number" id="otros_prestamos" name="Otros prestamos mensuales" value="0" required>
+                            <input type="number" id="otros_prestamos" name="Otros prestamos mensuales" value="0" required min="0" max="999999">
                         </div>
                         <div class="form-group">
                             <label for="capital_pendiente">Capital pendiente devolución (€) *</label>
-                            <input type="number" id="capital_pendiente" name="Capital pendiente" value="0" required>
+                            <input type="number" id="capital_pendiente" name="Capital pendiente" value="0" required min="0" max="999999">
                         </div>
                         <div class="form-group full-width">
                             <label for="ahorros">Ahorros disponibles (€) *</label>
-                            <input type="number" id="ahorros" name="Ahorros" required placeholder="Ej: 20000">
+                            <input type="number" id="ahorros" name="Ahorros" required min="0" max="999999" placeholder="Ej: 20000">
                         </div>
 
                         <!-- Toggle Propiedad -->
@@ -491,11 +504,11 @@
                         </div>
 
                         <!-- Propiedad Details (Conditional) -->
-                        <div id="propiedad-block" class="conditional-block">
+                        <div id="propiedad-block" class="conditional-block active">
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="precio_inmueble">Precio del inmueble (€)</label>
-                                    <input type="number" id="precio_inmueble" name="Precio del inmueble">
+                                    <label for="precio_inmueble">Precio del inmueble (€) *</label>
+                                    <input type="number" id="precio_inmueble" name="Precio del inmueble" required min="0" max="999999">
                                 </div>
                                 <div class="form-group">
                                     <label for="tipo_vivienda">Tipo vivienda</label>
@@ -509,8 +522,8 @@
                                     <input type="text" id="localidad_inmueble" name="Localidad inmueble">
                                 </div>
                                 <div class="form-group">
-                                    <label for="cp_localidad">CP Localidad</label>
-                                    <input type="text" id="cp_localidad" name="CP Localidad">
+                                    <label for="cp_localidad">CP Localidad *</label>
+                                    <input type="text" id="cp_localidad" name="CP Localidad" required>
                                 </div>
                                 <div class="form-group full-width">
                                     <label for="tipo_prestamo">Tipo préstamo</label>
@@ -525,22 +538,117 @@
                         </div>
                     </div>
 
+                    <!-- LOPD y Consentimiento -->
+                    <div class="form-group full-width" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.8rem;">
+                        <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                            <input type="checkbox" id="aceptacion_privacidad" name="Aceptacion privacidad" required style="margin-top: 0.25rem; width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+                            <label for="aceptacion_privacidad" style="font-weight: 500; font-size: 0.85rem; color: #475569; cursor: pointer; line-height: 1.3;">
+                                He leído y acepto la <a href="politica-privacidad.html" target="_blank" style="color: var(--secondary); text-decoration: underline;">Política de Privacidad</a> *
+                            </label>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                            <input type="checkbox" id="consentimiento_comercial" name="Consentimiento" required style="margin-top: 0.25rem; width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+                            <label for="consentimiento_comercial" style="font-weight: 500; font-size: 0.85rem; color: #475569; cursor: pointer; line-height: 1.3;">
+                                Deseo recibir comunicaciones comerciales y que me contacten en relación a mi solicitud. *
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="form-footer">
                         <button type="submit" class="btn btn-primary submit-btn" id="submit-form">ENVIAR SOLICITUD</button>
                     </div>
                 </form>
             </div>
 
-            <div id="success-container" class="success-message">
+            <div id="loading-container" class="scoring-loading-message" style="display: none;">
+                <div class="scoring-spinner-wrapper">
+                    <div class="scoring-spinner"></div>
+                    <div class="scoring-spinner-inner"></div>
+                </div>
+                <h2 id="loading-title">Analizando viabilidad...</h2>
+                <p id="loading-subtitle">Cruzando datos con más de 30 entidades financieras en tiempo real.</p>
+                <div class="scoring-progress-bar-container">
+                    <div class="scoring-progress-bar" id="scoring-progress"></div>
+                </div>
+            </div>
+
+            <div id="viable-container" class="scoring-result-message viable" style="display: none;">
+                <div class="result-icon success">
+                    <i data-lucide="check-circle-2"></i>
+                </div>
+                <h2>¡Enhorabuena! Operación Viable</h2>
+                <p class="result-desc">Hemos pre-aprobado tu solicitud. Aquí tienes las mejores cuotas estimadas para tu perfil:</p>
+                
+                <div class="cuotas-grid">
+                    <div class="cuota-card fija">
+                        <span class="cuota-type">Cuota Fija</span>
+                        <span class="cuota-value" id="viable-fija">-- €</span>
+                        <span class="cuota-period">/ mes</span>
+                    </div>
+                    <div class="cuota-card mixta">
+                        <span class="cuota-type">Cuota Mixta</span>
+                        <span class="cuota-value" id="viable-mixta">-- €</span>
+                        <span class="cuota-period">/ mes</span>
+                    </div>
+                    <div class="cuota-card variable">
+                        <span class="cuota-type">Cuota Variable</span>
+                        <span class="cuota-value" id="viable-variable">-- €</span>
+                        <span class="cuota-period">/ mes</span>
+                    </div>
+                </div>
+
+                <div class="result-footer-info" id="viable-info-text">
+                    Estudio basado en los productos hipotecarios vigentes.
+                </div>
+
+                <div class="result-actions">
+                    <a href="https://wa.me/34630431874" target="_blank" class="btn btn-primary btn-whatsapp"><i class="fab fa-whatsapp"></i> AGENDAR LLAMADA CON ASESOR</a>
+                    <button class="btn btn-outline" id="btn-viable-back">VOLVER AL INICIO</button>
+                </div>
+            </div>
+
+            <div id="manual-container" class="scoring-result-message manual" style="display: none;">
+                <div class="result-icon warning">
+                    <i data-lucide="alert-circle"></i>
+                </div>
+                <h2 id="manual-title">Estudio en Revisión Manual</h2>
+                <p id="manual-desc" class="result-desc">Tu perfil financiero presenta particularidades que requieren un análisis personalizado. Nuestro equipo de analistas estudiará tu caso para encontrar alternativas viables.</p>
+                
+                <!-- Semáforos de viabilidad -->
+                <div id="semaphores-box" style="display: none; margin: 1.5rem auto; max-width: 500px; padding: 1.5rem; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0; text-align: left;">
+                    <h4 style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem; text-align: center; text-transform: uppercase; letter-spacing: 0.5px;">Indicadores de Viabilidad Automática</h4>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="font-weight: 600; color: #475569;">Estabilidad Laboral</span>
+                            <span id="sem-estabilidad" style="font-size: 1.4rem; line-height: 1;">⚪</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e2e8f0;">
+                            <span style="font-weight: 600; color: #475569;">Capacidad de Endeudamiento</span>
+                            <span id="sem-esfuerzo" style="font-size: 1.4rem; line-height: 1;">⚪</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                            <span style="font-weight: 600; color: #475569;">Ahorros Aportados (20% + Gastos)</span>
+                            <span id="sem-ahorros" style="font-size: 1.4rem; line-height: 1;">⚪</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-actions">
+                    <a href="https://wa.me/34630431874" target="_blank" class="btn btn-primary btn-whatsapp"><i class="fab fa-whatsapp"></i> CONTACTAR CON UN ASESOR</a>
+                    <button class="btn btn-outline" id="btn-manual-back">VOLVER AL INICIO</button>
+                </div>
+            </div>
+
+            <div id="success-container" class="success-message" style="display: none;">
                 <i data-lucide="check-circle"></i>
-                <h2>¡Solicitud Enviada!</h2>
-                <p>Hemos recibido tus datos correctamente. Un asesor se pondrá en contacto contigo muy pronto.</p>
+                <h2>¡Solicitud Recibida!</h2>
+                <p>Hemos guardado tus datos correctamente. El proceso de scoring está tardando más de lo habitual, por lo que un asesor analizará tu caso y te contactará muy pronto.</p>
                 <button class="btn btn-outline" style="margin-top: 2rem;" id="btn-back">VOLVER AL INICIO</button>
             </div>
         </div>
     </div>
 
-    <script src="main.js?v=1.0.3"></script>
+    <script src="main.js?v=1.0.7"></script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();

@@ -21,6 +21,7 @@
                     <li><a href="#" id="nav-actividad" class="active" onclick="switchTab('actividad')"><i class="fas fa-home"></i> Mi Actividad</a></li>
                     <li><a href="#" id="nav-estudios" onclick="switchTab('estudios')"><i class="fas fa-file-invoice-dollar"></i> Mis Estudios</a></li>
                     <li><a href="#" id="nav-contactos" onclick="switchTab('contactos')"><i class="fas fa-user-friends"></i> Mis Contactos</a></li>
+                    <li style="display: none;"><a href="#" id="nav-documentos" onclick="switchTab('documentos')"><i class="fas fa-folder-open"></i> Mis Documentos</a></li>
                     <li><a href="#" id="nav-ajustes" onclick="switchTab('ajustes')"><i class="fas fa-cog"></i> Ajustes</a></li>
                 </ul>
             </nav>
@@ -246,6 +247,28 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Mis Documentos (Solo Cliente) -->
+            <div id="tab-documentos" class="tab-content" style="display: none;">
+                <div class="records-table-container" style="width: 100%; box-sizing: border-box;">
+                    <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 0.8rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.6rem;">
+                            <i class="fas fa-folder-open" style="color: var(--secondary); font-size: 1.4rem;"></i>
+                            <h3 style="margin: 0; color: var(--primary); font-weight: 800; font-size: 1.3rem;">Mis Documentos</h3>
+                        </div>
+                        <a id="btnAbrirUploaderNuevaPestana" href="#" target="_blank" class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; cursor: pointer;">
+                            <i class="fas fa-external-link-alt"></i> Abrir en ventana completa
+                        </a>
+                    </div>
+                    <p style="color: #64748b; font-size: 0.95rem; line-height: 1.5; margin: 0 0 1.5rem 0;">
+                        Sube y gestiona tus documentos aquí. Tus cambios se guardan de forma inmediata en tu expediente de viabilidad.
+                    </p>
+                    
+                    <div style="border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <iframe id="iframe-documentos" src="about:blank" style="width: 100%; height: 750px; border: none; display: block;"></iframe>
                     </div>
                 </div>
             </div>
@@ -502,7 +525,7 @@
                         <!-- Titular 1 -->
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                             <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Edad Titular 1 *</label>
-                            <input type="number" name="Edad sim" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 35">
+                            <input type="number" name="Edad sim" required min="18" max="80" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 35">
                         </div>
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                             <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo de trabajo Titular 1 *</label>
@@ -520,14 +543,20 @@
                         </div>
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                             <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Ingresos mensuales T1 (€) *</label>
-                            <input type="number" name="Ingresos titular 1" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 2000">
+                            <input type="number" name="Ingresos titular 1" required min="1" max="99999" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 2000">
                         </div>
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                             <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Nº pagas T1 *</label>
                             <select name="Num pagas T1" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
-                                <option value="12">12 pagas</option>
+                                <option value="6">6 pagas</option>
+                                <option value="7">7 pagas</option>
+                                <option value="8">8 pagas</option>
+                                <option value="9">9 pagas</option>
+                                <option value="10">10 pagas</option>
+                                <option value="11">11 pagas</option>
+                                <option value="12" selected>12 pagas</option>
+                                <option value="13">13 pagas</option>
                                 <option value="14">14 pagas</option>
-                                <option value="15">15 pagas</option>
                             </select>
                         </div>
 
@@ -542,7 +571,7 @@
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Ingresos mensuales T2 (€)</label>
-                                    <input type="number" id="new_ingresos_t2" name="Ingresos titular 2" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;" placeholder="Ej: 1500">
+                                    <input type="number" id="new_ingresos_t2" name="Ingresos titular 2" min="1" max="99999" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;" placeholder="Ej: 1500">
                                 </div>
                                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo de trabajo Titular 2</label>
@@ -557,7 +586,14 @@
                                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Nº pagas T2</label>
                                     <select id="new_pagas_t2" name="Num pagas T2" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
-                                        <option value="12">12 pagas</option>
+                                        <option value="6">6 pagas</option>
+                                        <option value="7">7 pagas</option>
+                                        <option value="8">8 pagas</option>
+                                        <option value="9">9 pagas</option>
+                                        <option value="10">10 pagas</option>
+                                        <option value="11">11 pagas</option>
+                                        <option value="12" selected>12 pagas</option>
+                                        <option value="13">13 pagas</option>
                                         <option value="14">14 pagas</option>
                                     </select>
                                 </div>
@@ -571,15 +607,15 @@
                         <!-- Financial Info -->
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                             <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Otros préstamos mensuales (€) *</label>
-                            <input type="number" name="Otros prestamos mensuales" value="0" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+                            <input type="number" name="Otros prestamos mensuales" value="0" required min="0" max="999999" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;">
                         </div>
                         <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                             <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Capital pendiente devolución (€) *</label>
-                            <input type="number" name="Capital pendiente" value="0" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+                            <input type="number" name="Capital pendiente" value="0" required min="0" max="999999" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;">
                         </div>
                         <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 0.4rem;">
                             <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Ahorros disponibles (€) *</label>
-                            <input type="number" name="Ahorros" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 20000">
+                            <input type="number" name="Ahorros" required min="0" max="999999" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;" placeholder="Ej: 20000">
                         </div>
 
                         <!-- Toggle Propiedad -->
@@ -593,11 +629,11 @@
                         </div>
 
                         <!-- Propiedad Details (Conditional) -->
-                        <div id="new-propiedad-block" style="grid-column: span 2; display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 1.2rem; box-sizing: border-box;">
+                        <div id="new-propiedad-block" style="grid-column: span 2; display: block; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 1.2rem; box-sizing: border-box;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Precio del inmueble (€)</label>
-                                    <input type="number" id="new_precio_inmueble" name="Precio del inmueble" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                    <input type="number" id="new_precio_inmueble" name="Precio del inmueble" min="0" max="999999" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
                                 </div>
                                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
                                     <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo vivienda</label>
@@ -611,8 +647,8 @@
                                     <input type="text" id="new_localidad_inmueble" name="Localidad inmueble" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
                                 </div>
                                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
-                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">CP Localidad</label>
-                                    <input type="text" id="new_cp_localidad" name="CP Localidad" class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
+                                    <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">CP Localidad *</label>
+                                    <input type="text" id="new_cp_localidad" name="CP Localidad" required class="form-control" style="padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; background: white;">
                                 </div>
                                 <div class="form-group" style="grid-column: span 2; display: flex; flex-direction: column; gap: 0.4rem;">
                                     <label style="font-weight: 700; color: #475569; font-size: 0.88rem;">Tipo préstamo</label>
