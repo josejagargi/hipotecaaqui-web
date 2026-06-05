@@ -127,9 +127,6 @@ exports.handler = async (event, context) => {
       };
       if (telefono) contactFields['Telefono'] = String(telefono);
       if (resolvedFranquiciados) contactFields['Franquiciados'] = resolvedFranquiciados;
-      if (data['Edad titular 2'] !== undefined && data['Edad titular 2'] !== null) {
-        contactFields['Edad form'] = parseInt(data['Edad titular 2'], 10) || 0;
-      }
       
       const newContact = await base('Contacts').create(contactFields);
       contactId = newContact.id;
@@ -143,9 +140,6 @@ exports.handler = async (event, context) => {
       if (resolvedFranquiciados && (!contactFranquiciados || contactFranquiciados.length === 0)) {
         updateFields['Franquiciados'] = resolvedFranquiciados;
       }
-      if (data['Edad titular 2'] !== undefined && data['Edad titular 2'] !== null) {
-        updateFields['Edad form'] = parseInt(data['Edad titular 2'], 10) || 0;
-      }
       try {
         await base('Contacts').update(contactId, updateFields);
         console.log(`Successfully updated existing Contact ${contactId} with fields:`, updateFields);
@@ -154,9 +148,37 @@ exports.handler = async (event, context) => {
       }
     }
 
+    // 1.5. Crear segundo contacto para el Titular 2 si existe y tiene nombre
+    const isT2 = data['Hay segundo titular'] === 'Si';
+    let contact2Id = null;
+    if (isT2 && data['Nombre titular 2']) {
+      try {
+        const contact2Fields = {
+          'Nombre y apellidos': data['Nombre titular 2']
+        };
+        if (data['Edad titular 2'] !== undefined && data['Edad titular 2'] !== null) {
+          contact2Fields['Edad form'] = parseInt(data['Edad titular 2'], 10) || 0;
+        }
+        if (resolvedFranquiciados) {
+          contact2Fields['Franquiciados'] = resolvedFranquiciados;
+        }
+        
+        const newContact2 = await base('Contacts').create(contact2Fields);
+        contact2Id = newContact2.id;
+        console.log('Second contact created for T2:', contact2Id);
+      } catch (err) {
+        console.error('Failed to create second contact for T2:', err);
+      }
+    }
+
     // 2. Preparar el registro de Hipoteca
+    const contactsList = [contactId];
+    if (contact2Id) {
+      contactsList.push(contact2Id);
+    }
+
     const hipotecaFields = {
-      'Contact': [contactId],
+      'Contact': contactsList,
       'Enviar scoring': true,
       'html': generateEmailHtml(data)
     };

@@ -310,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 delete data['Num pagas T2'];
                 delete data['Antiguedad T2'];
                 delete data['Edad titular 2'];
+                delete data['Nombre titular 2'];
             }
 
             // Keep property details regardless of finding status so they are saved if filled
