@@ -309,6 +309,7 @@ function openEditModal(type, id) {
             ${generateFormGroup('Nombre y apellidos', 'field_name', 'text', f['Nombre y apellidos'] !== undefined ? f['Nombre y apellidos'] : contact.name)}
             ${generateFormGroup('Email', 'field_email', 'email', f['Email'] !== undefined ? f['Email'] : contact.email)}
             ${generateFormGroup('Teléfono', 'field_phone', 'tel', f['Telefono'] !== undefined ? f['Telefono'] : contact.phone)}
+            ${generateFormGroup('Edad Titular 2', 'field_edad_form', 'number', f['Edad form'] !== undefined ? f['Edad form'] : '')}
             
             <!-- Acciones de documentación del cliente -->
             <div style="grid-column: 1 / -1; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; font-family: 'Inter', sans-serif; margin-top: 0.8rem; box-sizing: border-box; width: 100%;">
@@ -802,7 +803,7 @@ function generateFormGroup(label, id, type, value, options = null) {
         inputHTML = `<input type="text" id="${id}" class="form-control" value="${value !== undefined && value !== null ? value : ''}" readonly style="padding: 0.8rem; border: 1px solid #e2e8f0; border-radius: 8px; width: 100%; font-family: 'Inter', sans-serif; font-size: 0.95rem; background-color: #f8fafc; color: #64748b; cursor: not-allowed;">`;
     } else {
         let extraAttrs = '';
-        if (id === 'field_edad_sim') {
+        if (id === 'field_edad_sim' || id === 'field_edad_form' || id === 'overlay_contact_edad_form') {
             extraAttrs = ' min="18" max="80"';
         } else if (id === 'field_ingresos_t1' || id === 'field_ingresos_t2') {
             extraAttrs = ' min="1" max="99999"';
@@ -1128,6 +1129,7 @@ function openContactDetailOverlay(contactId) {
 
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem;">
                 ${generateFormGroup('NIF/NIE', 'overlay_contact_nif', 'text', f['Numero documento'] || f['NIF'] || f['DNI'] || f['NIF (from Contact)'] || '')}
+                ${generateFormGroup('Edad Titular 2', 'overlay_contact_edad_form', 'number', f['Edad form'] || '')}
                 ${generateFormGroup('Origen / Recomendado por (Lectura)', 'overlay_contact_origen', 'readonly', f['referido por'] || f['Recomendado por'] || 'Directo')}
                 
                 <div class="form-group" style="display: flex; flex-direction: column; gap: 0.5rem; grid-column: span 2;">
@@ -1157,6 +1159,7 @@ async function saveOverlayContactChanges(contactId) {
     const phone = document.getElementById('overlay_contact_phone').value.trim();
     const nif = document.getElementById('overlay_contact_nif').value.trim();
     const notas = document.getElementById('overlay_contact_notas').value.trim();
+    const edadForm = getNumberFromInput('overlay_contact_edad_form', true);
 
     if (!name || !email || !phone) {
         alert('Nombre, Email y Teléfono son obligatorios.');
@@ -1166,6 +1169,11 @@ async function saveOverlayContactChanges(contactId) {
     const phoneRegex = /^[0-9]{9}$/;
     if (!phoneRegex.test(phone)) {
         alert('El teléfono debe tener exactamente 9 dígitos.');
+        return;
+    }
+
+    if (edadForm !== null && (edadForm < 18 || edadForm > 80)) {
+        alert('La edad del Titular 2 debe estar entre 18 y 80 años.');
         return;
     }
 
@@ -1183,7 +1191,8 @@ async function saveOverlayContactChanges(contactId) {
             'Email': email,
             'Telefono': phone,
             'Numero documento': nif,
-            'Notas': notas
+            'Notas': notas,
+            'Edad form': edadForm
         };
 
         const response = await fetch('/.netlify/functions/update-portal-record', {
@@ -1363,10 +1372,17 @@ async function saveRecordChanges(event) {
         const originalRecord = currentContacts.find(c => c.id === id);
         const origFields = originalRecord ? (originalRecord.fields || {}) : {};
         
+        const edadForm = getNumberFromInput('field_edad_form', true);
+        if (edadForm !== null && (edadForm < 18 || edadForm > 80)) {
+            alert('La edad del Titular 2 debe estar entre 18 y 80 años.');
+            return;
+        }
+
         const newFields = {
             'Nombre y apellidos': document.getElementById('field_name').value.trim(),
             'Email': document.getElementById('field_email').value.trim(),
-            'Telefono': document.getElementById('field_phone').value.trim()
+            'Telefono': document.getElementById('field_phone').value.trim(),
+            'Edad form': edadForm
         };
         
         for (const [key, val] of Object.entries(newFields)) {

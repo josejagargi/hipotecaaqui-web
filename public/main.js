@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Edad sim', 'Antiguedad sim', 'Ingresos titular 1', 'Num pagas T1',
                 'Ingresos titular 2', 'Num pagas T2', 'Antiguedad T2',
                 'Otros prestamos mensuales', 'Capital pendiente', 'Ahorros',
-                'Precio del inmueble'
+                'Precio del inmueble', 'Edad titular 2'
             ];
 
             formData.forEach((value, key) => {
@@ -206,6 +206,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const edadSim = data['Edad sim'] !== undefined ? Number(data['Edad sim']) : null;
             if (edadSim !== null && !isNaN(edadSim) && (edadSim < 18 || edadSim > 80)) {
                 alert('La edad del Titular 1 debe estar entre 18 y 80 años.');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                }
+                return;
+            }
+
+            const edadT2 = data['Edad titular 2'] !== undefined ? Number(data['Edad titular 2']) : null;
+            if (isT2 && edadT2 !== null && !isNaN(edadT2) && (edadT2 < 18 || edadT2 > 80)) {
+                alert('La edad del Titular 2 debe estar entre 18 y 80 años.');
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerText = originalBtnText;
@@ -299,6 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 delete data['Tipo trabajo T2'];
                 delete data['Num pagas T2'];
                 delete data['Antiguedad T2'];
+                delete data['Edad titular 2'];
             }
 
             // Keep property details regardless of finding status so they are saved if filled

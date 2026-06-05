@@ -1,5 +1,60 @@
 const Airtable = require('airtable');
 
+const generateEmailHtml = (data) => {
+  const isT2 = data['Hay segundo titular'] === 'Si';
+  const formatEuro = (val) => {
+    if (val === null || val === undefined || isNaN(val)) return '0 €';
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(val);
+  };
+
+  return `
+### Estudio de Viabilidad Hipotecaria
+
+Hola **${data['Nombre y apellidos'] || 'Cliente'}**,
+
+Hemos recibido tu solicitud para el análisis de viabilidad hipotecaria. Aquí tienes un resumen con la información que nos has facilitado:
+
+**👤 Datos Personales y Contacto**
+- Nombre completo: **${data['Nombre y apellidos'] || 'No indicado'}**
+- Email: **${data['Email'] || 'No indicado'}**
+- Teléfono: **${data['Telefono'] || 'No indicado'}**
+
+**💼 Datos del Primer Titular**
+- Edad: **${data['Edad sim'] ? data['Edad sim'] + ' años' : 'No indicado'}**
+- Tipo de Contrato: **${data['Tipo trabajo sim'] || 'No indicado'}**
+- Antigüedad laboral: **${data['Antiguedad sim'] ? data['Antiguedad sim'] + ' años' : 'No indicado'}**
+- Ingresos mensuales netos: **${formatEuro(data['Ingresos titular 1'])}** (${data['Num pagas T1'] || 12} pagas)
+${isT2 ? `
+**👥 Datos del Segundo Titular**
+- Tipo de Contrato T2: **${data['Tipo trabajo T2'] || 'No indicado'}**
+- Antigüedad laboral T2: **${data['Antiguedad T2'] ? data['Antiguedad T2'] + ' años' : 'No indicado'}**
+- Ingresos mensuales T2: **${formatEuro(data['Ingresos titular 2'])}** (${data['Num pagas T2'] || 12} pagas)
+` : ''}
+**💰 Información Financiera**
+- Otros préstamos activos: **${formatEuro(data['Otros prestamos mensuales'])} / mes**
+- Capital pendiente: **${formatEuro(data['Capital pendiente'])}**
+- Ahorros aportados: **${formatEuro(data['Ahorros'])}**
+
+**🏠 Detalles de la Operación**
+- ¿Propiedad encontrada?: **${data['Habeis encontrado propiedad'] || 'Buscando'}**
+- Precio del inmueble: **${formatEuro(data['Precio del inmueble'])}**
+- Tipo de vivienda: **${data['Tipo vivienda'] || 'No indicado'}**
+- Ubicación: **${data['Localidad inmueble'] || ''} (CP: ${data['CP Localidad'] || ''})**
+- Tipo de préstamo: **${data['Tipo prestamo'] || 'Hipotecario'}**
+
+Nuestro equipo de analistas ya está evaluando las mejores ofertas del mercado hipotecario que encajan con tu perfil. Nos pondremos en contacto contigo en las próximas horas para presentarte los resultados detallados.
+
+[👉 HABLAR CON UN ASESOR POR WHATSAPP](https://wa.me/34630431874)
+
+---
+
+**Hipoteca Aquí**
+*Financiación Inteligente Sin Complicaciones*
+
+*Este es un email de confirmación automática de recepción de datos. Si no has iniciado este trámite, por favor ignora este mensaje.*
+  `;
+};
+
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -67,24 +122,35 @@ exports.handler = async (event, context) => {
       const contactFields = {
         'Nombre y apellidos': nombre,
         'Email': email,
+        'Aceptacion LOPD': data['Aceptacion privacidad'] === true || data['Aceptacion privacidad'] === 'true' || data['Aceptacion privacidad'] === 'on',
+        'Aceptacion publicidad': data['Consentimiento'] === true || data['Consentimiento'] === 'true' || data['Consentimiento'] === 'on'
       };
       if (telefono) contactFields['Telefono'] = String(telefono);
       if (resolvedFranquiciados) contactFields['Franquiciados'] = resolvedFranquiciados;
+      if (data['Edad titular 2'] !== undefined && data['Edad titular 2'] !== null) {
+        contactFields['Edad form'] = parseInt(data['Edad titular 2'], 10) || 0;
+      }
       
       const newContact = await base('Contacts').create(contactFields);
       contactId = newContact.id;
       console.log('New contact created with Franquiciados:', contactId, resolvedFranquiciados);
     } else {
-      // Sincronizar Franquiciado si el contacto existente no lo tiene enlazado todavía
+      // Sincronizar Franquiciado y LOPD si el contacto ya existe
+      const updateFields = {
+        'Aceptacion LOPD': data['Aceptacion privacidad'] === true || data['Aceptacion privacidad'] === 'true' || data['Aceptacion privacidad'] === 'on',
+        'Aceptacion publicidad': data['Consentimiento'] === true || data['Consentimiento'] === 'true' || data['Consentimiento'] === 'on'
+      };
       if (resolvedFranquiciados && (!contactFranquiciados || contactFranquiciados.length === 0)) {
-        try {
-          await base('Contacts').update(contactId, {
-            'Franquiciados': resolvedFranquiciados
-          });
-          console.log(`Successfully synced existing Contact ${contactId} to Franquiciados ${resolvedFranquiciados}`);
-        } catch (err) {
-          console.error('Failed to sync existing Contact to Franquiciados:', err);
-        }
+        updateFields['Franquiciados'] = resolvedFranquiciados;
+      }
+      if (data['Edad titular 2'] !== undefined && data['Edad titular 2'] !== null) {
+        updateFields['Edad form'] = parseInt(data['Edad titular 2'], 10) || 0;
+      }
+      try {
+        await base('Contacts').update(contactId, updateFields);
+        console.log(`Successfully updated existing Contact ${contactId} with fields:`, updateFields);
+      } catch (err) {
+        console.error('Failed to update existing Contact fields:', err);
       }
     }
 
@@ -92,6 +158,7 @@ exports.handler = async (event, context) => {
     const hipotecaFields = {
       'Contact': [contactId],
       'Enviar scoring': true,
+      'html': generateEmailHtml(data)
     };
     if (resolvedFranquiciados) {
       hipotecaFields['Franquiciados'] = resolvedFranquiciados;
@@ -142,8 +209,8 @@ exports.handler = async (event, context) => {
     // ensuring we force-link the correct Franchisee permanently.
     if (resolvedFranquiciados && resolvedFranquiciados.length > 0) {
       try {
-        console.log(`Waiting 2.5 seconds for background automations to complete before patching Hipoteca...`);
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        console.log(`Waiting 0.5 seconds for background automations to complete before patching Hipoteca...`);
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         await base('Hipoteca').update(hipotecaRecord.id, {
           'Franquiciados': resolvedFranquiciados
