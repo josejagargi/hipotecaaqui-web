@@ -8,7 +8,7 @@
   // Load Vapi SDK as ES Module
   import('https://cdn.jsdelivr.net/npm/@vapi-ai/web/+esm')
     .then((module) => {
-      const Vapi = module.default;
+      const Vapi = module.default.default || module.default;
       initVapi(Vapi);
     })
     .catch((err) => {
