@@ -110,5 +110,18 @@
       const bars = document.querySelectorAll('.vapi-bar');
       bars.forEach(bar => bar.style.height = '6px');
     }
+
+    // Auto-start call if 'autostart=true' query param is present
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('autostart') === 'true') {
+      // Auto-open widget card
+      container.classList.add('vapi-widget-open');
+      // Delay slightly to let the animation start, then start call
+      setTimeout(() => {
+        if (!isCallActive) {
+          startCall();
+        }
+      }, 1000);
+    }
   }
 })();
