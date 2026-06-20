@@ -24,7 +24,7 @@
         <div class="container">
             <nav>
                 <div class="logo">
-                    <img src="imagenes/logo%20HA%20trans%20V2.png" alt="Hipoteca Aquí" style="height: 45px;">
+                    <img src="imagenes/CF%20HAqui%20logo%20HD%20trans.png" alt="Hipoteca Aquí" style="height: 45px;">
                 </div>
                 <ul class="nav-links">
                     <li><a href="#inicio">Inicio</a></li>
@@ -656,7 +656,47 @@
         </div>
     </div>
 
+    <!-- Vapi Voice Assistant Widget -->
+    <div id="vapi-widget-container" class="vapi-widget-closed">
+        <!-- Floating Trigger Button -->
+        <button id="vapi-trigger-btn" class="vapi-trigger-pulse">
+            <i class="fas fa-microphone"></i>
+        </button>
+
+        <!-- Glassmorphism Widget Card -->
+        <div id="vapi-widget-card">
+            <button id="vapi-close-card">&times;</button>
+            <div class="vapi-card-header">
+                <div class="vapi-avatar-pulse">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h3>Analista de Voz IA</h3>
+                    <span class="vapi-status-badge offline" id="vapi-status-badge">Desconectado</span>
+                </div>
+            </div>
+            
+            <div class="vapi-card-body">
+                <p id="vapi-info-text">Realiza tu pre-scoring hipotecario hablando directamente con nuestro asistente de voz inteligente. Sin formularios, rápido y gratuito.</p>
+                
+                <!-- Voice Waveform (Active during call) -->
+                <div class="vapi-waveform" id="vapi-waveform">
+                    <div class="vapi-bar"></div>
+                    <div class="vapi-bar"></div>
+                    <div class="vapi-bar"></div>
+                    <div class="vapi-bar"></div>
+                    <div class="vapi-bar"></div>
+                </div>
+                
+                <button id="vapi-action-btn" class="btn btn-primary">
+                    <i class="fas fa-phone-alt"></i> Iniciar Llamada
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="main.js?v=1.0.7"></script>
+    <script src="vapi-widget.js"></script>
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
