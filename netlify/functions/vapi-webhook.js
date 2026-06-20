@@ -1,4 +1,5 @@
 const Airtable = require('airtable');
+const fetch = require('node-fetch');
 
 const generateEmailHtml = (data, recordingUrl, callSummary) => {
   const isT2 = data['Hay segundo titular'] === 'Si';
@@ -112,13 +113,50 @@ exports.handler = async (event, context) => {
   const base = new Airtable({ apiKey: AIRTABLE_PAT }).base(BASE_ID);
 
   try {
-    const analysis = message.analysis || {};
-    const structuredData = analysis.structuredData || {};
     const callData = message.call || {};
-    const recordingUrl = callData.recordingUrl || '';
-    const callSummary = analysis.summary || callData.summary || '';
+    const callId = callData.id;
+    let analysis = message.analysis || {};
+    let structuredData = analysis.structuredData || {};
+    let recordingUrl = callData.recordingUrl || '';
+    let callSummary = analysis.summary || callData.summary || '';
 
-    // Mapear los datos estructurados extraídos por Vapi al formato de save-to-airtable
+    // Fetch call details from Vapi API directly to ensure the structuredData is fully extracted
+    if (callId) {
+      const VAPI_PRIVATE_KEY = process.env.VAPI_PRIVATE_KEY || "49e34687-15be-4ccf-a7fb-56dd70a5413c";
+      console.log(`[Vapi Webhook] Fetching latest call details for ID: ${callId}...`);
+      for (let attempt = 1; attempt <= 4; attempt++) {
+        try {
+          const vapiResponse = await fetch(`https://api.vapi.ai/call/${callId}`, {
+            headers: { 'Authorization': `Bearer ${VAPI_PRIVATE_KEY}` }
+          });
+          if (vapiResponse.ok) {
+            const callDetails = await vapiResponse.json();
+            const latestAnalysis = callDetails.analysis || {};
+            const latestStructured = latestAnalysis.structuredData || {};
+            
+            // Update fields if we got the structured data
+            if (latestStructured && Object.keys(latestStructured).length > 0) {
+              analysis = latestAnalysis;
+              structuredData = latestStructured;
+              callSummary = latestAnalysis.summary || callDetails.summary || callSummary;
+              recordingUrl = callDetails.recordingUrl || recordingUrl;
+              console.log(`[Vapi Webhook] Successfully retrieved structured data on attempt ${attempt}:`, JSON.stringify(structuredData));
+              break;
+            }
+          } else {
+            console.warn(`[Vapi Webhook] Vapi API returned status ${vapiResponse.status} on attempt ${attempt}`);
+          }
+        } catch (err) {
+          console.error(`[Vapi Webhook] Failed to fetch call details (attempt ${attempt}):`, err);
+        }
+        if (attempt < 4) {
+          console.log(`[Vapi Webhook] Structured data not ready yet. Retrying in 3 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+    }
+
+    // Mapear los datos estructurados al formato de Airtable
     const data = {
       'Nombre y apellidos': structuredData.nombre || 'Cliente Vapi',
       'Email': structuredData.email || '',
@@ -254,7 +292,7 @@ exports.handler = async (event, context) => {
     if (data['Localidad inmueble']) hipotecaFields['Localidad inmueble'] = data['Localidad inmueble'];
     if (data['CP Localidad'])       hipotecaFields['CP Localidad']       = data['CP Localidad'];
 
-    // Validar single select fields
+    // Validar single select fields con comparación tolerante a acentos y mayúsculas
     const validSingleSelects = {
       'Tipo trabajo sim':            ['Cuenta ajena', 'Funcionario', 'Autonomo', 'Fijo discontinuo'],
       'Tipo trabajo T2':             ['Cuenta ajena', 'Funcionario', 'Autonomo', 'Fijo discontinuo'],
@@ -264,10 +302,19 @@ exports.handler = async (event, context) => {
       'Tipo prestamo':               ['Hipotecario', 'ICO', 'Autopromocion', 'Hipoteca no residente'],
     };
 
+    const normalizeStr = (str) => {
+      if (!str) return '';
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    };
+
     for (const [fieldName, validValues] of Object.entries(validSingleSelects)) {
       const value = data[fieldName];
-      if (value && validValues.includes(value)) {
-        hipotecaFields[fieldName] = value;
+      if (value) {
+        // Encontrar coincidencia sin acentos ni mayúsculas
+        const matchedValue = validValues.find(v => normalizeStr(v) === normalizeStr(value));
+        if (matchedValue) {
+          hipotecaFields[fieldName] = matchedValue;
+        }
       }
     }
 
