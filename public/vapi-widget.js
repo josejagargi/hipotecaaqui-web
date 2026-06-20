@@ -1,19 +1,22 @@
 (function() {
-  // Load Vapi SDK
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/dist/vapi.js';
-  script.async = true;
-  script.onload = initVapi;
-  document.head.appendChild(script);
-
   const VAPI_PUBLIC_KEY = 'b9144d9b-f50b-4a9b-a40d-a4d6cb269f9e';
   const ASSISTANT_ID = '067c6387-f1d6-40bc-9628-7912ba7652b7';
 
   let vapi = null;
   let isCallActive = false;
 
-  function initVapi() {
-    vapi = new Vapi(VAPI_PUBLIC_KEY);
+  // Load Vapi SDK as ES Module
+  import('https://cdn.jsdelivr.net/npm/@vapi-ai/web/+esm')
+    .then((module) => {
+      const Vapi = module.default;
+      initVapi(Vapi);
+    })
+    .catch((err) => {
+      console.error('Failed to load Vapi SDK:', err);
+    });
+
+  function initVapi(VapiClass) {
+    vapi = new VapiClass(VAPI_PUBLIC_KEY);
 
     // DOM Elements
     const container = document.getElementById('vapi-widget-container');
