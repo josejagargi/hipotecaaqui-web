@@ -102,10 +102,8 @@
       if (emailContainer) emailContainer.style.display = 'none';
 
       vapi.start(ASSISTANT_ID, {
-        assistant: {
-          variableValues: {
-            email: emailValue
-          }
+        variableValues: {
+          email: emailValue
         }
       }).catch(err => {
         console.error('Failed to start call:', err);
