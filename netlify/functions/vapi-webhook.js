@@ -119,6 +119,7 @@ exports.handler = async (event, context) => {
     let structuredData = analysis.structuredData || {};
     let recordingUrl = callData.recordingUrl || '';
     let callSummary = analysis.summary || callData.summary || '';
+    let assistantOverrides = callData.assistantOverrides || {};
 
     // Fetch call details from Vapi API directly to ensure the structuredData is fully extracted
     if (callId) {
@@ -131,6 +132,11 @@ exports.handler = async (event, context) => {
           });
           if (vapiResponse.ok) {
             const callDetails = await vapiResponse.json();
+            
+            if (callDetails.assistantOverrides) {
+              assistantOverrides = callDetails.assistantOverrides;
+            }
+
             const latestAnalysis = callDetails.analysis || {};
             const latestStructured = latestAnalysis.structuredData || {};
             
@@ -156,10 +162,14 @@ exports.handler = async (event, context) => {
       }
     }
 
+    // Resolve email from assistantOverrides (passed from frontend form) or fallback to transcribed email
+    const variableValues = assistantOverrides.variableValues || {};
+    const formEmail = (variableValues.email || '').trim();
+
     // Mapear los datos estructurados al formato de Airtable
     const data = {
       'Nombre y apellidos': structuredData.nombre || 'Cliente Vapi',
-      'Email': structuredData.email || '',
+      'Email': formEmail || structuredData.email || '',
       'Telefono': structuredData.telefono || message.customer?.number || callData.customer?.number || '',
       'Edad sim': structuredData.edad,
       'Tipo trabajo sim': structuredData.tipoTrabajo,
