@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preguntas del Cuestionario de Scoring | Hipoteca Aquí</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #334155;
+            --text-dark: #0f172a;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2.5rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 2px solid var(--border-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .question-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-item {
+            background-color: #fafbfc;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .question-item:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .question-number {
+            background-color: #eff6ff;
+            color: var(--accent);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .question-content {
+            flex-grow: 1;
+        }
+
+        .question-label {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .badge-req {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+
+        .badge-opt {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+
+        .badge-cond {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .question-details {
+            font-size: 0.85rem;
+            color: var(--text-main);
+        }
+
+        .question-details code {
+            background-color: #f1f5f9;
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #0f172a;
+        }
+
+        .actions {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 12px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+            }
+            .card {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
+            .actions {
+                display: none;
+            }
+            header {
+                box-shadow: none;
+                background: white;
+                color: black;
+                border-bottom: 2px solid black;
+                border-radius: 0;
+                padding: 1rem 0;
+            }
+            header p {
+                color: #555;
+            }
+            .question-item {
+                background-color: white;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            html, body {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Cuestionario de Scoring: Preguntas</h1>
+        <p>Listado ordenado de las preguntas tal y como se presentan al usuario en el formulario web de Hipoteca Aquí.</p>
+    </header>
+
+    <div class="card">
+        <!-- SECCIÓN 1 -->
+        <div class="section-title">1. Datos de Contacto</div>
+        <ul class="question-list" style="margin-bottom: 2rem;">
+            <li class="question-item">
+                <div class="question-number">1</div>
+                <div class="question-content">
+                    <div class="question-label">Nombre y Apellidos <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Texto libre. Atributo: <code>Name="Nombre y apellidos"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">2</div>
+                <div class="question-content">
+                    <div class="question-label">Email <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Email. Atributo: <code>Name="Email"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">3</div>
+                <div class="question-content">
+                    <div class="question-label">Teléfono <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Teléfono. Atributo: <code>Name="Telefono"</code>.</div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- SECCIÓN 2 -->
+        <div class="section-title">2. Datos del Primer Titular</div>
+        <ul class="question-list" style="margin-bottom: 2rem;">
+            <li class="question-item">
+                <div class="question-number">4</div>
+                <div class="question-content">
+                    <div class="question-label">Edad Titular 1 <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Número (18 a 80). Atributo: <code>Name="Edad sim"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">5</div>
+                <div class="question-content">
+                    <div class="question-label">Tipo de trabajo Titular 1 <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Selector. Opciones: <code>Cuenta ajena</code>, <code>Funcionario</code>, <code>Autónomo</code>, <code>Fijo discontinuo</code>. Atributo: <code>Name="Tipo trabajo sim"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">6</div>
+                <div class="question-content">
+                    <div class="question-label">Años Antigüedad T1 <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Número (Años). Atributo: <code>Name="Antiguedad sim"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">7</div>
+                <div class="question-content">
+                    <div class="question-label">Ingresos mensuales T1 (€) <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Número (€ netos). Atributo: <code>Name="Ingresos titular 1"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">8</div>
+                <div class="question-content">
+                    <div class="question-label">Nº pagas T1 <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Selector (6 a 14 pagas, por defecto 12). Atributo: <code>Name="Num pagas T1"</code>.</div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- SECCIÓN 3 -->
+        <div class="section-title">3. Segundo Titular (Opcional)</div>
+        <ul class="question-list" style="margin-bottom: 2rem;">
+            <li class="question-item">
+                <div class="question-number">9</div>
+                <div class="question-content">
+                    <div class="question-label">¿Hay un segundo titular? <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Checkbox (Mapea internamente a <code>Si</code> o <code>No</code>). Atributo: <code>Name="hay_segundo_titular"</code>. Activa las siguientes preguntas si se marca.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">10</div>
+                <div class="question-content">
+                    <div class="question-label">Nombre y Apellidos Titular 2 <span class="badge badge-cond">Condicional</span></div>
+                    <div class="question-details">Tipo: Texto libre. Atributo: <code>Name="Nombre titular 2"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">11</div>
+                <div class="question-content">
+                    <div class="question-label">Ingresos mensuales T2 (€) <span class="badge badge-cond">Condicional</span></div>
+                    <div class="question-details">Tipo: Número (€ netos). Atributo: <code>Name="Ingresos titular 2"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">12</div>
+                <div class="question-content">
+                    <div class="question-label">Edad Titular 2 <span class="badge badge-cond">Condicional</span></div>
+                    <div class="question-details">Tipo: Número (18 a 80). Atributo: <code>Name="Edad titular 2"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">13</div>
+                <div class="question-content">
+                    <div class="question-label">Tipo de trabajo Titular 2 <span class="badge badge-cond">Condicional</span></div>
+                    <div class="question-details">Tipo: Selector. Opciones: <code>Cuenta ajena</code>, <code>Funcionario</code>, <code>Autónomo</code>, <code>Fijo discontinuo</code>. Atributo: <code>Name="Tipo trabajo T2"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">14</div>
+                <div class="question-content">
+                    <div class="question-label">Nº pagas T2 <span class="badge badge-cond">Condicional</span></div>
+                    <div class="question-details">Tipo: Selector (6 a 14 pagas, por defecto 12). Atributo: <code>Name="Num pagas T2"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">15</div>
+                <div class="question-content">
+                    <div class="question-label">Años Antigüedad T2 <span class="badge badge-cond">Condicional</span></div>
+                    <div class="question-details">Tipo: Número (Años). Atributo: <code>Name="Antiguedad T2"</code>.</div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- SECCIÓN 4 -->
+        <div class="section-title">4. Información Financiera</div>
+        <ul class="question-list" style="margin-bottom: 2rem;">
+            <li class="question-item">
+                <div class="question-number">16</div>
+                <div class="question-content">
+                    <div class="question-label">Otros préstamos mensuales (€) <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Número (Importe de la cuota mensual total, por defecto 0). Atributo: <code>Name="Otros prestamos mensuales"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">17</div>
+                <div class="question-content">
+                    <div class="question-label">Capital pendiente devolución (€) <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Número (Saldo pendiente total de deudas, por defecto 0). Atributo: <code>Name="Capital pendiente"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">18</div>
+                <div class="question-content">
+                    <div class="question-label">Ahorros disponibles (€) <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Número. Atributo: <code>Name="Ahorros"</code>.</div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- SECCIÓN 5 -->
+        <div class="section-title">5. Detalles de la Propiedad</div>
+        <ul class="question-list" style="margin-bottom: 2rem;">
+            <li class="question-item">
+                <div class="question-number">19</div>
+                <div class="question-content">
+                    <div class="question-label">¿Habéis encontrado propiedad? <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Selector. Opciones: <code>No, estoy buscando</code>, <code>Sí, la tengo vista</code>, <code>Sí, ya la tengo reservada</code>. Atributo: <code>Name="Habeis encontrado propiedad"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">20</div>
+                <div class="question-content">
+                    <div class="question-label">Precio del inmueble (€) <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Número. Atributo: <code>Name="Precio del inmueble"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">21</div>
+                <div class="question-content">
+                    <div class="question-label">Tipo vivienda <span class="badge badge-opt">Opcional</span></div>
+                    <div class="question-details">Tipo: Selector. Opciones: <code>Nueva</code>, <code>Segunda mano</code>. Atributo: <code>Name="Tipo vivienda"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">22</div>
+                <div class="question-content">
+                    <div class="question-label">Localidad inmueble <span class="badge badge-opt">Opcional</span></div>
+                    <div class="question-details">Tipo: Texto libre. Atributo: <code>Name="Localidad inmueble"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">23</div>
+                <div class="question-content">
+                    <div class="question-label">CP Localidad <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Texto libre (Código Postal). Atributo: <code>Name="CP Localidad"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">24</div>
+                <div class="question-content">
+                    <div class="question-label">Tipo préstamo <span class="badge badge-opt">Opcional</span></div>
+                    <div class="question-details">Tipo: Selector. Opciones: <code>Hipotecario</code>, <code>ICO</code>, <code>Autopromoción</code>, <code>Hipoteca no residente</code>. Atributo: <code>Name="Tipo prestamo"</code>.</div>
+                </div>
+            </li>
+        </ul>
+
+        <!-- SECCIÓN 6 -->
+        <div class="section-title">6. Consentimientos Legales</div>
+        <ul class="question-list">
+            <li class="question-item">
+                <div class="question-number">25</div>
+                <div class="question-content">
+                    <div class="question-label">Aceptación de la Política de Privacidad <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Checkbox. Atributo: <code>Name="Aceptacion privacidad"</code>.</div>
+                </div>
+            </li>
+            <li class="question-item">
+                <div class="question-number">26</div>
+                <div class="question-content">
+                    <div class="question-label">Consentimiento para Comunicaciones Comerciales <span class="badge badge-req">Obligatorio</span></div>
+                    <div class="question-details">Tipo: Checkbox. Atributo: <code>Name="Consentimiento"</code>.</div>
+                </div>
+            </li>
+        </ul>
+
+        <div class="actions">
+            <button class="btn" onclick="window.print()">Imprimir / Guardar en PDF</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

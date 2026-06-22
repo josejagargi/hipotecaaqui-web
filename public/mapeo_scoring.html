@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Especificación de Integración: Scoring Web a Airtable | Hipoteca Aquí</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --secondary: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #334155;
+            --text-dark: #0f172a;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Header block */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(37,99,235,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.85rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .badge-accent {
+            background-color: rgba(37,99,235,0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(37,99,235,0.3);
+        }
+
+        header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+            line-height: 1.2;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            max-width: 800px;
+        }
+
+        /* Content card */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 2rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h2:first-of-type {
+            margin-top: 0;
+        }
+
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        strong {
+            color: var(--text-dark);
+        }
+
+        /* Tables styling */
+        .table-responsive {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--text-dark);
+            font-weight: 700;
+            padding: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+            color: var(--text-main);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #fafafa;
+        }
+
+        /* Badges inside tables */
+        .type-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+
+        .type-select { background-color: #e0f2fe; color: #0369a1; }
+        .type-text { background-color: #f1f5f9; color: #475569; }
+        .type-number { background-color: #fef3c7; color: #d97706; }
+        .type-currency { background-color: #dcfce7; color: #15803d; }
+        .type-checkbox { background-color: #f3e8ff; color: #7e22ce; }
+        .type-link { background-color: #e0e7ff; color: #4338ca; }
+
+        .req-yes {
+            color: #ef4444;
+            font-weight: 700;
+        }
+        .req-no {
+            color: #94a3b8;
+        }
+
+        /* Alerts and Callouts */
+        .callout {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--accent);
+            padding: 1.25rem;
+            border-radius: 0 12px 12px 0;
+            margin: 1.5rem 0;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Buttons & Actions */
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            background-color: #f1f5f9;
+        }
+
+        @media print {
+            html, body {
+                background-color: white;
+                color: #000000;
+                padding: 0;
+                margin: 0;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page {
+                margin: 1.6cm 1.2cm;
+            }
+            .container {
+                max-width: 100%;
+                width: 100%;
+            }
+            .card {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                margin: 0;
+            }
+            .actions {
+                display: none;
+            }
+            header {
+                border-radius: 12px;
+                box-shadow: none;
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+                color: white !important;
+                padding: 2rem !important;
+                margin-bottom: 2rem;
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+            header h1 {
+                color: white !important;
+            }
+            header p {
+                color: #cbd5e1 !important;
+            }
+            .badge-accent {
+                background-color: rgba(37,99,235,0.2) !important;
+                color: #3b82f6 !important;
+                border: 1px solid rgba(37,99,235,0.4) !important;
+            }
+            h2, h3 {
+                page-break-after: avoid;
+                break-after: avoid;
+                margin-top: 1.5rem;
+            }
+            .table-responsive {
+                overflow: visible;
+                border: 1px solid #cbd5e1;
+            }
+            table {
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            th {
+                background-color: #f8fafc !important;
+                color: #0f172a !important;
+                border-bottom: 2px solid #cbd5e1;
+            }
+            td {
+                border-bottom: 1px solid #cbd5e1;
+            }
+            .type-badge {
+                border: 1px solid rgba(0,0,0,0.1);
+            }
+            .type-select { background-color: #e0f2fe !important; color: #0369a1 !important; }
+            .type-text { background-color: #f1f5f9 !important; color: #475569 !important; }
+            .type-number { background-color: #fef3c7 !important; color: #d97706 !important; }
+            .type-currency { background-color: #dcfce7 !important; color: #15803d !important; }
+            .type-checkbox { background-color: #f3e8ff !important; color: #7e22ce !important; }
+            .type-link { background-color: #e0e7ff !important; color: #4338ca !important; }
+            
+            .callout {
+                background-color: #eff6ff !important;
+                border-left: 4px solid #2563eb !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="badge badge-accent">Especificación Técnica</span>
+        <h1>Mapeo de Integración: Formulario Web ➔ Airtable</h1>
+        <p>Este documento especifica la estructura de datos del Formulario de Viabilidad/Scoring de <strong>Hipoteca Aquí</strong>, definiendo cómo se sincronizan y procesan los datos a través de las Netlify Functions con la base de datos de Airtable.</p>
+    </header>
+
+    <div class="card">
+        <h2>1. Tabla: Contacts (Contactos)</h2>
+        <p>Registra la información del primer titular y, en caso de existir y completarse, crea de forma automática un segundo registro de contacto para el Titular 2.</p>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo en Web</th>
+                        <th>Atributo name / ID</th>
+                        <th>Campo Airtable</th>
+                        <th>Tipo de Campo</th>
+                        <th>Obligatorio</th>
+                        <th>Notas / Lógica</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Nombre y Apellidos (T1)</td>
+                        <td><code>Nombre y apellidos</code> / <code>nombre_eh</code></td>
+                        <td><strong>Nombre y apellidos</strong></td>
+                        <td><span class="type-badge type-text">Single line text</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Nombre completo del titular principal.</td>
+                    </tr>
+                    <tr>
+                        <td>Email</td>
+                        <td><code>Email</code> / <code>email_eh</code></td>
+                        <td><strong>Email</strong></td>
+                        <td><span class="type-badge type-text">Email</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Se valida para evitar duplicados en la base de datos.</td>
+                    </tr>
+                    <tr>
+                        <td>Teléfono</td>
+                        <td><code>Telefono</code> / <code>telefono_eh</code></td>
+                        <td><strong>Telefono</strong></td>
+                        <td><span class="type-badge type-text">Phone</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Convertido a cadena de texto en el backend.</td>
+                    </tr>
+                    <tr>
+                        <td>Nombre Titular 2</td>
+                        <td><code>Nombre titular 2</code> / <code>nombre_t2</code></td>
+                        <td><strong>Nombre y apellidos</strong></td>
+                        <td><span class="type-badge type-text">Single line text</span></td>
+                        <td><span class="req-no">Condic.</span></td>
+                        <td>Se crea un registro de contacto independiente si se marca "Sí".</td>
+                    </tr>
+                    <tr>
+                        <td>Edad Titular 2</td>
+                        <td><code>Edad titular 2</code> / <code>edad_t2</code></td>
+                        <td><strong>Edad form</strong></td>
+                        <td><span class="type-badge type-number">Number</span></td>
+                        <td><span class="req-no">Condic.</span></td>
+                        <td>Mapeado en el registro del segundo contacto.</td>
+                    </tr>
+                    <tr>
+                        <td>Aceptación Privacidad</td>
+                        <td><code>Aceptacion privacidad</code> / <code>aceptacion_privacidad</code></td>
+                        <td><strong>Aceptacion LOPD</strong></td>
+                        <td><span class="type-badge type-checkbox">Checkbox</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Guardado como valor booleano en el contacto.</td>
+                    </tr>
+                    <tr>
+                        <td>Consentimiento Comercial</td>
+                        <td><code>Consentimiento</code> / <code>consentimiento_comercial</code></td>
+                        <td><strong>Aceptacion publicidad</strong></td>
+                        <td><span class="type-badge type-checkbox">Checkbox</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Guardado como valor booleano en el contacto.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>2. Tabla: Hipoteca (Simulaciones)</h2>
+        <p>Almacena la información de la simulación de viabilidad, vinculándose a el/los contacto(s) anteriores.</p>
+
+        <h3>A. Perfil y Datos Laborales</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo en Web</th>
+                        <th>Atributo name</th>
+                        <th>Campo Airtable</th>
+                        <th>Tipo de Campo</th>
+                        <th>Obligatorio</th>
+                        <th>Valores permitidos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>¿Hay un segundo titular?</td>
+                        <td><code>hay_segundo_titular</code></td>
+                        <td><strong>Hay segundo titular</strong></td>
+                        <td><span class="type-badge type-select">Single select</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td><code>Si</code>, <code>No</code></td>
+                    </tr>
+                    <tr>
+                        <td>Edad Titular 1</td>
+                        <td><code>Edad sim</code></td>
+                        <td><strong>Edad sim</strong></td>
+                        <td><span class="type-badge type-number">Number</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Número entero (rango 18 - 80)</td>
+                    </tr>
+                    <tr>
+                        <td>Tipo trabajo Titular 1</td>
+                        <td><code>Tipo trabajo sim</code></td>
+                        <td><strong>Tipo trabajo sim</strong></td>
+                        <td><span class="type-badge type-select">Single select</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td><code>Cuenta ajena</code>, <code>Funcionario</code>, <code>Autonomo</code>, <code>Fijo discontinuo</code></td>
+                    </tr>
+                    <tr>
+                        <td>Años Antigüedad T1</td>
+                        <td><code>Antiguedad sim</code></td>
+                        <td><strong>Antiguedad sim</strong></td>
+                        <td><span class="type-badge type-number">Number</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Años laborados</td>
+                    </tr>
+                    <tr>
+                        <td>Ingresos mensuales T1</td>
+                        <td><code>Ingresos titular 1</code></td>
+                        <td><strong>Ingresos titular 1</strong></td>
+                        <td><span class="type-badge type-currency">Currency</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Importe mensual en €</td>
+                    </tr>
+                    <tr>
+                        <td>Nº pagas T1</td>
+                        <td><code>Num pagas T1</code></td>
+                        <td><strong>Num pagas T1</strong></td>
+                        <td><span class="type-badge type-number">Number</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>De 6 a 14 pagas (Por defecto 12)</td>
+                    </tr>
+                    <tr>
+                        <td>Ingresos mensuales T2</td>
+                        <td><code>Ingresos titular 2</code></td>
+                        <td><strong>Ingresos titular 2</strong></td>
+                        <td><span class="type-badge type-currency">Currency</span></td>
+                        <td><span class="req-no">No</span></td>
+                        <td>Importe del Titular 2 en €</td>
+                    </tr>
+                    <tr>
+                        <td>Tipo trabajo Titular 2</td>
+                        <td><code>Tipo trabajo T2</code></td>
+                        <td><strong>Tipo trabajo T2</strong></td>
+                        <td><span class="type-badge type-select">Single select</span></td>
+                        <td><span class="req-no">No</span></td>
+                        <td><code>Cuenta ajena</code>, <code>Funcionario</code>, <code>Autonomo</code>, <code>Fijo discontinuo</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3>B. Datos Financieros y de Operación</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo en Web</th>
+                        <th>Atributo name</th>
+                        <th>Campo Airtable</th>
+                        <th>Tipo de Campo</th>
+                        <th>Obligatorio</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Otros préstamos mensuales</td>
+                        <td><code>Otros prestamos mensuales</code></td>
+                        <td><strong>Otros prestamos mensuales</strong></td>
+                        <td><span class="type-badge type-currency">Currency</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Suma de cuotas financieras actuales</td>
+                    </tr>
+                    <tr>
+                        <td>Capital pendiente</td>
+                        <td><code>Capital pendiente</code></td>
+                        <td><strong>Capital pendiente</strong></td>
+                        <td><span class="type-badge type-currency">Currency</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Saldo pendiente de préstamos</td>
+                    </tr>
+                    <tr>
+                        <td>Ahorros disponibles</td>
+                        <td><code>Ahorros</code></td>
+                        <td><strong>Ahorros</strong></td>
+                        <td><span class="type-badge type-currency">Currency</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Aportación líquida inicial</td>
+                    </tr>
+                    <tr>
+                        <td>¿Propiedad encontrada?</td>
+                        <td><code>Habeis encontrado propiedad</code></td>
+                        <td><strong>Habeis encontrado propiedad</strong></td>
+                        <td><span class="type-badge type-select">Single select</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td><code>Buscando</code>, <code>Si, no reservada</code>, <code>Si, reservada</code></td>
+                    </tr>
+                    <tr>
+                        <td>Precio del inmueble</td>
+                        <td><code>Precio del inmueble</code></td>
+                        <td><strong>Precio del inmueble</strong></td>
+                        <td><span class="type-badge type-currency">Currency</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Importe total del inmueble</td>
+                    </tr>
+                    <tr>
+                        <td>Tipo vivienda</td>
+                        <td><code>Tipo vivienda</code></td>
+                        <td><strong>Tipo vivienda</strong></td>
+                        <td><span class="type-badge type-select">Single select</span></td>
+                        <td><span class="req-no">No</span></td>
+                        <td><code>Nueva</code>, <code>Segunda mano</code></td>
+                    </tr>
+                    <tr>
+                        <td>Localidad inmueble</td>
+                        <td><code>Localidad inmueble</code></td>
+                        <td><strong>Localidad inmueble</strong></td>
+                        <td><span class="type-badge type-text">Single line text</span></td>
+                        <td><span class="req-no">No</span></td>
+                        <td>Nombre de la localidad</td>
+                    </tr>
+                    <tr>
+                        <td>CP Localidad</td>
+                        <td><code>CP Localidad</code></td>
+                        <td><strong>CP Localidad</strong></td>
+                        <td><span class="type-badge type-text">Single line text</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td>Código postal de ubicación</td>
+                    </tr>
+                    <tr>
+                        <td>Tipo préstamo</td>
+                        <td><code>Tipo prestamo</code></td>
+                        <td><strong>Tipo prestamo</strong></td>
+                        <td><span class="type-badge type-select">Single select</span></td>
+                        <td><span class="req-yes">Sí</span></td>
+                        <td><code>Hipotecario</code>, <code>ICO</code>, <code>Autopromocion</code>, <code>Hipoteca no residente</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>3. Consulta de Viabilidad y Scoring (Airtable ➔ Web)</h2>
+        <p>Una vez insertado el registro en Airtable, la web consulta el estado realizando peticiones periódicas mediante Polling a la Netlify Function <code>check-scoring</code>. Se leen los siguientes campos calculados automáticamente en Airtable para pintar el resultado en el frontend:</p>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo en Airtable</th>
+                        <th>Tipo</th>
+                        <th>Destino / Uso en la Web</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Viabilidad</strong></td>
+                        <td>Single Select / Text</td>
+                        <td>Determina si el flujo es viable de forma automática. Si incluye "viable" (y no "no viable"), se muestran los importes. Si no, muestra la ventana de Revisión Manual.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mejor cuota Fija</strong></td>
+                        <td>Currency</td>
+                        <td>Pinta el importe mensual de la mejor alternativa de cuota fija.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mejor cuota Mixta</strong></td>
+                        <td>Currency</td>
+                        <td>Pinta el importe de la mejor alternativa de cuota mixta.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mejor cuota Variable</strong></td>
+                        <td>Currency</td>
+                        <td>Pinta el importe de la mejor alternativa de cuota variable.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Nº viables</strong></td>
+                        <td>Number</td>
+                        <td>Indica cuántas entidades financieras pre-aprueban la operación en el texto explicativo.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SemaforoEstabilidad</strong></td>
+                        <td>Text (Emoji)</td>
+                        <td>Representa con un semáforo de color (🟢, 🟡, 🔴) la estabilidad laboral del cliente en la ventana de revisión manual.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SemaforoEsfuerzo</strong></td>
+                        <td>Text (Emoji)</td>
+                        <td>Semáforo visual de la capacidad de endeudamiento del perfil.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Semafor20masgatos</strong></td>
+                        <td>Text (Emoji)</td>
+                        <td>Semáforo visual que evalúa si los ahorros aportados alcanzan el 20% más los gastos.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="callout">
+            <div class="callout-title">⚠️ Regla Crítica de Sincronización</div>
+            <p>Los valores enviados desde el frontend en formato numérico (Edad, Ingresos, Ahorros, etc.) deben limpiarse y parsearse a tipos válidos (enteros o flotantes) antes de enviarse a Airtable para evitar errores de tipo en la API.</p>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="window.print()">Imprimir o Guardar PDF</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

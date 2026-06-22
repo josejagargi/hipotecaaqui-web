@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voces Nativas de Vapi - Hipoteca Aquí</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-bg-hover: rgba(255, 255, 255, 0.06);
+      --card-border-hover: rgba(255, 255, 255, 0.15);
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.15);
+      --accent: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3rem 1.5rem;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 150px;
+      background: var(--primary);
+      filter: blur(100px);
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #ffffff, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .voice-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .voice-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .voice-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 10px 30px var(--primary-glow);
+    }
+
+    .voice-card.active::before {
+      background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 60%);
+    }
+
+    .voice-card:hover {
+      transform: translateY(-4px);
+      background: var(--card-bg-hover);
+      border-color: var(--card-border-hover);
+    }
+
+    .badge-active {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: var(--success);
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .voice-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .avatar-wrapper {
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--card-border);
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .voice-info h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .voice-meta {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.25rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+    }
+
+    .tag.accent {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+    }
+
+    .description {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .code-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .code-box span {
+      user-select: all;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .copy-btn:hover {
+      color: var(--text-main);
+    }
+
+    .panel-instructions {
+      background: rgba(99, 102, 241, 0.05);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      margin-top: 1rem;
+      backdrop-filter: blur(20px);
+    }
+
+    .panel-instructions h2 {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-instructions h2 i {
+      color: var(--accent);
+    }
+
+    .panel-instructions ol {
+      margin-left: 1.25rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .panel-instructions li {
+      margin-bottom: 0.75rem;
+    }
+
+    .panel-instructions strong {
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Voces Nativas en Español (España)</h1>
+      <p class="subtitle">Lista de voces nativas y multilingües que se pueden utilizar directamente en el asistente de voz de Vapi sin costes de ElevenLabs ni configuraciones adicionales.</p>
+    </header>
+
+    <div class="grid">
+      <!-- Nico Card -->
+      <div class="voice-card active">
+        <span class="badge-active"><i class="fas fa-check-circle"></i> Activa ahora</span>
+        <div class="voice-header">
+          <div class="avatar-wrapper">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <div class="voice-info">
+            <h3>Nico</h3>
+            <div class="voice-meta">
+              <span class="tag accent">Masculino</span>
+              <span class="tag">es-ES (España)</span>
+              <span class="tag">Vapi Native</span>
+            </div>
+          </div>
+        </div>
+        <p class="description">Voz masculina nativa configurada en Español de España. Tono profesional, claro, con pronunciación castellana peninsular natural. Excelente para análisis y procesos financieros.</p>
+        <div class="code-box">
+          <span>voiceId: "Nico"</span>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('Nico')"><i class="far fa-copy"></i></button>
+        </div>
+      </div>
+
+      <!-- Clara Card -->
+      <div class="voice-card">
+        <div class="voice-header">
+          <div class="avatar-wrapper">
+            <i class="fas fa-user-astronaut"></i>
+          </div>
+          <div class="voice-info">
+            <h3>Clara</h3>
+            <div class="voice-meta">
+              <span class="tag accent">Femenino</span>
+              <span class="tag">es-ES (España)</span>
+              <span class="tag">Vapi Native</span>
+            </div>
+          </div>
+        </div>
+        <p class="description">Voz femenina nativa configurada en Español de España. Tono dulce, fluido, muy empático y natural. Es la mejor alternativa femenina para el asistente de scoring.</p>
+        <div class="code-box">
+          <span>voiceId: "Clara"</span>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('Clara')"><i class="far fa-copy"></i></button>
+        </div>
+      </div>
+
+      <!-- Gustavo Card -->
+      <div class="voice-card">
+        <div class="voice-header">
+          <div class="avatar-wrapper">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="voice-info">
+            <h3>Gustavo</h3>
+            <div class="voice-meta">
+              <span class="tag accent">Masculino</span>
+              <span class="tag">es-ES (España / Neutro)</span>
+              <span class="tag">Vapi Native</span>
+            </div>
+          </div>
+        </div>
+        <p class="description">Voz masculina nativa. Aunque el motor es multilingüe y lo forzamos a español peninsular, tiene un timbre algo más clásico. Es correcto pero suele gustar más Nico.</p>
+        <div class="code-box">
+          <span>voiceId: "Gustavo"</span>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('Gustavo')"><i class="far fa-copy"></i></button>
+        </div>
+      </div>
+
+      <!-- Elliot Card -->
+      <div class="voice-card">
+        <div class="voice-header">
+          <div class="avatar-wrapper">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="voice-info">
+            <h3>Elliot</h3>
+            <div class="voice-meta">
+              <span class="tag accent">Masculino</span>
+              <span class="tag">es (Multilingüe)</span>
+              <span class="tag">Vapi Native</span>
+            </div>
+          </div>
+        </div>
+        <p class="description">La voz por defecto anterior. Tiene un acento ligeramente más latinoamericano o neutro/internacional, lo que hacía que no sonase completamente local en España.</p>
+        <div class="code-box">
+          <span>voiceId: "Elliot"</span>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText('Elliot')"><i class="far fa-copy"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-instructions">
+      <h2><i class="fas fa-sliders-h"></i> ¿Cómo cambiar de voz?</h2>
+      <ol>
+        <li>Solo tienes que indicarme qué voz prefieres de la lista (por ejemplo: <strong>"Quiero probar con Clara"</strong>).</li>
+        <li>Yo cambiaré el parámetro del script y lo inyectaré directamente en la API de Vapi en segundos.</li>
+        <li>La llamada siguiente ya sonará con la nueva voz seleccionada al instante.</li>
+      </ol>
+    </div>
+  </div>
+
+</body>
+</html>

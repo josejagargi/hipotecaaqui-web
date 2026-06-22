@@ -1,41 +1,53 @@
-# Plan de Implementación: Redefinición de KPIs y Gráficos de Proceso ("Etapa" y "Viabilidad")
+# Plan de Implementación: Sincronización Automática de Documentos a Google Drive
 
-Este plan detalla los cambios requeridos para actualizar la vista de "Mi Actividad" en el portal de asociados, eliminando las métricas estáticas de "En Proceso" y "Aprobados", y sustituyéndolas por dos widgets de gráficos dinámicos que representen la distribución de la **Etapa** (funnel del proceso) y la **Viabilidad** (scoring de riesgo) de todos los estudios del asociado.
+Este plan detalla el diseño y la implementación de la Netlify Function `sync-docs-to-drive` que se activará mediante la automatización de Airtable cuando el campo tipo check `Documentacion` sea marcado. El proceso descargará en memoria todos los archivos adjuntos del contacto y los subirá de forma organizada a una carpeta específica en Google Drive.
 
 ---
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - **Rediseño de KPIs:** El diseño conservará la métrica general de `Total Estudios` y convertirá las otras dos tarjetas de KPI en widgets gráficos interactivos que se integran de forma natural en el grid del dashboard.
-> - **Cero Dependencias Externas:** Para maximizar el rendimiento, tiempos de carga instantáneos e inmunidad a bloqueos de red o scripts externos, implementaremos gráficos personalizados premium usando HTML5, CSS semántico (flexbox, gradientes, sombras) y SVG en lugar de pesadas librerías de terceros (como Chart.js).
-> - **Compatibilidad de Datos:** El proceso leerá de forma 100% dinámica los campos de Airtable `{Etapa}` y `{Viabilidad}` de todos los registros del usuario, auto-ajustando las barras y porcentajes según los datos reales en tiempo real.
+> ### 1. Credenciales de Google Drive
+> Para conectarnos a Google Drive de forma segura y eficiente desde la Netlify Function sin dependencias externas pesadas, usaremos `node-fetch`. Necesitamos que nos indiques cuál de las siguientes opciones prefieres para la autenticación:
+> - **Opción A (Recomendada - Cuenta de Servicio):** Creas una Cuenta de Servicio en Google Cloud, descargas el archivo JSON de la clave y configuramos las variables de entorno `GOOGLE_SERVICE_ACCOUNT_EMAIL` y `GOOGLE_PRIVATE_KEY` en Netlify. Luego solo debes compartir la carpeta destino de Google Drive con ese email de la cuenta de servicio.
+> - **Opción B (OAuth con Refresh Token):** Usamos tu cuenta de Google Workspace personal. Necesitaremos configurar las variables de entorno `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `GOOGLE_REFRESH_TOKEN` en Netlify.
+> 
+> *Nota: Por favor, confírmanos cuál prefieres para configurar las variables correctas.*
+
+> [!IMPORTANT]
+> ### 2. Carpeta Destino Raíz
+> Necesitaremos la variable de entorno `GOOGLE_DRIVE_ROOT_FOLDER_ID` en Netlify, la cual contendrá el ID de la carpeta principal de Google Drive donde se crearán las carpetas individuales para cada contacto.
 
 ---
 
 ## Proposed Changes
 
-### Interfaz de Usuario (Frontend)
+### Netlify Functions
 
-#### [MODIFY] [dashboard.html](file:///c:/Proyectos/Hipotecaaqui/public/dashboard.html)
-- Modificar la sección `.stats-overview` para rediseñar las tres tarjetas:
-  1. **Tarjeta 1 (Total Estudios):** Se mantiene como un contador numérico de alto impacto visual con diseño premium.
-  2. **Tarjeta 2 (Estado por Etapa):** Cambiar de un simple contador a un contenedor de gráfico de barras de progreso horizontales con ID `etapaChartContainer`.
-  3. **Tarjeta 3 (Distribución de Viabilidad):** Cambiar de un simple contador a un contenedor de barra apilada de color/semáforo dinámico con ID `viabilidadChartContainer` (Verde para *Viable*, Rojo para *No Viable*, Gris para *Sin analizar*).
-
-#### [MODIFY] [portal-dashboard.js](file:///c:/Proyectos/Hipotecaaqui/public/js/portal-dashboard.js)
-- Eliminar las asignaciones y referencias obsoletas a `pendingRecords` y `approvedRecords`.
-- Implementar la función `renderProcessGraphics(records)` que:
-  - Agrupe y cuente la cantidad de expedientes en cada valor único de `{Etapa}` (ej: "Estudio de viabilidad", "Presentado a bancos", etc.), ordenándolos de mayor a menor y calculando su porcentaje.
-  - Agrupe y cuente la cantidad de expedientes por `{Viabilidad}` (filtrando por cadenas que contengan "viable", "no viable" o vacías/sin analizar).
-  - Inyecte dinámicamente en el HTML los micro-gráficos interactivos con barras animadas, leyendas de colores, contadores exactos y porcentajes de distribución.
-- Actualizar la función `loadDashboardData()` para invocar a `renderProcessGraphics(data.records)`.
+#### [NEW] [sync-docs-to-drive.js](file:///c:/Proyectos/Hipotecaaqui/netlify/functions/sync-docs-to-drive.js)
+Crearemos una nueva función de Netlify que realizará las siguientes tareas:
+1. **Recibir el webhook de Airtable:** Esperar una petición POST con el `contactId` enviado por la automatización de Airtable.
+2. **Obtener el contacto y sus adjuntos:** Hacer una petición GET a la API de Airtable para obtener el nombre del contacto (`Nombre y apellidos`) y todos sus campos de adjuntos (`NIF`, `Nominas`, `Renta`, `Vida laboral`, `Extractos bancarios`, `Otros adjuntos`, `Cuotas prestamos`).
+3. **Autenticación con Google API:** Obtener un Access Token de Google en tiempo real utilizando la Cuenta de Servicio o el Refresh Token.
+4. **Crear o buscar la carpeta del cliente en Google Drive:**
+   - Buscar si ya existe una carpeta llamada `Nombre_y_apellidos [ID_CONTACTO]`.
+   - Si no existe, crearla bajo la carpeta raíz `GOOGLE_DRIVE_ROOT_FOLDER_ID`.
+5. **Descargar y subir los archivos adjuntos:**
+   - Iterar sobre todos los campos de archivos adjuntos habitados.
+   - Para cada archivo, descargarlo en buffer binario desde la URL temporal de Airtable.
+   - Subirlo directamente a la carpeta del cliente en Google Drive utilizando la API de carga multipart de Google.
+   - Evitar duplicar archivos comprobando si ya existe un archivo con el mismo nombre en la carpeta de Drive del cliente.
+6. **Actualizar el check en Airtable:** Una vez completado con éxito, desmarcar automáticamente el check `Documentacion` en Airtable (o actualizar un campo de estado como `Estado Drive` a "Sincronizado") para evitar bucles de ejecución y notificar visualmente al usuario.
 
 ---
 
 ## Plan de Verificación
 
-### Pruebas Manuales
-1. **Comportamiento Visual:** Iniciar sesión en el portal y comprobar que la sección de KPIs muestra el contador de total y los dos nuevos widgets gráficos integrados elegantemente.
-2. **Dinamicidad de Datos:** Crear o editar un estudio de prueba cambiando su etapa o su viabilidad (por ejemplo, de "Sin analizar" a "Viable") y confirmar que los gráficos se actualizan de forma inmediata y automática al guardar.
-3. **Responsividad:** Redimensionar la pantalla a formatos tablet y móvil para comprobar que las barras y leyendas del gráfico se reajustan perfectamente sin romper el diseño del portal.
+### Pruebas Automatizadas y Scripts
+1. **Script de simulación local:** Crearemos un script de prueba bajo `scratch/test_sync_drive.js` para ejecutar el flujo de forma aislada y verificar la autenticación y subida de un archivo mockup sin necesidad de pasar por Airtable.
+2. **Prueba local de la Netlify Function:** Utilizaremos `netlify dev` para levantar las funciones localmente y enviar peticiones POST simuladas utilizando `curl` o un script.
+
+### Verificación Manual
+1. **Trigger desde Airtable:** Marcar manualmente el check `Documentacion` en un contacto de prueba que tenga archivos cargados en Airtable.
+2. **Confirmación en Google Drive:** Verificar que se crea correctamente la carpeta del cliente con el nombre adecuado y que todos sus documentos se suben sin alteración.
+3. **Reset del Trigger:** Confirmar que el check `Documentacion` se desmarca automáticamente en Airtable una vez finalizado el proceso.

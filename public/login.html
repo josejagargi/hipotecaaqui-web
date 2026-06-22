@@ -398,7 +398,7 @@
         <div class="card">
             <!-- Header -->
             <div class="card-header">
-                <img class="logo-img" src="imagenes/logo%20HA%20trans%20V2.png" alt="Hipoteca Aquí"
+                <img class="logo-img" src="imagenes/CF%20HAqui%20logo%20HD%20trans.png" alt="Hipoteca Aquí"
                      onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block'">
                 <div class="logo-fallback">Hipoteca<span>Aquí</span></div>
                 <h1 id="portalTitle">Portal de Clientes</h1>
@@ -627,6 +627,8 @@
         window.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             const portalParam = params.get('portal');
+            const tabParam = params.get('tab') || params.get('action');
+            const emailParam = params.get('email');
             
             if (portalParam === 'inmobiliaria') {
                 setPortalRole('inmobiliaria');
@@ -635,6 +637,19 @@
             } else {
                 const stored = localStorage.getItem('portal_role') || 'cliente';
                 setPortalRole(stored);
+            }
+
+            if (tabParam === 'signup' || tabParam === 'register' || tabParam === 'crear-cuenta') {
+                switchTab('signup');
+            } else if (tabParam === 'forgot') {
+                switchTab('forgot');
+            }
+
+            if (emailParam) {
+                const signupEmail = document.getElementById('signupEmail');
+                const loginEmail = document.getElementById('loginEmail');
+                if (signupEmail) signupEmail.value = emailParam;
+                if (loginEmail) loginEmail.value = emailParam;
             }
         });
 

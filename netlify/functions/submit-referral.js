@@ -129,6 +129,7 @@ exports.handler = async (event) => {
         // 2. Find referrer by their Referral Code (or record ID)
         let referrerRecordId = null;
         let referrerTableType = null; // 'Contacts' or 'Franquiciados'
+        let referrerFranquiciados = null;
 
         if (refCode) {
             const cleanRefCode = sanitize(refCode).trim();
@@ -145,6 +146,7 @@ exports.handler = async (event) => {
                 if (refData.records && refData.records.length > 0) {
                     referrerRecordId = refData.records[0].id;
                     referrerTableType = 'Contacts';
+                    referrerFranquiciados = refData.records[0].fields['Franquiciados'] || null;
                 } else {
                     const directRes = await fetch(
                         `${airtableBase}/Contacts/${cleanRefCode}`,
@@ -154,6 +156,7 @@ exports.handler = async (event) => {
                         const directData = await directRes.json();
                         referrerRecordId = directData.id;
                         referrerTableType = 'Contacts';
+                        referrerFranquiciados = directData.fields['Franquiciados'] || null;
                     }
                 }
             } catch (e) {
@@ -195,7 +198,7 @@ exports.handler = async (event) => {
             if (!referrerRecordId && /^rec[a-zA-Z0-9]{14}$/i.test(cleanRefCode)) {
                 try {
                     const listRes = await fetch(
-                        `${airtableBase}/Contacts?fields[]=Nombre&maxRecords=100`,
+                        `${airtableBase}/Contacts?fields[]=Nombre&fields[]=Franquiciados&maxRecords=100`,
                         { headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` } }
                     );
                     const listData = await listRes.json();
@@ -205,6 +208,7 @@ exports.handler = async (event) => {
                     if (matchedRecord) {
                         referrerRecordId = matchedRecord.id;
                         referrerTableType = 'Contacts';
+                        referrerFranquiciados = matchedRecord.fields['Franquiciados'] || null;
                     }
                 } catch {}
 
@@ -232,7 +236,8 @@ exports.handler = async (event) => {
             'Nombre y apellidos': sanitize(nombre),
             'Email': sanitize(email),
             'Telefono': sanitize(telefono),
-            'Consentimiento': true
+            'Aceptacion LOPD': true,
+            'Aceptacion publicidad': true
         };
 
         // Link to referrer based on whether they are a client (Contacts) or associate (Franquiciados)
@@ -241,6 +246,9 @@ exports.handler = async (event) => {
                 newContactFields['Franquiciados'] = [referrerRecordId];
             } else {
                 newContactFields['referido por'] = [referrerRecordId];
+                if (referrerFranquiciados) {
+                    newContactFields['Franquiciados'] = referrerFranquiciados;
+                }
             }
         }
 

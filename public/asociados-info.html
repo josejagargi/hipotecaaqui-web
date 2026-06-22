@@ -161,7 +161,6 @@
             <img src="imagenes/logo_akia.jpg" alt="AKIA Logo" style="height: 100px; margin-bottom: 2.5rem; border-radius: 12px;">
             <h1>Únete a la Red de Asociados AKIA</h1>
             <p>Descubre la plataforma definitiva que permite a las inmobiliarias multiplicar sus cierres y generar nuevos ingresos sin esfuerzo.</p>
-            <a href="#solicitud" class="btn btn-primary">Solicitar Alta Gratuitamente</a>
         </div>
     </div>
 
@@ -200,37 +199,117 @@
         </div>
     </section>
 
-    <section id="solicitud" class="cta-section">
-        <div class="container" style="text-align: center;">
-            <div class="cta-wrapper">
-                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Solicitud de Registro</h2>
-                <p style="color: #64748b; margin-bottom: 2.5rem; font-size: 1rem;">Completa el formulario y uno de nuestros gestores se pondrá en contacto contigo para activar tu cuenta de asociado en menos de 24h.</p>
-                
-                <form id="asociadosForm" onsubmit="handleAsociadoSubmit(event)">
-                    <div class="form-group">
-                        <label for="assocName">Nombre de la Inmobiliaria</label>
-                        <input type="text" id="assocName" required placeholder="Ej. Inmobiliaria Costa Brava" class="form-control">
+    <!-- Modalidades de Registro Section -->
+    <section class="modalidades-section" style="padding: 80px 0; background: white; text-align: center;">
+        <div class="container">
+            <div style="max-width: 700px; margin: 0 auto 3rem auto;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--primary);">Dos Vías para Unirte a la Red</h2>
+                <p style="color: #64748b; font-size: 1.1rem;">Escoge la modalidad que mejor se adapte a tu inmobiliaria y comienza a multiplicar tus ventas.</p>
+            </div>
+
+            <!-- Banner de Cuenta Atrás -->
+            <div id="countdown-banner" style="display: none; background: linear-gradient(90deg, #ff5a5f 0%, #ff7e82 100%); color: white; padding: 0.8rem 1.2rem; border-radius: 12px; margin: 0 auto 2.5rem auto; max-width: 1000px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(255, 90, 95, 0.2); align-items: center; justify-content: center; gap: 0.5rem; text-align: center; flex-wrap: wrap;">
+                <span>🔥 ¡OFERTA DE BIENVENIDA! 50% de descuento en el pago inicial si te registras ahora. Tiempo restante:</span>
+                <span id="countdown-timer" style="background: rgba(0,0,0,0.15); padding: 0.2rem 0.6rem; border-radius: 6px; font-family: monospace; font-size: 1.1rem; letter-spacing: 1px;">02:00:00</span>
+            </div>
+            
+            <div class="benefits-grid" style="max-width: 1000px; margin: 0 auto;">
+                <!-- Option A: Pago Inicial -->
+                <div class="benefit-card" id="option-a-card" style="border: 2px solid rgba(255, 90, 95, 0.2); position: relative; overflow: hidden; background: linear-gradient(to bottom, #ffffff, #fffdfd);">
+                    <div id="badge-discount" style="position: absolute; top: 15px; right: -30px; background: var(--secondary); color: white; padding: 5px 30px; transform: rotate(45deg); font-size: 0.75rem; font-weight: 700; letter-spacing: 1px;">RÁPIDO</div>
+                    <div class="benefit-icon" style="background: rgba(255, 90, 95, 0.15); color: var(--secondary);">
+                        <i class="fas fa-rocket"></i>
                     </div>
-                    <div class="form-group">
-                        <label for="assocContact">Persona de Contacto</label>
-                        <input type="text" id="assocContact" required placeholder="Tu nombre completo" class="form-control">
+                    <h3>Opción A: Pago Inicial</h3>
+                    <p style="font-weight: 700; font-size: 1.5rem; color: var(--primary); margin: 0.5rem 0;" id="option-a-price">1.199€ <span style="font-size: 0.9rem; color: #64748b; font-weight: 400;">+ IVA</span></p>
+                    <p style="font-size: 0.9rem; color: #475569; font-weight: 600; margin-bottom: 1.5rem;">Partner Oficial de Por Vida desde el primer día</p>
+                    <ul style="text-align: left; list-style: none; padding: 0; margin: 0 0 2rem 0; font-size: 0.95rem; color: #475569; line-height: 1.8;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Acceso total e inmediato a AKIA</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Máximas comisiones desde la 1ª operación</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Amortización con tu primera operación</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Sin cesión de honorarios progresiva</li>
+                    </ul>
+                    <a href="javascript:void(0)" onclick="openModalAndSelect('pago')" class="btn btn-primary" style="display: inline-block; width: 100%;">Seleccionar y Registrarse</a>
+                </div>
+
+                <!-- Option B: Sin Desembolso -->
+                <div class="benefit-card" id="option-b-card">
+                    <div class="benefit-icon" style="background: rgba(15, 23, 42, 0.05); color: var(--primary);">
+                        <i class="fas fa-seedling"></i>
                     </div>
-                    <div class="form-group">
-                        <label for="assocEmail">Correo Electrónico Comercial</label>
-                        <input type="email" id="assocEmail" required placeholder="tu@empresa.com" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="assocPhone">Teléfono de Contacto</label>
-                        <input type="tel" id="assocPhone" required placeholder="Ej. 600 000 000" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-submit" id="btnSubmitAssoc">Enviar Solicitud</button>
-                </form>
-                <div id="successMsg" style="display: none; margin-top: 2rem; padding: 1.5rem; background: #dcfce7; color: #15803d; border-radius: 12px; font-weight: 600;">
-                    <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i> ¡Solicitud recibida! Nos pondremos en contacto contigo en breve para activar tu acceso.
+                    <h3>Opción B: Sin Riesgo Inicial</h3>
+                    <p style="font-weight: 700; font-size: 1.5rem; color: var(--primary); margin: 0.5rem 0;">0€ <span style="font-size: 0.9rem; color: #64748b; font-weight: 400;">(Sin coste inicial)</span></p>
+                    <p style="font-size: 0.9rem; color: #475569; font-weight: 600; margin-bottom: 1.5rem;">Progresión mediante cesión de operaciones</p>
+                    <ul style="text-align: left; list-style: none; padding: 0; margin: 0 0 2rem 0; font-size: 0.95rem; color: #475569; line-height: 1.8;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Cero inversión y cero riesgo inicial</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Acceso por ciclo de operaciones</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Cesión progresiva: 1ª (10%) a 4ª (40%)</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: #10b981; margin-right: 8px;"></i> Partner Oficial de por vida tras completar ciclo</li>
+                    </ul>
+                    <a href="javascript:void(0)" onclick="openModalAndSelect('sin_desembolso')" class="btn btn-outline" style="display: inline-block; width: 100%;">Seleccionar y Registrarse</a>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Popup Registration Modal Overlay -->
+    <div id="registerModalOverlay" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <button type="button" class="close-modal" onclick="closeRegisterModal()"><i class="fas fa-times"></i></button>
+            
+            <h2 style="font-size: 2rem; margin-bottom: 1rem; text-align: center;">Solicitud de Registro</h2>
+            <p id="assocFormSubtitle" style="color: #64748b; margin-bottom: 2.5rem; font-size: 1rem; text-align: center;">Completa el formulario y uno de nuestros gestores se pondrá en contacto contigo para activar tu cuenta de asociado en menos de 24h.</p>
+            
+            <form id="asociadosForm" onsubmit="handleAsociadoSubmit(event)">
+                <div class="form-group">
+                    <label for="assocName">Nombre de la Inmobiliaria *</label>
+                    <input type="text" id="assocName" required placeholder="Ej. Inmobiliaria Costa Brava" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="assocContact">Persona de Contacto *</label>
+                    <input type="text" id="assocContact" required placeholder="Tu nombre completo" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="assocNif">NIF / CIF *</label>
+                    <input type="text" id="assocNif" required placeholder="Ej. B12345678 o 12345678A" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="assocLocalidad">Localidad *</label>
+                    <input type="text" id="assocLocalidad" required placeholder="Ej. Barcelona" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="assocCP">Código Postal *</label>
+                    <input type="text" id="assocCP" required placeholder="Ej. 08001" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="assocEmail">Correo Electrónico Comercial *</label>
+                    <input type="email" id="assocEmail" required placeholder="tu@empresa.com" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="assocPhone">Teléfono de Contacto *</label>
+                    <input type="tel" id="assocPhone" required placeholder="Ej. 600 000 000" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="assocModalidad">Modalidad de Asociación *</label>
+                    <select id="assocModalidad" required class="form-control" onchange="toggleFormSubmitButtonText()">
+                        <option value="sin_desembolso" selected>Opción B: Sin desembolso inicial (Cesión progresiva)</option>
+                        <option value="pago">Opción A: Con pago inicial</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-submit" id="btnSubmitAssoc">Enviar Solicitud</button>
+            </form>
+            <div id="successMsg" style="display: none; margin-top: 2rem; padding: 2rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 16px; text-align: center; box-shadow: 0 4px 12px rgba(22, 101, 52, 0.05);">
+                <i class="fas fa-check-circle" style="font-size: 3rem; color: #15803d; margin-bottom: 1rem; display: block;"></i>
+                <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem; color: #14532d;">¡Enhorabuena y bienvenido/a!</h3>
+                <p style="font-size: 1rem; color: #166534; margin-bottom: 1.5rem; line-height: 1.6;">
+                    Tu solicitud para la <strong>Opción B: Sin Riesgo Inicial</strong> ha sido procesada con éxito. Ya puedes acceder a la plataforma utilizando el mismo email de registro: <strong id="registeredEmailDisplay"></strong>.
+                </p>
+                <a id="successLoginLink" href="#" class="btn btn-primary" style="display: inline-block; width: 100%; text-decoration: none; text-align: center; font-weight: 700; padding: 0.9rem 1rem;">
+                    Acceder al Portal de Inmobiliarias
+                </a>
+            </div>
+        </div>
+    </div>
 
     <footer style="background: var(--primary); color: white; padding: 40px 0; text-align: center;">
         <div class="container">
@@ -241,16 +320,221 @@
     <script>
         lucide.createIcons();
 
-        function handleAsociadoSubmit(e) {
+        // Stripe links
+        const STRIPE_FULL_PRICE_URL = 'https://buy.stripe.com/bJe8wO2Ct8dg8zw3mna7C01';
+        const STRIPE_DISCOUNT_PRICE_URL = 'https://buy.stripe.com/14A14m6SJgJM7vse11a7C02';
+        
+        let stripeCheckoutUrl = STRIPE_FULL_PRICE_URL;
+
+        // 2-hour countdown timer logic
+        function initCountdown() {
+            const twoHours = 2 * 60 * 60 * 1000; // 2 hours in ms
+            let firstAccess = localStorage.getItem('akia_first_access');
+            
+            if (!firstAccess) {
+                firstAccess = Date.now().toString();
+                localStorage.setItem('akia_first_access', firstAccess);
+            }
+            
+            const firstAccessTime = parseInt(firstAccess);
+            
+            function updateTimer() {
+                const now = Date.now();
+                const elapsed = now - firstAccessTime;
+                const timeLeft = twoHours - elapsed;
+                
+                const countdownBanner = document.getElementById('countdown-banner');
+                const timerEl = document.getElementById('countdown-timer');
+                const priceEl = document.getElementById('option-a-price');
+                const badgeEl = document.getElementById('badge-discount');
+                
+                if (timeLeft > 0) {
+                    stripeCheckoutUrl = STRIPE_DISCOUNT_PRICE_URL;
+                    
+                    // Show countdown banner
+                    if (countdownBanner) countdownBanner.style.display = 'flex';
+                    
+                    // Update price display with discounted price and original price crossed
+                    if (priceEl) {
+                        priceEl.innerHTML = `599,50€ <span style="font-size: 0.9rem; color: #ff5a5f; text-decoration: line-through; font-weight: 400; margin-left: 5px;">1.199€</span> <span style="font-size: 0.9rem; color: #64748b; font-weight: 400;">+ IVA</span>`;
+                    }
+                    if (badgeEl) {
+                        badgeEl.textContent = 'OFERTA -50%';
+                        badgeEl.style.background = '#10b981'; // Green for discount
+                    }
+                    
+                    // Format time
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    
+                    const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    if (timerEl) timerEl.textContent = formattedTime;
+                    
+                    // Update the select dropdown option label
+                    const selectEl = document.getElementById('assocModalidad');
+                    if (selectEl) {
+                        const opt = selectEl.querySelector('option[value="pago"]');
+                        if (opt) {
+                            opt.textContent = 'Opción A: Con pago inicial (599.50€ + IVA)';
+                        }
+                    }
+                } else {
+                    stripeCheckoutUrl = STRIPE_FULL_PRICE_URL;
+                    
+                    // Hide banner
+                    if (countdownBanner) countdownBanner.style.display = 'none';
+                    
+                    // Normal price
+                    if (priceEl) {
+                        priceEl.innerHTML = `1.199€ <span style="font-size: 0.9rem; color: #64748b; font-weight: 400;">+ IVA</span>`;
+                    }
+                    if (badgeEl) {
+                        badgeEl.textContent = 'RÁPIDO';
+                        badgeEl.style.background = 'var(--secondary)';
+                    }
+                    
+                    // Update the select dropdown option label back to normal
+                    const selectEl = document.getElementById('assocModalidad');
+                    if (selectEl) {
+                        const opt = selectEl.querySelector('option[value="pago"]');
+                        if (opt) {
+                            opt.textContent = 'Opción A: Con pago inicial (1.199€ + IVA)';
+                        }
+                    }
+                }
+            }
+            
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        // Initialize countdown
+        initCountdown();
+
+        function openModalAndSelect(type) {
+            const overlay = document.getElementById('registerModalOverlay');
+            if (overlay) {
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            selectModalidad(type);
+        }
+
+        function closeRegisterModal() {
+            const overlay = document.getElementById('registerModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+                // Reset form state after closure
+                setTimeout(() => {
+                    document.getElementById('asociadosForm').style.display = 'block';
+                    const subtitle = document.getElementById('assocFormSubtitle');
+                    if (subtitle) subtitle.style.display = 'block';
+                    document.getElementById('successMsg').style.display = 'none';
+                    document.getElementById('btnSubmitAssoc').disabled = false;
+                    toggleFormSubmitButtonText();
+                }, 300);
+            }
+        }
+
+        // Close on overlay click
+        document.getElementById('registerModalOverlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('registerModalOverlay')) {
+                closeRegisterModal();
+            }
+        });
+
+        function selectModalidad(type) {
+            const selectEl = document.getElementById('assocModalidad');
+            if (selectEl) {
+                selectEl.value = type;
+                toggleFormSubmitButtonText();
+            }
+        }
+
+        function toggleFormSubmitButtonText() {
+            const selectEl = document.getElementById('assocModalidad');
+            const btn = document.getElementById('btnSubmitAssoc');
+            if (!selectEl || !btn) return;
+            
+            if (selectEl.value === 'pago') {
+                btn.textContent = 'Guardar y Proceder al Pago';
+            } else {
+                btn.textContent = 'Enviar Solicitud de Registro';
+            }
+        }
+
+        async function handleAsociadoSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitAssoc');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            const form = document.getElementById('asociadosForm');
+            const successMsg = document.getElementById('successMsg');
             
-            setTimeout(() => {
-                document.getElementById('asociadosForm').style.display = 'none';
-                document.getElementById('successMsg').style.display = 'block';
-            }, 1200);
+            const assocName = document.getElementById('assocName').value.trim();
+            const assocContact = document.getElementById('assocContact').value.trim();
+            const assocEmail = document.getElementById('assocEmail').value.trim();
+            const assocPhone = document.getElementById('assocPhone').value.trim();
+            const assocNif = document.getElementById('assocNif').value.trim();
+            const assocLocalidad = document.getElementById('assocLocalidad').value.trim();
+            const assocCP = document.getElementById('assocCP').value.trim();
+            const assocModalidad = document.getElementById('assocModalidad').value;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando datos...';
+
+            try {
+                const response = await fetch('/.netlify/functions/save-associate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        'Nombre franquiciado': assocName,
+                        'Nombre y apellidos del representante': assocContact,
+                        'Email': assocEmail,
+                        'Telefono': assocPhone,
+                        'NIF / CIF': assocNif,
+                        'Localidad': assocLocalidad,
+                        'Codigo postal': assocCP,
+                        'Modalidad': assocModalidad
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || result.message || 'Error al guardar los datos');
+                }
+
+                // Registro guardado con éxito
+                if (assocModalidad === 'pago') {
+                    btn.innerHTML = '<i class="fas fa-check"></i> Redirigiendo a Stripe...';
+                    setTimeout(() => {
+                        window.location.href = stripeCheckoutUrl;
+                    }, 800);
+                } else {
+                    const registeredEmailDisplay = document.getElementById('registeredEmailDisplay');
+                    const successLoginLink = document.getElementById('successLoginLink');
+                    if (registeredEmailDisplay) {
+                        registeredEmailDisplay.textContent = assocEmail;
+                    }
+                    if (successLoginLink) {
+                        const encodedEmail = encodeURIComponent(assocEmail);
+                        successLoginLink.href = `login.html?portal=inmobiliaria&tab=signup&email=${encodedEmail}`;
+                    }
+                    const subtitle = document.getElementById('assocFormSubtitle');
+                    if (subtitle) {
+                        subtitle.style.display = 'none';
+                    }
+                    form.style.display = 'none';
+                    successMsg.style.display = 'block';
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert('Hubo un error al procesar tu solicitud: ' + err.message);
+                btn.disabled = false;
+                toggleFormSubmitButtonText();
+            }
         }
     </script>
 </body>

@@ -6,9 +6,11 @@
   "dependencies": {
     "airtable": "^0.12.2",
     "docx": "^9.6.1",
+    "dotenv": "^17.4.2",
     "exceljs": "^4.4.0",
     "node-fetch": "^2.7.0",
-    "nodemailer": "^8.0.7"
+    "nodemailer": "^8.0.7",
+    "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
     "netlify-cli": "^17.0.0"

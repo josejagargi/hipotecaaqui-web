@@ -298,6 +298,9 @@ function openEditModal(type, id) {
     recordIdInput.value = id;
     fieldsContainer.innerHTML = '';
     
+    const btnPrintReport = document.getElementById('btnPrintReport');
+    if (btnPrintReport) btnPrintReport.style.display = (type === 'estudio') ? 'inline-flex' : 'none';
+    
     if (type === 'contact') {
         modalTitle.textContent = 'Editar Contacto';
         const contact = currentContacts.find(c => c.id === id);
@@ -2671,3 +2674,577 @@ function calculateContactProgress(contact) {
     return { completed, total, percent, lopdAccepted };
 }
 window.calculateContactProgress = calculateContactProgress;
+
+// ── Print Client Report Function ──────────────────────────────────────────────
+
+function printClientReport() {
+    const studyId = document.getElementById('editRecordId').value;
+    const record = currentRecords.find(r => r.id === studyId);
+    if (!record) {
+        alert('No se pudo encontrar la información del estudio actual.');
+        return;
+    }
+
+    const f = record.fields || {};
+    const contactName = record.contactName || 'Cliente';
+    const createdDate = new Date(record.created).toLocaleDateString();
+
+    const viableProducts = currentCompatibleProducts.filter(p => p.resultado === 'Viable');
+    const estudiarProducts = currentCompatibleProducts.filter(p => p.resultado === 'Estudiar');
+
+    // Sort products by interest ascending
+    viableProducts.sort((a, b) => {
+        const intA = a.intereses !== null && a.intereses !== undefined ? parseFloat(a.intereses) : Infinity;
+        const intB = b.intereses !== null && b.intereses !== undefined ? parseFloat(b.intereses) : Infinity;
+        return intA - intB;
+    });
+
+    estudiarProducts.sort((a, b) => {
+        const intA = a.intereses !== null && a.intereses !== undefined ? parseFloat(a.intereses) : Infinity;
+        const intB = b.intereses !== null && b.intereses !== undefined ? parseFloat(b.intereses) : Infinity;
+        return intA - intB;
+    });
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('Por favor, permite las ventanas emergentes para poder generar el PDF.');
+        return;
+    }
+
+    // Helpers inside print scope
+    const getSemaforoColor = (val) => {
+        if (!val) return '#94a3b8';
+        const str = String(val).toLowerCase();
+        if (str.includes('verde') || str.includes('green') || str.includes('🟢')) return '#10b981';
+        if (str.includes('amarillo') || str.includes('yellow') || str.includes('🟡')) return '#f59e0b';
+        if (str.includes('rojo') || str.includes('red') || str.includes('🔴')) return '#ef4444';
+        return '#94a3b8';
+    };
+
+    const getSemaforoText = (val) => {
+        if (!val) return 'Sin datos';
+        return String(val).replace(/[🟢🟡🔴\s]+/g, '').trim();
+    };
+
+    const formatPercent = (val) => {
+        if (val === undefined || val === null || isNaN(val)) return 'N/D';
+        const num = parseFloat(val);
+        const finalVal = num <= 1 ? num * 100 : num;
+        return `${finalVal.toFixed(0)}%`;
+    };
+
+    const formatCurrencyLocal = (val) => {
+        if (val === undefined || val === null || isNaN(val)) return 'N/D';
+        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val);
+    };
+
+    const getViabilityBadge = (viableVal) => {
+        let viableColorClass = 'badge-pending';
+        let viableText = 'No analizado';
+        if (viableVal) {
+            const str = String(viableVal).toLowerCase();
+            if (str.includes('no viable') || str.includes('no_viable') || str.includes('🔴')) {
+                viableColorClass = 'badge-no-viable';
+                viableText = 'No Viable';
+            } else if (str.includes('viable') || str.includes('🟢')) {
+                viableColorClass = 'badge-viable';
+                viableText = 'Viable';
+            } else {
+                viableText = viableVal;
+            }
+        }
+        return `<span class="badge ${viableColorClass}">${viableText}</span>`;
+    };
+
+    const formatCurrencyArrayOrValue = (val) => {
+        const value = Array.isArray(val) ? val[0] : val;
+        return formatCurrencyLocal(value);
+    };
+
+    // Construct the print template document
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Viabilidad - ${contactName}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 1.5cm;
+            line-height: 1.4;
+            background-color: #fff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .logo-text {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            text-decoration: none;
+        }
+        .logo-text span {
+            color: #f59e0b;
+        }
+        .header-title {
+            text-align: right;
+        }
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .header-title p {
+            margin: 0.2rem 0 0 0;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .section {
+            margin-bottom: 1.8rem;
+            page-break-inside: avoid;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.4rem;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+        }
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+        }
+        .card-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.2rem;
+        }
+        .card-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.8rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-viable {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .badge-no-viable {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+        .badge-pending {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.4rem;
+        }
+        .data-table th, .data-table td {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .data-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .data-table td {
+            font-size: 0.85rem;
+        }
+        .product-tag {
+            font-weight: 700;
+            background: #f1f5f9;
+            color: #1e3a8a;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.8rem;
+        }
+        .product-tag-study {
+            font-weight: 700;
+            background: #fff7ed;
+            color: #c2410c;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ffedd5;
+            font-size: 0.8rem;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.3rem;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .semaforos-container {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 0.4rem;
+        }
+        .semaforo-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .semaforo-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+        }
+        .info-item {
+            font-size: 0.82rem;
+            display: flex;
+            justify-content: space-between;
+            padding: 0.2rem 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #64748b;
+            font-weight: 600;
+        }
+        .info-value {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .footer-note {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 2.5rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.8rem;
+            page-break-inside: avoid;
+        }
+        .no-print-bar {
+            background: #f1f5f9;
+            padding: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+        }
+        @media print {
+            .no-print-bar {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print-bar">
+        <button onclick="window.print()" style="padding: 0.6rem 1.2rem; background: #1e3a8a; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif;">
+            Imprimir Informe / Guardar PDF
+        </button>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-container">
+            <div class="logo-text">Hipoteca<span>Aquí</span></div>
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">ESTUDIO DE FINANCIACIÓN</div>
+        </div>
+        <div class="header-title">
+            <h1>Informe de Viabilidad</h1>
+            <p>Cliente: <strong>${contactName}</strong> | Fecha: ${createdDate}</p>
+        </div>
+    </div>
+
+    <!-- 1. Resultado de Viabilidad y mejores ofertas -->
+    <div class="section">
+        <div class="section-title">1. Resultado de Viabilidad y Métricas Clave</div>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; padding: 1rem; border-radius: 8px;">
+                <div>
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.2rem;">Resultado Análisis</span>
+                    ${getViabilityBadge(f['Viabilidad'])}
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.2rem;">Estabilidad Laboral Conjunta</span>
+                    <span style="font-weight: 800; font-size: 0.95rem; color: #1e3a8a;">${f['Estabilidad conjunta'] || 'N/D'}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-4" style="margin-bottom: 1rem;">
+            <div class="card">
+                <div class="card-title">Cuota Scoring</div>
+                <div class="card-value">${formatCurrencyLocal(f['Cuota scoring'])}</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Cuota Máx. Endeudamiento</div>
+                <div class="card-value">${formatCurrencyLocal(f['Cuota maxima endeudamiento'])}</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Esfuerzo Mensual</div>
+                <div class="card-value">${formatPercent(f['Esfuerzo mensual'])}</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: ${Math.min(parseFloat(f['Esfuerzo mensual'] || 0) * (parseFloat(f['Esfuerzo mensual']) <= 1 ? 100 : 1), 100)}%; background: ${parseFloat(f['Esfuerzo mensual'] || 0) > 0.4 ? '#ef4444' : '#10b981'};"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">% Financiación</div>
+                <div class="card-value">${formatPercent(f['% a financiar'])}</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: ${Math.min(parseFloat(f['% a financiar'] || 0) * (parseFloat(f['% a financiar']) <= 1 ? 100 : 1), 100)}%; background: #1e3a8a;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semáforos de riesgo -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 1rem;">
+            <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem;">Semáforos de Riesgo</span>
+            <div class="semaforos-container">
+                <div class="semaforo-item">
+                    <div class="semaforo-dot" style="background: ${getSemaforoColor(f['SemaforoEstabilidad'])}"></div>
+                    <span>Estabilidad Laboral: ${getSemaforoText(f['SemaforoEstabilidad'])}</span>
+                </div>
+                <div class="semaforo-item">
+                    <div class="semaforo-dot" style="background: ${getSemaforoColor(f['SemaforoEsfuerzo'])}"></div>
+                    <span>Nivel de Esfuerzo: ${getSemaforoText(f['SemaforoEsfuerzo'])}</span>
+                </div>
+                <div class="semaforo-item">
+                    <div class="semaforo-dot" style="background: ${getSemaforoColor(f['Semafor20masgatos'])}"></div>
+                    <span>Aportación (20% + Gastos): ${getSemaforoText(f['Semafor20masgatos'])}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mejores ofertas de cuota -->
+        <div class="grid-3">
+            <div class="card" style="border-left: 4px solid #1e3a8a;">
+                <div class="card-title">Mejor Cuota Fija</div>
+                <div class="card-value" style="color: #1e3a8a;">${formatCurrencyArrayOrValue(f['Mejor cuota Fija'])}</div>
+            </div>
+            <div class="card" style="border-left: 4px solid #f59e0b;">
+                <div class="card-title">Mejor Cuota Mixta</div>
+                <div class="card-value" style="color: #f59e0b;">${formatCurrencyArrayOrValue(f['Mejor cuota Mixta'])}</div>
+            </div>
+            <div class="card" style="border-left: 4px solid #10b981;">
+                <div class="card-title">Mejor Cuota Variable</div>
+                <div class="card-value" style="color: #10b981;">${formatCurrencyArrayOrValue(f['Mejor cuota Variable'])}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Condiciones generales del estudio -->
+    <div class="section">
+        <div class="section-title">2. Condiciones Declaradas por el Cliente</div>
+        
+        <div class="grid-2">
+            <!-- Col 1: Datos laborales y personales -->
+            <div>
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Titular 1</h4>
+                <div class="info-grid" style="margin-bottom: 0.8rem;">
+                    <div class="info-item"><span class="info-label">Edad:</span><span class="info-value">${f['Edad sim'] ? f['Edad sim'] + ' años' : 'N/D'}</span></div>
+                    <div class="info-item"><span class="info-label">Tipo de trabajo:</span><span class="info-value">${f['Tipo trabajo sim'] || 'N/D'}</span></div>
+                    <div class="info-item"><span class="info-label">Antigüedad laboral:</span><span class="info-value">${f['Antiguedad sim'] ? f['Antiguedad sim'] + ' años' : 'N/D'}</span></div>
+                    <div class="info-item"><span class="info-label">Ingresos mensuales:</span><span class="info-value">${formatCurrencyLocal(f['Ingresos titular 1'])}</span></div>
+                    <div class="info-item"><span class="info-label">Nº de pagas:</span><span class="info-value">${f['Num pagas T1'] || 'N/D'}</span></div>
+                </div>
+
+                ${f['Ingresos titular 2'] || f['Tipo trabajo T2'] ? `
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Titular 2</h4>
+                <div class="info-grid">
+                    <div class="info-item"><span class="info-label">Tipo de trabajo:</span><span class="info-value">${f['Tipo trabajo T2'] || 'N/D'}</span></div>
+                    <div class="info-item"><span class="info-label">Antigüedad laboral:</span><span class="info-value">${f['Antiguedad T2'] ? f['Antiguedad T2'] + ' años' : 'N/D'}</span></div>
+                    <div class="info-item"><span class="info-label">Ingresos mensuales:</span><span class="info-value">${formatCurrencyLocal(f['Ingresos titular 2'])}</span></div>
+                    <div class="info-item"><span class="info-label">Nº de pagas:</span><span class="info-value">${f['Num pagas T2'] || 'N/D'}</span></div>
+                </div>
+                ` : `
+                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 0.8rem; text-align: center; font-size: 0.8rem; color: #64748b; font-weight: 500;">
+                    Sin Segundo Titular declarado
+                </div>
+                `}
+            </div>
+
+            <!-- Col 2: Datos financieros y propiedad -->
+            <div>
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Finanzas y Operación</h4>
+                <div class="info-grid" style="margin-bottom: 0.8rem;">
+                    <div class="info-item"><span class="info-label">Ahorros disponibles:</span><span class="info-value">${formatCurrencyLocal(f['Ahorros'])}</span></div>
+                    <div class="info-item"><span class="info-label">Otros préstamos:</span><span class="info-value">${formatCurrencyLocal(f['Otros prestamos mensuales'])}</span></div>
+                    <div class="info-item"><span class="info-label">Capital pendiente dev.:</span><span class="info-value">${formatCurrencyLocal(f['Capital pendiente'])}</span></div>
+                    <div class="info-item"><span class="info-label">Plazo solicitado:</span><span class="info-value">${f['Años hipoteca'] ? f['Años hipoteca'] + ' años' : 'N/D'}</span></div>
+                </div>
+
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Propiedad</h4>
+                <div class="info-grid">
+                    <div class="info-item"><span class="info-label">Precio del inmueble:</span><span class="info-value">${formatCurrencyLocal(f['Precio del inmueble'])}</span></div>
+                    <div class="info-item"><span class="info-label">Finalidad:</span><span class="info-value">${f['Finalidad'] || 'N/D'}</span></div>
+                    <div class="info-item"><span class="info-label">Tipo de vivienda:</span><span class="info-value">${f['Tipo vivienda'] || 'N/D'}</span></div>
+                    <div class="info-item"><span class="info-label">Ubicación:</span><span class="info-value">${[f['Localidad inmueble'], f['Provincia']].filter(Boolean).join(', ') || 'N/D'}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Productos compatibles -->
+    <div class="section">
+        <div class="section-title">3. Productos Hipotecarios Compatibles</div>
+        ${viableProducts.length === 0 ? `
+            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1.5rem; text-align: center; color: #64748b; font-size: 0.9rem;">
+                No se han registrado productos compatibles viables en este momento.
+            </div>
+        ` : `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Hipoteca</th>
+                        <th style="text-align: right;">Total Intereses</th>
+                        <th style="text-align: right;">Cuota Inicial</th>
+                        <th style="text-align: right;">Cuota Final</th>
+                        <th style="text-align: center;">TIN Bonificado</th>
+                        <th>Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${viableProducts.map(p => {
+                        const tinPct = p.tinBonif !== null && p.tinBonif !== undefined ? `${(parseFloat(p.tinBonif) * 100).toFixed(2)}%` : 'N/D';
+                        return `
+                            <tr>
+                                <td><span class="product-tag">${p.producto || 'N/D'}</span></td>
+                                <td style="text-align: right; font-weight: 600;">${formatCurrencyLocal(p.intereses)}</td>
+                                <td style="text-align: right; font-weight: 700; color: #1e3a8a;">${formatCurrencyLocal(p.cuotaP1)}</td>
+                                <td style="text-align: right; font-weight: 700; color: #1e3a8a;">${formatCurrencyLocal(p.cuotaP2)}</td>
+                                <td style="text-align: center;"><span style="font-weight: 700; color: #10b981;">${tinPct}</span></td>
+                                <td style="font-size: 0.8rem; color: #475569; max-width: 300px; white-space: normal;">${p.detalle || 'Sin detalles'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `}
+    </div>
+
+    <!-- 4. Productos a estudiar -->
+    <div class="section" style="page-break-before: auto;">
+        <div class="section-title">4. Productos Hipotecarios a Estudiar</div>
+        ${estudiarProducts.length === 0 ? `
+            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1.5rem; text-align: center; color: #64748b; font-size: 0.9rem;">
+                No hay productos adicionales en fase de estudio para esta solicitud.
+            </div>
+        ` : `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Hipoteca</th>
+                        <th style="text-align: right;">Total Intereses</th>
+                        <th style="text-align: right;">Cuota Inicial</th>
+                        <th style="text-align: right;">Cuota Final</th>
+                        <th style="text-align: center;">TIN Bonificado</th>
+                        <th>💡 Requisitos de Estudio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${estudiarProducts.map(p => {
+                        const tinPct = p.tinBonif !== null && p.tinBonif !== undefined ? `${(parseFloat(p.tinBonif) * 100).toFixed(2)}%` : 'N/D';
+                        return `
+                            <tr>
+                                <td><span class="product-tag-study">${p.producto || 'N/D'}</span></td>
+                                <td style="text-align: right; font-weight: 600;">${formatCurrencyLocal(p.intereses)}</td>
+                                <td style="text-align: right; font-weight: 700; color: #c2410c;">${formatCurrencyLocal(p.cuotaP1)}</td>
+                                <td style="text-align: right; font-weight: 700; color: #c2410c;">${formatCurrencyLocal(p.cuotaP2)}</td>
+                                <td style="text-align: center;"><span style="font-weight: 700; color: #b45309;">${tinPct}</span></td>
+                                <td style="font-size: 0.8rem; color: #475569; max-width: 300px; white-space: normal;">${p.requisitos || 'Sin requisitos'}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `}
+    </div>
+
+    <!-- Footer Disclaimer -->
+    <div class="footer-note">
+        <p>Este informe de viabilidad tiene carácter meramente informativo y está condicionado a la verificación real de la documentación aportada. Hipoteca Aquí no se responsabiliza de los cambios de condiciones que las entidades financieras puedan realizar en sus productos.</p>
+        <p>&copy; ${new Date().getFullYear()} Hipoteca Aquí. Todos los derechos reservados.</p>
+    </div>
+</body>
+</html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+}
+window.printClientReport = printClientReport;
+

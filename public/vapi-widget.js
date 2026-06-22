@@ -26,6 +26,8 @@
     const statusBadge = document.getElementById('vapi-status-badge');
     const infoText = document.getElementById('vapi-info-text');
     const waveform = document.getElementById('vapi-waveform');
+    const emailContainer = document.getElementById('vapi-email-container');
+    const emailInput = document.getElementById('vapi-user-email');
 
     // Toggle card visibility
     triggerBtn.addEventListener('click', () => {
@@ -79,13 +81,33 @@
       });
     });
 
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
     function startCall() {
+      const emailValue = emailInput ? emailInput.value.trim() : '';
+
+      if (!emailValue || !validateEmail(emailValue)) {
+        alert('Por favor, introduce un email válido para iniciar la llamada.');
+        if (emailInput) emailInput.focus();
+        return;
+      }
+
       statusBadge.innerText = 'Llamando...';
       statusBadge.className = 'vapi-status-badge calling';
       infoText.innerText = 'Conectando con el analista de voz inteligente. Por favor, permite el acceso al micrófono si el navegador lo solicita.';
       actionBtn.disabled = true;
+      if (emailContainer) emailContainer.style.display = 'none';
 
-      vapi.start(ASSISTANT_ID).catch(err => {
+      vapi.start(ASSISTANT_ID, {
+        assistant: {
+          variableValues: {
+            email: emailValue
+          }
+        }
+      }).catch(err => {
         console.error('Failed to start call:', err);
         resetWidgetState();
       });
@@ -102,6 +124,7 @@
       statusBadge.innerText = 'Desconectado';
       statusBadge.className = 'vapi-status-badge offline';
       infoText.innerText = 'Realiza tu pre-scoring hipotecario hablando directamente con nuestro asistente de voz inteligente. Sin formularios, rápido y gratuito.';
+      if (emailContainer) emailContainer.style.display = 'block';
       actionBtn.innerHTML = '<i class="fas fa-phone-alt"></i> Iniciar Llamada';
       actionBtn.className = 'btn btn-primary';
       waveform.classList.remove('active');

@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aportar Documentación - Hipoteca Aquí</title>
+    <meta name="description" content="Sube de forma segura tus documentos para tu estudio de viabilidad hipotecaria en Hipoteca Aquí.">
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Premium Styles -->
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --primary: #1a3a5c;
+            --primary-light: #244e7c;
+            --primary-dark: #0d2138;
+            --secondary: #bd6d61;
+            --secondary-dark: #9c5449;
+            --secondary-light: #d6958c;
+            --accent: #2ec4b6;
+            --accent-glow: rgba(46, 196, 182, 0.15);
+            --bg-gradient: linear-gradient(135deg, #0b1a2e 0%, #132a45 50%, #1a3a5c 100%);
+            --glass-bg: rgba(255, 255, 255, 0.96);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-md: 0 12px 30px rgba(0,0,0,0.12);
+            --shadow-lg: 0 20px 50px rgba(0,0,0,0.25);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Floating background elements */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::before {
+            top: -10%; right: -5%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(189, 109, 97, 0.12) 0%, transparent 70%);
+            animation: drift 10s ease-in-out infinite alternate;
+        }
+        body::after {
+            bottom: -15%; left: -10%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(46, 196, 182, 0.08) 0%, transparent 70%);
+            animation: drift 14s ease-in-out infinite alternate-reverse;
+        }
+        
+        @keyframes drift {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-30px) scale(1.08); }
+        }
+        
+        /* Layout Container */
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* Header Card */
+        .header-card {
+            background: rgba(13, 33, 56, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            animation: fadeInDown 0.6s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .logo-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo-img {
+            height: 48px;
+            object-fit: contain;
+            margin-bottom: 0.5rem;
+        }
+        
+        .logo-fallback {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -0.5px;
+        }
+        .logo-fallback span { color: var(--secondary); }
+        
+        .header-card h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.3px;
+        }
+        
+        .header-card p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin: 0 auto 1.5rem auto;
+            line-height: 1.5;
+        }
+        
+        /* Overall Progress Bar */
+        .progress-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            min-width: 140px;
+            text-align: left;
+        }
+        .progress-track {
+            flex: 1;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--accent) 100%);
+            border-radius: 20px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(46, 196, 182, 0.5);
+        }
+        .progress-percent {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--accent);
+            min-width: 45px;
+            text-align: right;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        /* Grid Layout */
+        .grid-docs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            animation: fadeInUp 0.7s ease-out 0.1s both;
+            transition: var(--transition);
+        }
+        
+        .grid-docs.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Document Card */
+        .doc-card {
+            background: var(--glass-bg);
+            border-radius: var(--radius-md);
+            padding: 1.8rem;
+            color: var(--primary-dark);
+            box-shadow: var(--shadow-sm), 0 0 0 1px rgba(255,255,255,0.7) inset;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+        }
+        
+        .doc-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md), 0 8px 24px rgba(26, 58, 92, 0.12);
+            border-color: rgba(189, 109, 97, 0.3);
+        }
+        
+        .doc-card.completed {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md), 0 0 16px var(--accent-glow);
+        }
+        
+        /* Card Header */
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 1rem;
+        }
+        .card-icon {
+            width: 46px; height: 46px;
+            background: #f0f4f8;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .completed .card-icon {
+            background: #e6fffa;
+            color: var(--accent);
+        }
+        
+        .card-text {
+            flex: 1;
+            text-align: left;
+        }
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-desc {
+            font-size: 0.85rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+        
+        /* Completed Status Badge */
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #edf2f7;
+            color: #4a5568;
+            transition: var(--transition);
+        }
+        .completed .status-badge {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 2px 8px var(--accent-glow);
+        }
+        
+        /* Dropzone / Upload Area */
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: var(--radius-sm);
+            padding: 1.4rem;
+            text-align: center;
+            background: #f7fafc;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .upload-area:hover {
+            background: #edf2f7;
+            border-color: var(--secondary);
+        }
+        
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .upload-area i {
+            font-size: 1.6rem;
+            color: #a0aec0;
+            transition: var(--transition);
+        }
+        .upload-area:hover i {
+            color: var(--secondary);
+            transform: translateY(-2px);
+        }
+        .upload-area span {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .upload-area small {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        
+        /* Uploading state */
+        .upload-area.uploading {
+            pointer-events: none;
+        }
+        
+        /* Progress Ring/Bar Inside Dropzone */
+        .upload-progress-container {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            display: none;
+            flex-direction: column;
+            gap: 0.35rem;
+            text-align: left;
+        }
+        .uploading .upload-progress-container {
+            display: flex;
+        }
+        .uploading .upload-instructions {
+            display: none;
+        }
+        
+        .mini-progress-track {
+            height: 6px;
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .mini-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--secondary);
+            border-radius: 10px;
+            transition: width 0.2s ease;
+        }
+        .mini-progress-text {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* List of uploaded files */
+        .uploaded-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            text-align: left;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.85rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+        
+        .file-info i {
+            color: var(--secondary);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .file-info span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+        
+        .file-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .btn-action {
+            background: none;
+            border: none;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.8rem;
+        }
+        .btn-view {
+            color: var(--primary);
+            background: #edf2f7;
+        }
+        .btn-view:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-delete {
+            color: #e53e3e;
+            background: #fff5f5;
+        }
+        .btn-delete:hover {
+            background: #e53e3e;
+            color: #fff;
+        }
+        
+        /* Modal for Viewing */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10,25,47,0.75);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: #fff;
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            animation: zoomIn 0.3s ease;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--primary-dark);
+        }
+        .modal-header h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+        .btn-close-modal {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #718096;
+            transition: var(--transition);
+        }
+        .btn-close-modal:hover { color: var(--primary-dark); }
+        .modal-body {
+            flex: 1;
+            background: #f7fafc;
+            position: relative;
+        }
+        .modal-body iframe, .modal-body img {
+            width: 100%; height: 100%;
+            border: none;
+            object-fit: contain;
+        }
+        
+        /* Loading overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(10,25,47,0.85);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+            color: #fff;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+        .overlay.show { display: flex; }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Autonomous toggle box */
+        .autonomo-toggle-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: var(--radius-md);
+            padding: 1.4rem;
+            max-width: 600px;
+            margin: 0 auto 2.5rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .toggle-label {
+            text-align: left;
+        }
+        .toggle-label h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 0.15rem;
+        }
+        .toggle-label p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.6);
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: rgba(255,255,255,0.2);
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider::before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--secondary); }
+        input:checked + .slider::before { transform: translateX(24px); }
+        
+        /* Autonomous specific document card */
+        .doc-card.autonomo-doc {
+            display: none;
+        }
+        .doc-card.autonomo-doc.visible {
+            display: flex;
+            animation: slideIn 0.4s ease;
+        }
+        
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding: 2rem 0 1rem 0;
+            text-align: center;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.45);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+            z-index: 10;
+        }
+        footer a { color: rgba(255, 255, 255, 0.7); text-decoration: none; font-weight: 600; }
+        footer a:hover { color: var(--secondary); text-decoration: underline; }
+        
+        @media (max-width: 900px) {
+            .grid-docs { grid-template-columns: 1fr; }
+            .header-card { padding: 1.8rem 1.2rem; }
+            .header-card h1 { font-size: 1.8rem; }
+            .progress-section { flex-direction: column; gap: 0.75rem; text-align: center; }
+            .progress-label { text-align: center; }
+            .progress-percent { text-align: center; }
+        }
+
+        /* Embedded mode for dashboard integration */
+        body.embedded {
+            background: transparent !important;
+            padding: 0 !important;
+            min-height: auto !important;
+        }
+        body.embedded::before, body.embedded::after {
+            display: none !important;
+        }
+        body.embedded .container {
+            padding: 0 !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+        body.embedded .header-card {
+            display: none !important;
+        }
+        body.embedded footer {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading overlay -->
+    <div class="overlay show" id="mainOverlay">
+        <div class="spinner"></div>
+        <span id="overlayMsg">Cargando tu estudio de documentación...</span>
+    </div>
+
+    <!-- Modal for Previewing -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Visualizar Documento</h3>
+                <button class="btn-close-modal" onclick="closePreviewModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="logo-container">
+                <img class="logo-img" src="imagenes/CF%20HAqui%20logo%20HD%20trans.png" alt="Hipoteca Aquí"
+                     onerror="this.style.display='none'; document.querySelector('.logo-fallback').style.display='block'">
+                <div class="logo-fallback" style="display: none;">Hipoteca<span>Aquí</span></div>
+            </div>
+            <h1 id="clientGreeting">Hola, Cliente</h1>
+            <p>Sube la documentación requerida para tramitar tu expediente bancario. Puedes subir archivos en formato <strong>PDF, JPG o PNG</strong>. No es obligatorio subir todo de golpe; tus archivos se guardan y puedes continuar en otro momento con el mismo enlace.</p>
+            
+            <!-- General Progress -->
+            <div class="progress-section">
+                <span class="progress-label" id="progressStatusText">Completado: 0 de 6</span>
+                <div class="progress-track">
+                    <div class="progress-fill" id="overallProgressBar"></div>
+                </div>
+                <span class="progress-percent" id="overallProgressPercent">0%</span>
+            </div>
+        </div>
+
+        <!-- Consentimiento LOPD Card -->
+        <div class="doc-card" id="consent-card" style="background: var(--glass-bg); margin-bottom: 2rem; color: var(--primary-dark); text-align: left; display: flex; flex-direction: column; gap: 1rem; border: 2px solid transparent;">
+            <div class="card-header" style="border-bottom: none; padding-bottom: 0;">
+                <div class="card-icon" style="background: #fef3c7; color: #d97706;"><i class="fas fa-user-shield"></i></div>
+                <div class="card-text">
+                    <h4 class="card-title">Consentimiento y Protección de Datos <span class="status-badge" id="badge-consent">Pendiente</span></h4>
+                    <p class="card-desc">Para poder analizar y procesar tus archivos de forma legal, necesitamos tu autorización explícita para tratar tu documentación y tramitarla con los bancos implicados.</p>
+                </div>
+            </div>
+            <div style="padding: 0 1rem 1rem 1rem;">
+                <label style="display: flex; gap: 0.75rem; align-items: flex-start; cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--primary-dark); user-select: none; line-height: 1.5;">
+                    <input type="checkbox" id="consentCheckbox" onchange="handleConsentChange(this.checked)" style="width: 20px; height: 20px; accent-color: var(--secondary); margin-top: 2px; flex-shrink: 0; cursor: pointer;">
+                    <span>Consiento expresamente que <strong>Hipoteca Aquí</strong> (representada por Rafel Torroella) trate mis datos personales y de solvencia económica aportados en estos documentos, y autorizo su comunicación y tramitación ante las entidades bancarias colaboradoras con la exclusiva finalidad de gestionar e intermediar mi solicitud de préstamo hipotecario, conforme a lo detallado en la <a href="politica-privacidad.html" target="_blank" style="color: var(--secondary); text-decoration: underline; font-weight: 700;">Política de Privacidad</a>.</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Autónomo Toggle -->
+        <div class="autonomo-toggle-card">
+            <div class="toggle-label">
+                <h4>¿Eres trabajador Autónomo?</h4>
+                <p>Actívalo para ver los documentos específicos requeridos para autónomos.</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="autonomoToggle" onchange="toggleAutonomoFields(this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <!-- Grid of Document Cards -->
+        <div class="grid-docs">
+            
+            <!-- 1. DNI / NIE (NIF) -->
+            <div class="doc-card" id="card-nif">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-id-card"></i></div>
+                    <div class="card-text">
+                        <h4 class="card-title">DNI / NIE / Pasaporte <span class="status-badge" id="badge-nif">Pendiente</span></h4>
+                        <p class="card-desc">Sube tu documento de identidad por ambas caras. Asegúrate de que esté en vigor y no esté borroso.</p>
+                    </div>
+                </div>
+                <div class="uploaded-list" id="list-nif"></div>
+                <div class="upload-area" id="area-nif">
+                    <div class="upload-instructions">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Arrastra o selecciona tu DNI</span>
+                        <small>PDF o Imagen hasta 10MB</small>
+                    </div>
+                    <div class="upload-progress-container" id="progress-nif">
+                        <div class="mini-progress-text"><span>Subiendo archivo...</span><span id="percent-nif">0%</span></div>
+                        <div class="mini-progress-track"><div class="mini-progress-fill" id="fill-nif"></div></div>
+                    </div>
+                    <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this, 'NIF', 'nif')">
+                </div>
+            </div>
+
+            <!-- 2. NÓMINAS (Nominas) -->
+            <div class="doc-card" id="card-nominas">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                    <div class="card-text">
+                        <h4 class="card-title">Últimas 3 Nóminas <span class="status-badge" id="badge-nominas">Pendiente</span></h4>
+                        <p class="card-desc">Si trabajas por cuenta ajena, aporta tus tres últimas nóminas mensuales completas.</p>
+                    </div>
+                </div>
+                <div class="uploaded-list" id="list-nominas"></div>
+                <div class="upload-area" id="area-nominas">
+                    <div class="upload-instructions">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Sube tus nóminas</span>
+                        <small>Hasta 3 PDFs independientes</small>
+                    </div>
+                    <div class="upload-progress-container" id="progress-nominas">
+                        <div class="mini-progress-text"><span>Subiendo nómina...</span><span id="percent-nominas">0%</span></div>
+                        <div class="mini-progress-track"><div class="mini-progress-fill" id="fill-nominas"></div></div>
+                    </div>
+                    <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this, 'Nominas', 'nominas')">
+                </div>
+            </div>
+
+            <!-- 3. VIDA LABORAL (Vida laboral) -->
+            <div class="doc-card" id="card-vidaLaboral">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-history"></i></div>
+                    <div class="card-text">
+                        <h4 class="card-title">Vida Laboral Actualizada <span class="status-badge" id="badge-vidaLaboral">Pendiente</span></h4>
+                        <p class="card-desc">Informe de tu vida laboral emitido por la Seguridad Social recientemente (últimos 30 días).</p>
+                    </div>
+                </div>
+                <div class="uploaded-list" id="list-vidaLaboral"></div>
+                <div class="upload-area" id="area-vidaLaboral">
+                    <div class="upload-instructions">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Sube tu vida laboral</span>
+                        <small>Formato PDF recomendado</small>
+                    </div>
+                    <div class="upload-progress-container" id="progress-vidaLaboral">
+                        <div class="mini-progress-text"><span>Subiendo informe...</span><span id="percent-vidaLaboral">0%</span></div>
+                        <div class="mini-progress-track"><div class="mini-progress-fill" id="fill-vidaLaboral"></div></div>
+                    </div>
+                    <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this, 'Vida laboral', 'vidaLaboral')">
+                </div>
+            </div>
+
+            <!-- 4. RENTA (Renta) -->
+            <div class="doc-card" id="card-renta">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-file-shield"></i></div>
+                    <div class="card-text">
+                        <h4 class="card-title">Declaración de Renta (IRPF) <span class="status-badge" id="badge-renta">Pendiente</span></h4>
+                        <p class="card-desc">Última declaración anual de la renta presentada (documento completo de 10-12 páginas con código CSV).</p>
+                    </div>
+                </div>
+                <div class="uploaded-list" id="list-renta"></div>
+                <div class="upload-area" id="area-renta">
+                    <div class="upload-instructions">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Sube tu Renta (IRPF)</span>
+                        <small>Aporta el documento PDF completo</small>
+                    </div>
+                    <div class="upload-progress-container" id="progress-renta">
+                        <div class="mini-progress-text"><span>Subiendo Renta...</span><span id="percent-renta">0%</span></div>
+                        <div class="mini-progress-track"><div class="mini-progress-fill" id="fill-renta"></div></div>
+                    </div>
+                    <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this, 'Renta', 'renta')">
+                </div>
+            </div>
+
+            <!-- 5. CUOTAS DE PRÉSTAMOS (Cuotas prestamos) -->
+            <div class="doc-card" id="card-cuotasPrestamos">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-coins"></i></div>
+                    <div class="card-text">
+                        <h4 class="card-title">Cuotas Préstamos Actuales <span class="status-badge" id="badge-cuotasPrestamos">Opcional</span></h4>
+                        <p class="card-desc">Si tienes otros préstamos activos (coche, personal), aporta los recibos de cobro donde figure la cuota.</p>
+                    </div>
+                </div>
+                <div class="uploaded-list" id="list-cuotasPrestamos"></div>
+                <div class="upload-area" id="area-cuotasPrestamos">
+                    <div class="upload-instructions">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Añadir recibo de préstamo</span>
+                        <small>Puedes añadir múltiples recibos progresivamente</small>
+                    </div>
+                    <div class="upload-progress-container" id="progress-cuotasPrestamos">
+                        <div class="mini-progress-text"><span>Subiendo recibo...</span><span id="percent-cuotasPrestamos">0%</span></div>
+                        <div class="mini-progress-track"><div class="mini-progress-fill" id="fill-cuotasPrestamos"></div></div>
+                    </div>
+                    <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this, 'Cuotas prestamos', 'cuotasPrestamos')">
+                </div>
+            </div>
+
+            <!-- 6. EXTRACTOS BANCARIOS (Otros adjuntos) -->
+            <!-- 6. EXTRACTOS BANCARIOS (Extractos bancarios) -->
+            <div class="doc-card" id="card-extractosBancarios">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-university"></i></div>
+                    <div class="card-text">
+                        <h4 class="card-title">Extractos Bancarios <span class="status-badge" id="badge-extractosBancarios">Pendiente</span></h4>
+                        <p class="card-desc">Extractos bancarios de los últimos 3 meses de tu cuenta principal donde se vean los ingresos de nóminas.</p>
+                    </div>
+                </div>
+                <div class="uploaded-list" id="list-extractosBancarios"></div>
+                <div class="upload-area" id="area-extractosBancarios">
+                    <div class="upload-instructions">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Subir extracto bancario</span>
+                        <small>Aporta el PDF de la cuenta principal</small>
+                    </div>
+                    <div class="upload-progress-container" id="progress-extractosBancarios">
+                        <div class="mini-progress-text"><span>Subiendo extracto...</span><span id="percent-extractosBancarios">0%</span></div>
+                        <div class="mini-progress-track"><div class="mini-progress-fill" id="fill-extractosBancarios"></div></div>
+                    </div>
+                    <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this, 'Extractos bancarios', 'extractosBancarios')">
+                </div>
+            </div>
+
+            <!-- 7. OTROS ADJUNTOS (Otros adjuntos) -->
+            <div class="doc-card" id="card-otrosAdjuntos">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-folder-open"></i></div>
+                    <div class="card-text">
+                        <h4 class="card-title">Otros Documentos / Varios <span class="status-badge" id="badge-otrosAdjuntos">Opcional</span></h4>
+                        <p class="card-desc">Sube cualquier otro documento adicional solicitado por tu gestor hipotecario (contratos, recibos, etc.).</p>
+                    </div>
+                </div>
+                <div class="uploaded-list" id="list-otrosAdjuntos"></div>
+                <div class="upload-area" id="area-otrosAdjuntos">
+                    <div class="upload-instructions">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Subir otros documentos</span>
+                        <small>Puedes aportar múltiples archivos opcionales</small>
+                    </div>
+                    <div class="upload-progress-container" id="progress-otrosAdjuntos">
+                        <div class="mini-progress-text"><span>Subiendo archivo...</span><span id="percent-otrosAdjuntos">0%</span></div>
+                        <div class="mini-progress-track"><div class="mini-progress-fill" id="fill-otrosAdjuntos"></div></div>
+                    </div>
+                    <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this, 'Otros adjuntos', 'otrosAdjuntos')">
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Footer -->
+        <footer style="margin-top: auto; padding: 2.5rem 0 1rem 0; text-align: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.5); border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 0.8rem; position: relative; z-index: 10;">
+            <div style="margin-top: 0.5rem;">
+                <span>© 2026 Hipoteca Aquí. Todos los derechos reservados. <a href="politica-privacidad.html" target="_blank" style="color: var(--secondary-light); text-decoration: underline; font-weight: 600;">Política de Privacidad y LOPD</a>.</span>
+            </div>
+            <span>Para cualquier consulta o incidencia, ponte en contacto con tu asesor hipotecario asignado.</span>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK (compat mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <!-- Javascript application logic -->
+    <script src="js/portal-uploader.js"></script>
+
+</body>
+</html>
