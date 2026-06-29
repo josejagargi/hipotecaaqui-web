@@ -373,7 +373,7 @@ exports.handler = async (event, context) => {
 
     // Patch final tras retardo corto para sobreescribir posibles automatizaciones de Airtable
     try {
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 5000));
       await base('Hipoteca').update(hipotecaRecord.id, {
         'Franquiciados': resolvedFranquiciados
       });
