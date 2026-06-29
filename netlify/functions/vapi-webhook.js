@@ -301,8 +301,7 @@ exports.handler = async (event, context) => {
     const hipotecaFields = {
       'Contact': contactsList,
       'Enviar scoring': true,
-      'html': generateEmailHtml(data, recordingUrl, callSummary),
-      'Franquiciados': resolvedFranquiciados
+      'html': generateEmailHtml(data, recordingUrl, callSummary)
     };
 
     // Campos numéricos
@@ -364,16 +363,7 @@ exports.handler = async (event, context) => {
     const hipotecaRecord = await base('Hipoteca').create(hipotecaFields);
     console.log('Hipoteca record created from Vapi:', hipotecaRecord.id);
 
-    // Patch final tras retardo corto para sobreescribir posibles automatizaciones de Airtable
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await base('Hipoteca').update(hipotecaRecord.id, {
-        'Franquiciados': resolvedFranquiciados
-      });
-      console.log('Successfully patched Hipoteca with Franquiciados:', resolvedFranquiciados);
-    } catch (err) {
-      console.error('Failed to patch Hipoteca record:', err);
-    }
+
 
     return {
       statusCode: 200,
