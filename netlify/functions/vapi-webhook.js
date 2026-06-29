@@ -265,8 +265,15 @@ exports.handler = async (event, context) => {
         'Aceptacion publicidad': true
       };
       if (telefono) updateFields['Telefono'] = String(telefono);
+      if (nombre && nombre !== 'Cliente Vapi' && existingContacts[0].fields['Nombre y apellidos'] !== nombre) {
+        updateFields['Nombre y apellidos'] = nombre;
+      }
+      if (resolvedFranquiciados && resolvedFranquiciados.length > 0) {
+        updateFields['Franquiciados'] = resolvedFranquiciados;
+      }
       try {
         await base('Contacts').update(contactId, updateFields);
+        console.log('Successfully updated existing contact:', contactId, 'with fields:', JSON.stringify(updateFields));
       } catch (err) {
         console.error('Failed to update existing Contact:', err);
       }
