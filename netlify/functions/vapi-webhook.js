@@ -286,7 +286,7 @@ async function saveScoringToAirtable({ structuredData, variableValues, callId, r
 
   // Patch final tras retardo corto para sobreescribir posibles automatizaciones de Airtable
   try {
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 3000));
     await base('Hipoteca').update(finalRecordId, {
       'Franquiciados': resolvedFranquiciados
     });
