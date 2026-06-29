@@ -220,9 +220,29 @@ exports.handler = async (event, context) => {
       console.log('Existing contact found:', contactId, 'linked Franquiciados:', contactFranquiciados);
     }
 
-    // Resolver franquiciado master por defecto: Javier Garcia Giner ("recBbqj0xUs1hZGKi")
-    let resolvedFranquiciados = ["recBbqj0xUs1hZGKi"];
-    if (contactFranquiciados && Array.isArray(contactFranquiciados) && contactFranquiciados.length > 0) {
+    // Resolver franquiciado
+    let resolvedFranquiciados = ["recBbqj0xUs1hZGKi"]; // Javier Garcia Giner por defecto
+    
+    // Si viene agentEmail (flujo B2B), buscamos el id del franquiciado por su email en Airtable
+    const agentEmail = (variableValues.agentEmail || '').trim();
+    if (agentEmail) {
+      try {
+        console.log(`[Vapi Webhook] Buscando franquiciado para B2B con email: ${agentEmail}`);
+        const franquiciadosRecords = await base('Franquiciados').select({
+          filterByFormula: `LOWER({Email}) = '${agentEmail.toLowerCase()}'`,
+          maxRecords: 1
+        }).firstPage();
+        
+        if (franquiciadosRecords && franquiciadosRecords.length > 0) {
+          resolvedFranquiciados = [franquiciadosRecords[0].id];
+          console.log(`[Vapi Webhook] Franquiciado B2B resuelto: ${franquiciadosRecords[0].fields['Nombre y apellidos'] || agentEmail} (ID: ${resolvedFranquiciados[0]})`);
+        } else {
+          console.warn(`[Vapi Webhook] No se encontró ningún franquiciado con el email: ${agentEmail}. Usando valor por defecto.`);
+        }
+      } catch (err) {
+        console.error('[Vapi Webhook] Error al buscar franquiciado B2B:', err);
+      }
+    } else if (contactFranquiciados && Array.isArray(contactFranquiciados) && contactFranquiciados.length > 0) {
       resolvedFranquiciados = contactFranquiciados;
     }
 

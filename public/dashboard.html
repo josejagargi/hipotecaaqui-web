@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Hipoteca Aquí</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="portal.css">
+    <link rel="stylesheet" href="style.css?v=1.0.4">
+    <link rel="stylesheet" href="portal.css?v=1.0.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -716,6 +716,53 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="js/portal-auth.js?v=1.0.2"></script>
-    <script src="js/portal-dashboard.js?v=1.0.3"></script>
+    <script src="js/portal-dashboard.js?v=1.0.4"></script>
+
+    <!-- Vapi Voice Assistant Widget B2B -->
+    <div id="vapi-b2b-widget-container" class="vapi-widget-closed">
+        <!-- Floating Trigger Button -->
+        <button id="vapi-b2b-trigger-btn" class="vapi-trigger-pulse">
+            <i class="fas fa-microphone"></i>
+        </button>
+
+        <!-- Glassmorphism Widget Card -->
+        <div id="vapi-b2b-widget-card">
+            <button id="vapi-b2b-close-card">&times;</button>
+            <div class="vapi-card-header">
+                <div class="vapi-avatar-pulse">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #1e293b;">Asistente B2B (AKIA)</h3>
+                    <span class="vapi-status-badge offline" id="vapi-b2b-status-badge">Desconectado</span>
+                </div>
+            </div>
+            
+            <div class="vapi-card-body">
+                <p id="vapi-b2b-info-text">Dicta las operaciones hipotecarias de tus clientes de manera rápida y desordenada. AKIA procesará todo y lo registrará.</p>
+                
+                <!-- Email Input (visible before call starts) -->
+                <div id="vapi-b2b-email-container" style="margin-bottom: 1.2rem; text-align: left;">
+                    <label for="vapi-b2b-client-email" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #1e293b;">Email del Cliente *</label>
+                    <input type="email" id="vapi-b2b-client-email" required placeholder="cliente@email.com" style="width: 100%; padding: 0.7rem 0.9rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
+                </div>
+
+                <!-- Voice Waveform (Active during call) -->
+                <div class="vapi-waveform" id="vapi-b2b-waveform">
+                    <div class="vapi-bar-b2b"></div>
+                    <div class="vapi-bar-b2b"></div>
+                    <div class="vapi-bar-b2b"></div>
+                    <div class="vapi-bar-b2b"></div>
+                    <div class="vapi-bar-b2b"></div>
+                </div>
+                
+                <button id="vapi-b2b-action-btn" class="btn btn-primary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem; border-radius: 12px;">
+                    <i class="fas fa-phone-alt"></i> Iniciar Llamada
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="vapi-widget-b2b.js"></script>
 </body>
 </html>

@@ -91,6 +91,17 @@ async function loadDashboardData() {
         const navContactos = document.getElementById('nav-contactos');
         const navDocumentos = document.getElementById('nav-documentos');
         const isClient = data.user.role === 'client' || portalRole === 'cliente';
+
+        // Mostrar/ocultar el widget de Vapi B2B según el rol (sólo para inmobiliarias / asociados / admins)
+        const b2bWidget = document.getElementById('vapi-b2b-widget-container');
+        if (b2bWidget) {
+            if (portalRole === 'inmobiliaria' || data.user.role === 'admin' || data.user.role === 'associate') {
+                b2bWidget.style.display = 'block';
+            } else {
+                b2bWidget.style.display = 'none';
+            }
+        }
+
         
         if (navContactos) {
             if (isClient) {
