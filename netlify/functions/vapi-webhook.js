@@ -341,7 +341,18 @@ exports.handler = async (event, context) => {
       const value = data[fieldName];
       if (value) {
         // Encontrar coincidencia sin acentos ni mayúsculas
-        const matchedValue = validValues.find(v => normalizeStr(v) === normalizeStr(value));
+        let matchedValue = validValues.find(v => normalizeStr(v) === normalizeStr(value));
+        
+        // Mapeo flexible para Tipo vivienda
+        if (!matchedValue && fieldName === 'Tipo vivienda') {
+          const valNorm = normalizeStr(value);
+          if (valNorm.includes('nueva') || valNorm.includes('obra')) {
+            matchedValue = 'Nueva';
+          } else if (valNorm.includes('segunda') || valNorm.includes('mano') || valNorm.includes('usada')) {
+            matchedValue = 'Segunda mano';
+          }
+        }
+
         if (matchedValue) {
           hipotecaFields[fieldName] = matchedValue;
         }
