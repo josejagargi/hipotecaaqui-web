@@ -90,6 +90,7 @@ async function saveScoringToAirtable({ structuredData, variableValues, callId, r
     'Habeis encontrado propiedad': structuredData.encontradoPropiedad,
     'Tipo vivienda': structuredData.tipoVivienda,
     'Tipo prestamo': structuredData.tipoPrestamo || 'Hipotecario',
+    'Calcular viabilidad': structuredData.calcularViabilidad || 'No',
   };
 
   // Forzar LOPD/Consentimientos
@@ -211,7 +212,8 @@ async function saveScoringToAirtable({ structuredData, variableValues, callId, r
     'Enviar scoring': true,
     'html': generateEmailHtml(data, recordingUrl, callSummary),
     'Franquiciados': resolvedFranquiciados,
-    'Descripción': `[Vapi Call ID: ${callId || ''}]`
+    'Descripción': `[Vapi Call ID: ${callId || ''}]`,
+    'Calcular viabilidad': data['Calcular viabilidad']
   };
 
   // Campos numéricos
@@ -364,47 +366,51 @@ exports.handler = async (event, context) => {
           base
         });
 
-        // Polling de 15-20 segundos esperando a que Airtable procese el scoring
+        // Polling de 15-20 segundos esperando a que Airtable procese el scoring (solo si se solicita)
         let viabilidad = null;
         let recordDetails = null;
-
-        console.log(`[Vapi Webhook] Starting polling for scoring viability on record ${recordId}...`);
-        for (let poll = 1; poll <= 10; poll++) {
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Esperar 2 segundos por intento
-          try {
-            const checkRecord = await base('Hipoteca').find(recordId);
-            if (checkRecord && checkRecord.fields['Viabilidad']) {
-              viabilidad = checkRecord.fields['Viabilidad'];
-              recordDetails = checkRecord.fields;
-              console.log(`[Vapi Webhook] Viability populated on attempt ${poll}:`, viabilidad);
-              break;
-            }
-          } catch (pollErr) {
-            console.error(`[Vapi Webhook] Polling error on attempt ${poll}:`, pollErr);
-          }
-        }
-
-        // Generar respuesta hablada natural
         let speakResponse = "";
-        if (viabilidad) {
-          const isViable = viabilidad.toLowerCase().includes('viable') && !viabilidad.toLowerCase().includes('no viable');
-          if (isViable) {
-            const formatEuroText = (val) => {
-              if (val === null || val === undefined || isNaN(val)) return 'no disponible';
-              return `${Math.round(val)} euros`;
-            };
-            const cuotaFija = Array.isArray(recordDetails['Mejor cuota Fija']) ? recordDetails['Mejor cuota Fija'][0] : recordDetails['Mejor cuota Fija'] || null;
-            const cuotaMixta = Array.isArray(recordDetails['Mejor cuota Mixta']) ? recordDetails['Mejor cuota Mixta'][0] : recordDetails['Mejor cuota Mixta'] || null;
-            const cuotaVariable = Array.isArray(recordDetails['Mejor cuota Variable']) ? recordDetails['Mejor cuota Variable'][0] : recordDetails['Mejor cuota Variable'] || null;
-            const numViables = recordDetails['Nº viables'] || 0;
 
-            speakResponse = `El pre-scoring es viable. La operación ha sido pre-aprobada con ${numViables} ofertas bancarias. Las mejores cuotas estimadas son: cuota fija de ${formatEuroText(cuotaFija)} al mes, cuota mixta de ${formatEuroText(cuotaMixta)} al mes, o cuota variable de ${formatEuroText(cuotaVariable)} al mes.`;
-          } else {
-            speakResponse = `El pre-scoring automático requiere un estudio manual por nuestro equipo de analistas. Evaluaremos tu perfil financiero detalladamente y nos pondremos en contacto contigo lo antes posible para indicarte las opciones de financiación.`;
-          }
+        if (args.calcularViabilidad === 'No') {
+          console.log(`[Vapi Webhook] User requested email only. Skipping polling for record ${recordId}.`);
+          speakResponse = `He registrado todos los datos correctamente para el análisis de nuestro equipo. El resultado del scoring te llegará muy pronto a tu correo electrónico.`;
         } else {
-          // Timeout
-          speakResponse = `He registrado todos los datos correctamente para el análisis. El sistema está tardando un poco más de lo habitual en calcular el scoring automático, pero no te preocupes, en cuanto esté listo te enviaremos el resultado detallado directamente a tu correo electrónico.`;
+          console.log(`[Vapi Webhook] Starting polling for scoring viability on record ${recordId}...`);
+          for (let poll = 1; poll <= 10; poll++) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Esperar 2 segundos por intento
+            try {
+              const checkRecord = await base('Hipoteca').find(recordId);
+              if (checkRecord && checkRecord.fields['Viabilidad']) {
+                viabilidad = checkRecord.fields['Viabilidad'];
+                recordDetails = checkRecord.fields;
+                console.log(`[Vapi Webhook] Viability populated on attempt ${poll}:`, viabilidad);
+                break;
+              }
+            } catch (pollErr) {
+              console.error(`[Vapi Webhook] Polling error on attempt ${poll}:`, pollErr);
+            }
+          }
+
+          if (viabilidad) {
+            const isViable = viabilidad.toLowerCase().includes('viable') && !viabilidad.toLowerCase().includes('no viable');
+            if (isViable) {
+              const formatEuroText = (val) => {
+                if (val === null || val === undefined || isNaN(val)) return 'no disponible';
+                return `${Math.round(val)} euros`;
+              };
+              const cuotaFija = Array.isArray(recordDetails['Mejor cuota Fija']) ? recordDetails['Mejor cuota Fija'][0] : recordDetails['Mejor cuota Fija'] || null;
+              const cuotaMixta = Array.isArray(recordDetails['Mejor cuota Mixta']) ? recordDetails['Mejor cuota Mixta'][0] : recordDetails['Mejor cuota Mixta'] || null;
+              const cuotaVariable = Array.isArray(recordDetails['Mejor cuota Variable']) ? recordDetails['Mejor cuota Variable'][0] : recordDetails['Mejor cuota Variable'] || null;
+              const numViables = recordDetails['Nº viables'] || 0;
+
+              speakResponse = `El pre-scoring es viable. La operación ha sido pre-aprobada con ${numViables} ofertas bancarias. Las mejores cuotas estimadas son: cuota fija de ${formatEuroText(cuotaFija)} al mes, cuota mixta de ${formatEuroText(cuotaMixta)} al mes, o cuota variable de ${formatEuroText(cuotaVariable)} al mes.`;
+            } else {
+              speakResponse = `El pre-scoring automático requiere un estudio manual por nuestro equipo de analistas. Evaluaremos tu perfil financiero detalladamente y nos pondremos en contacto contigo lo antes posible para indicarte las opciones de financiación.`;
+            }
+          } else {
+            // Timeout
+            speakResponse = `He registrado todos los datos correctamente para el análisis. El sistema está tardando un poco más de lo habitual en calcular el scoring automático, pero no te preocupes, en cuanto esté listo te enviaremos el resultado detallado directamente a tu correo electrónico.`;
+          }
         }
 
         console.log(`[Vapi Webhook] Tool checkScoring completed response: ${speakResponse}`);
