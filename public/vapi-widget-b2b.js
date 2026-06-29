@@ -105,7 +105,8 @@
 
       // Obtener el email y nombre del agente logueado en la plataforma
       const agentEmail = localStorage.getItem('currentUserEmail') || '';
-      const agentName = localStorage.getItem('currentUserDisplayName') || '';
+      const agentFullName = localStorage.getItem('currentUserDisplayName') || '';
+      const agentName = agentFullName.trim().split(/\s+/)[0] || '';
       console.log(`[Vapi B2B] Iniciando llamada para cliente: ${clientEmail} - Asociada al agente: ${agentName} (${agentEmail})`);
 
       statusBadge.innerText = 'Llamando...';
