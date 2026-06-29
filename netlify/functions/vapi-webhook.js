@@ -265,15 +265,8 @@ exports.handler = async (event, context) => {
         'Aceptacion publicidad': true
       };
       if (telefono) updateFields['Telefono'] = String(telefono);
-      if (nombre && nombre !== 'Cliente Vapi' && existingContacts[0].fields['Nombre y apellidos'] !== nombre) {
-        updateFields['Nombre y apellidos'] = nombre;
-      }
-      if (resolvedFranquiciados && resolvedFranquiciados.length > 0) {
-        updateFields['Franquiciados'] = resolvedFranquiciados;
-      }
       try {
         await base('Contacts').update(contactId, updateFields);
-        console.log('Successfully updated existing contact:', contactId, 'with fields:', JSON.stringify(updateFields));
       } catch (err) {
         console.error('Failed to update existing Contact:', err);
       }
@@ -308,7 +301,8 @@ exports.handler = async (event, context) => {
     const hipotecaFields = {
       'Contact': contactsList,
       'Enviar scoring': true,
-      'html': generateEmailHtml(data, recordingUrl, callSummary)
+      'html': generateEmailHtml(data, recordingUrl, callSummary),
+      'Franquiciados': resolvedFranquiciados
     };
 
     // Campos numéricos
@@ -370,7 +364,16 @@ exports.handler = async (event, context) => {
     const hipotecaRecord = await base('Hipoteca').create(hipotecaFields);
     console.log('Hipoteca record created from Vapi:', hipotecaRecord.id);
 
-
+    // Patch final tras retardo corto para sobreescribir posibles automatizaciones de Airtable
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await base('Hipoteca').update(hipotecaRecord.id, {
+        'Franquiciados': resolvedFranquiciados
+      });
+      console.log('Successfully patched Hipoteca with Franquiciados:', resolvedFranquiciados);
+    } catch (err) {
+      console.error('Failed to patch Hipoteca record:', err);
+    }
 
     return {
       statusCode: 200,
