@@ -103,9 +103,10 @@
         return;
       }
 
-      // Obtener el email del agente logueado en la plataforma
+      // Obtener el email y nombre del agente logueado en la plataforma
       const agentEmail = localStorage.getItem('currentUserEmail') || '';
-      console.log(`[Vapi B2B] Iniciando llamada para cliente: ${clientEmail} - Asociada al agente: ${agentEmail}`);
+      const agentName = localStorage.getItem('currentUserDisplayName') || '';
+      console.log(`[Vapi B2B] Iniciando llamada para cliente: ${clientEmail} - Asociada al agente: ${agentName} (${agentEmail})`);
 
       statusBadge.innerText = 'Llamando...';
       statusBadge.className = 'vapi-status-badge calling';
@@ -113,11 +114,12 @@
       actionBtn.disabled = true;
       if (emailContainer) emailContainer.style.display = 'none';
 
-      // Pasar el email del cliente y el del agente logueado como variables personalizadas a Vapi
+      // Pasar el email del cliente, el del agente y su nombre como variables personalizadas a Vapi
       vapi.start(ASSISTANT_ID, {
         variableValues: {
           email: clientEmail,
-          agentEmail: agentEmail
+          agentEmail: agentEmail,
+          agentName: agentName
         }
       }).catch(err => {
         console.error('Failed to start Vapi B2B call:', err);
