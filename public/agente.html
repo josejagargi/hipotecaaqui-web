@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKIA Asistente B2B | Hipoteca Aquí</title>
+    <meta name="description" content="Acceso directo al asistente hipotecario IA para franquiciados y asociados.">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        body.agente-page {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            color: #f1f5f9;
+        }
+
+        .agente-container {
+            width: 100%;
+            max-width: 550px;
+        }
+
+        .agente-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem 2.5rem;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .logo-container {
+            margin-bottom: 2rem;
+        }
+
+        .logo-container img {
+            height: 50px;
+        }
+
+        .welcome-section {
+            margin-bottom: 2rem;
+        }
+
+        .welcome-section h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-section p.franchisee-info {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            margin-bottom: 0;
+        }
+
+        .status-badge-container {
+            margin: 1.5rem 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-badge.offline {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .status-badge.calling {
+            background: rgba(234, 179, 8, 0.1);
+            color: #eab308;
+            border: 1px solid rgba(234, 179, 8, 0.2);
+            animation: pulse-yellow 2s infinite;
+        }
+
+        .status-badge.online {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-badge.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        @keyframes pulse-yellow {
+            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.25);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        /* Voice Waveform */
+        .waveform-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            height: 80px;
+            margin-bottom: 2rem;
+        }
+
+        .waveform-bar {
+            width: 8px;
+            height: 8px;
+            background-color: var(--secondary);
+            border-radius: 50px;
+            transition: height 0.1s ease;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 1.1rem;
+            font-size: 1.1rem;
+            border-radius: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+        }
+
+        .action-btn.btn-start {
+            background: var(--secondary);
+            color: #ffffff;
+            box-shadow: 0 10px 25px rgba(255, 90, 95, 0.3);
+        }
+
+        .action-btn.btn-start:hover {
+            background: var(--secondary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(255, 90, 95, 0.4);
+        }
+
+        .action-btn.btn-stop {
+            background: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .action-btn.btn-stop:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(239, 68, 68, 0.4);
+        }
+
+        .action-btn:disabled {
+            background: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .nav-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link-btn:hover {
+            color: #ffffff;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--secondary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error state */
+        .error-state i {
+            font-size: 3rem;
+            color: #ef4444;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="agente-page">
+
+    <div class="agente-container">
+        <!-- 1. LOADING SCREEN -->
+        <div id="loading-view" class="agente-card loading-screen">
+            <div class="spinner"></div>
+            <h3>Validando credenciales...</h3>
+            <p style="color: #94a3b8; font-size: 0.95rem;">Por favor, espera mientras configuramos tu sesión segura.</p>
+        </div>
+
+        <!-- 2. AGENT CONTROL WORKSPACE -->
+        <div id="agent-view" class="agente-card" style="display: none;">
+            <div class="logo-container">
+                <img src="imagenes/CF%20HAqui%20logo%20HD%20trans.png" alt="Hipoteca Aquí">
+            </div>
+
+            <div class="welcome-section">
+                <h1 id="franchisee-name">Cargando...</h1>
+                <p id="franchisee-email" class="franchisee-info">...</p>
+            </div>
+
+            <div class="status-badge-container">
+                <span id="status-badge" class="status-badge offline">Desconectado</span>
+            </div>
+
+            <div class="info-box" id="info-text">
+                Dicta las operaciones hipotecarias de tus clientes de manera rápida y desordenada. AKIA procesará todo y lo registrará en tu portal.
+            </div>
+
+            <!-- Email Input -->
+            <div class="form-group" id="email-group">
+                <label for="client-email">Email del Cliente *</label>
+                <input type="email" id="client-email" required placeholder="cliente@email.com" autocomplete="off">
+            </div>
+
+            <!-- Waveform Animation -->
+            <div class="waveform-container" id="waveform">
+                <div class="waveform-bar" style="height: 8px;"></div>
+                <div class="waveform-bar" style="height: 8px;"></div>
+                <div class="waveform-bar" style="height: 8px;"></div>
+                <div class="waveform-bar" style="height: 8px;"></div>
+                <div class="waveform-bar" style="height: 8px;"></div>
+            </div>
+
+            <!-- Action Button -->
+            <button id="action-btn" class="action-btn btn-start">
+                <i class="fas fa-phone-alt"></i> Iniciar Llamada con AKIA
+            </button>
+
+            <!-- Portal navigation -->
+            <div>
+                <a href="dashboard.html" class="nav-link-btn">
+                    <i class="fas fa-chart-pie"></i> Ir a mi Panel de Control
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. ERROR SCREEN -->
+        <div id="error-view" class="agente-card error-state" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3 style="color: white; margin-bottom: 1rem;">Acceso No Válido</h3>
+            <p id="error-message" style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 2rem;">El enlace de acceso utilizado no es válido o el franquiciado no se encuentra registrado.</p>
+            <a href="login.html" class="btn btn-primary" style="padding: 0.8rem 2rem;">Ir al Acceso General</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        (function() {
+            // Vapi details
+            const VAPI_PUBLIC_KEY = 'b9144d9b-f50b-4a9b-a40d-a4d6cb269f9e';
+            const ASSISTANT_ID = '0a0e1ed9-79d9-422b-bc7c-f423149e2124';
+
+            let vapi = null;
+            let isCallActive = false;
+            let currentFranquiciado = null;
+
+            // DOM elements
+            const loadingView = document.getElementById('loading-view');
+            const agentView = document.getElementById('agent-view');
+            const errorView = document.getElementById('error-view');
+            const errorMessage = document.getElementById('error-message');
+            
+            const fName = document.getElementById('franchisee-name');
+            const fEmail = document.getElementById('franchisee-email');
+            const statusBadge = document.getElementById('status-badge');
+            const infoText = document.getElementById('info-text');
+            const emailGroup = document.getElementById('email-group');
+            const emailInput = document.getElementById('client-email');
+            const actionBtn = document.getElementById('action-btn');
+            const waveformBars = document.querySelectorAll('.waveform-bar');
+
+            // 1. Get query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const recordId = urlParams.get('id');
+
+            if (!recordId) {
+                showError('Falta el ID de franquiciado en el enlace de acceso.');
+                return;
+            }
+
+            // 2. Fetch franchisee details from secure Netlify function
+            fetch(`/.netlify/functions/get-franquiciado?id=${encodeURIComponent(recordId)}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('El franquiciado no existe o no se pudo validar.');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    currentFranquiciado = data;
+                    
+                    // Auto-log them in locally so they don't need to log in again on the portal
+                    localStorage.setItem('currentUserFranquiciadoId', data.id);
+                    localStorage.setItem('currentUserEmail', data.email);
+                    localStorage.setItem('currentUserDisplayName', data.name);
+                    localStorage.setItem('portal_role', data.role);
+
+                    // Show workstation
+                    fName.innerText = `¡Hola, ${data.name}!`;
+                    fEmail.innerText = `Franquiciado • ${data.email}`;
+                    
+                    loadingView.style.display = 'none';
+                    agentView.style.display = 'block';
+
+                    // Load Vapi SDK
+                    initVapi();
+                })
+                .catch(err => {
+                    showError(err.message);
+                });
+
+            function showError(msg) {
+                errorMessage.innerText = msg;
+                loadingView.style.display = 'none';
+                errorView.style.display = 'block';
+            }
+
+            // 3. Initialize Vapi
+            function initVapi() {
+                import('https://cdn.jsdelivr.net/npm/@vapi-ai/web/+esm')
+                    .then((module) => {
+                        const Vapi = module.default.default || module.default;
+                        vapi = new Vapi(VAPI_PUBLIC_KEY);
+                        setupVapiEvents();
+                    })
+                    .catch((err) => {
+                        console.error('Failed to load Vapi SDK:', err);
+                        statusBadge.innerText = 'Error de SDK';
+                        statusBadge.className = 'status-badge error';
+                    });
+            }
+
+            function setupVapiEvents() {
+                if (!vapi) return;
+
+                // Action button listener
+                actionBtn.addEventListener('click', () => {
+                    if (!isCallActive) {
+                        startCall();
+                    } else {
+                        stopCall();
+                    }
+                });
+
+                // Vapi Events
+                vapi.on('call-start', () => {
+                    isCallActive = true;
+                    statusBadge.innerText = 'Llamada en curso';
+                    statusBadge.className = 'status-badge online';
+                    infoText.innerText = 'Estás conectado con AKIA. Puedes dictarle los datos de la operación de forma desordenada. Pulsa el botón de abajo para terminar.';
+                    actionBtn.innerHTML = '<i class="fas fa-phone-slash"></i> Terminar Llamada';
+                    actionBtn.className = 'action-btn btn-stop';
+                });
+
+                vapi.on('call-end', () => {
+                    resetCallState();
+                });
+
+                vapi.on('error', (err) => {
+                    console.error('Vapi Call Error:', err);
+                    resetCallState();
+                    statusBadge.innerText = 'Error de conexión';
+                    statusBadge.className = 'status-badge error';
+                    infoText.innerText = 'Ocurrió un error al iniciar la llamada. Por favor, inténtalo de nuevo.';
+                });
+
+                // Volume monitoring
+                vapi.on('volume-level', (volume) => {
+                    const multiplier = isCallActive ? 1.5 : 0;
+                    waveformBars.forEach((bar, idx) => {
+                        const heightFactor = 8 + volume * 70 * (0.6 + Math.sin(idx + Date.now() / 120) * 0.4);
+                        bar.style.height = `${Math.min(75, heightFactor * multiplier)}px`;
+                    });
+                });
+            }
+
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+
+            function startCall() {
+                const clientEmail = emailInput.value.trim();
+
+                if (!clientEmail || !validateEmail(clientEmail)) {
+                    alert('Por favor, introduce un email válido para el cliente antes de iniciar la llamada.');
+                    emailInput.focus();
+                    return;
+                }
+
+                statusBadge.innerText = 'Llamando...';
+                statusBadge.className = 'status-badge calling';
+                infoText.innerText = 'Conectando con el analista hipotecario. Permite el acceso al micrófono si te lo solicita tu navegador.';
+                actionBtn.disabled = true;
+                emailGroup.style.display = 'none';
+
+                const agentName = currentFranquiciado.name.trim().split(/\s+/)[0] || '';
+
+                console.log(`[Vapi B2B Page] Starting call. Client: ${clientEmail}, Agent: ${agentName} (${currentFranquiciado.email})`);
+
+                vapi.start(ASSISTANT_ID, {
+                    variableValues: {
+                        email: clientEmail,
+                        agentEmail: currentFranquiciado.email,
+                        agentName: agentName
+                    }
+                }).catch(err => {
+                    console.error('Failed to start call:', err);
+                    resetCallState();
+                });
+
+                actionBtn.disabled = false;
+            }
+
+            function stopCall() {
+                if (vapi) {
+                    vapi.stop();
+                }
+                resetCallState();
+            }
+
+            function resetCallState() {
+                isCallActive = false;
+                statusBadge.innerText = 'Desconectado';
+                statusBadge.className = 'status-badge offline';
+                infoText.innerText = 'Dicta las operaciones hipotecarias de tus clientes de manera rápida y desordenada. AKIA procesará todo y lo registrará.';
+                emailGroup.style.display = 'block';
+                actionBtn.innerHTML = '<i class="fas fa-phone-alt"></i> Iniciar Llamada con AKIA';
+                actionBtn.className = 'action-btn btn-start';
+                
+                // Reset waveform
+                waveformBars.forEach(bar => {
+                    bar.style.height = '8px';
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
