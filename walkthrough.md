@@ -20,3 +20,17 @@ Hemos implementado las personalizaciones y ajustes específicos solicitados por 
 4. **Franquiciados en Airtable ([vapi-webhook.js](file:///c:/Proyectos/Hipotecaaqui/netlify/functions/vapi-webhook.js)):**
    * Retirado por completo el guardado y el patch final de la columna `'Franquiciados'` sobre la tabla `'Hipoteca'`.
    * El webhook se limita a persistir el franquiciado únicamente en la tabla `'Contacts'`, permitiendo que el automatismo interno de tu base de Airtable asocie y herede el franquiciado en la tabla `'Hipoteca'`.
+
+---
+
+## 🎁 Documento y Sección Web: Sistema de Referidos
+
+1. **Documento PDF Explicativo Ajustado a 1 Página:**
+   * **Archivo:** [borrador_pdf_referidos.html](file:///c:/Proyectos/Hipotecaaqui/referidos/borrador_pdf_referidos.html)
+   * Reducidos márgenes y altura del encabezado para asegurar ajuste perfecto en **1 única página A4**.
+   * Incorporado el logotipo de la marca de Hipoteca Aquí y paleta corporativa (`#33475b` y `#ff5a5f`).
+   * Incluidos los logos en tamaño compacto de las 5 marcas de vales regalo: **Amazon, Zara, IKEA, MediaMarkt y El Corte Inglés**.
+
+2. **Sección Explicativa en la Web:**
+   * **Landing pública de referidos:** [public/referidos/index.html](file:///c:/Proyectos/Hipotecaaqui/public/referidos/index.html#L438-L478) - Añadido bloque explicativo con el flujo en 3 pasos, los logos de las tiendas de vales regalo y enlace directo para descargar/ver el PDF.
+   * **Panel privado del cliente (Dashboard):** [public/referidos/dashboard.html](file:///c:/Proyectos/Hipotecaaqui/public/referidos/dashboard.html#L364-L403) - Incorporada tarjeta explicativa con el funcionamiento del sistema, marcas de vales regalo y acceso al PDF.

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programa de Referidos - Hipoteca Aquí</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a202c;
+            background-color: #ffffff;
+            width: 210mm;
+            height: 297mm;
+            max-height: 297mm;
+            margin: 0 auto;
+            padding: 25px 35px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .logo {
+            height: 38px;
+            object-fit: contain;
+        }
+
+        .badge {
+            background-color: #fff5f5;
+            color: #ff5a5f;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 90, 95, 0.2);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #33475b 0%, #1e2d3b 100%);
+            color: white;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(51, 71, 91, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 140px;
+            height: 140px;
+            background: rgba(255, 90, 95, 0.15);
+            border-radius: 50%;
+        }
+
+        .hero h1 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        .hero h1 span {
+            color: #ff5a5f;
+        }
+
+        .hero p {
+            font-size: 13.5px;
+            color: #e2e8f0;
+            line-height: 1.45;
+            max-width: 92%;
+        }
+
+        /* Section Title */
+        .section-title {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 800;
+            color: #33475b;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* Steps */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .step-card {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #ff5a5f;
+            border-radius: 10px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .step-number {
+            width: 42px;
+            height: 42px;
+            background: #33475b;
+            color: white;
+            font-weight: 800;
+            font-size: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            font-size: 16px;
+            color: #33475b;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .step-content p {
+            font-size: 13.5px;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        /* Brands / Rewards section */
+        .rewards-section {
+            background-color: #f8fafc;
+            border-radius: 16px;
+            padding: 22px 25px;
+            border: 1px dashed #cbd5e1;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .rewards-section h3 {
+            font-size: 15px;
+            color: #33475b;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .brand-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .brand-logo-item {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 10px 16px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #edf2f7;
+        }
+
+        .brand-logo-item img {
+            max-height: 28px;
+            max-width: 85px;
+            object-fit: contain;
+            filter: grayscale(10%);
+            transition: filter 0.3s ease;
+        }
+
+        /* Footer Call To Action */
+        footer {
+            border-top: 2px solid #edf2f7;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .cta-box {
+            background-color: #fff5f5;
+            border: 1px solid rgba(255, 90, 95, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+        }
+
+        .cta-box p {
+            font-size: 14px;
+            color: #33475b;
+            font-weight: 600;
+        }
+
+        .cta-box strong {
+            color: #ff5a5f;
+        }
+
+        .footer-info {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        @media print {
+            body {
+                width: 100%;
+                padding: 25mm 20mm;
+                background: white;
+            }
+            .hero {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .badge, .step-number, .step-card, .cta-box {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <!-- Header -->
+        <header>
+            <img src="../public/logo.png" alt="Hipoteca Aquí" class="logo">
+            <span class="badge">Programa de Referidos</span>
+        </header>
+
+        <!-- Hero Banner -->
+        <div class="hero">
+            <h1>Comparte Hipoteca Aquí y <span>gana desde 300€ en vales regalo</span></h1>
+            <p>Ayudar a tus amigos o familiares a conseguir la hipoteca con las mejores condiciones ahora tiene premio para ti: <strong>desde 300€ en vales regalo</strong> por cada hipoteca formalizada.</p>
+        </div>
+
+        <!-- Flow Title -->
+        <h2 class="section-title">¿Cómo funciona?</h2>
+
+        <!-- Steps -->
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Comparte tu enlace personal</h3>
+                    <p>Accede a tu zona de cliente, copia tu enlace único y envíaselo por WhatsApp o email a tus amigos que busquen hipoteca.</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Asesoramos a tu amigo gratis</h3>
+                    <p>Tu amigo se registra desde tu enlace y nuestros expertos le guiarán paso a paso para conseguir su hipoteca ideal sin compromiso.</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>¡Recibe tus Vales Regalo de 300€!</h3>
+                    <p>En cuanto tu referido formalice su hipoteca con nosotros, te enviaremos tu vale regalo de <strong>desde 300€</strong>. ¡Sin límite de amigos ni recompensas!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Brands Rewards -->
+        <div class="rewards-section">
+            <h3>Tus vales regalo disponibles en marcas como:</h3>
+            <div class="brand-logos">
+                <div class="brand-logo-item">
+                    <img src="../logos vales regalo/amazon.png" alt="Amazon">
+                </div>
+                <div class="brand-logo-item">
+                    <img src="../logos vales regalo/zara.png" alt="Zara">
+                </div>
+                <div class="brand-logo-item">
+                    <img src="../logos vales regalo/ikea.png" alt="IKEA">
+                </div>
+                <div class="brand-logo-item">
+                    <img src="../logos vales regalo/logo mediamarkt.png" alt="MediaMarkt">
+                </div>
+                <div class="brand-logo-item">
+                    <img src="../logos vales regalo/el corte ingles.jpg" alt="El Corte Inglés">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="cta-box">
+            <p>Accede ya a tu panel en <strong>hipotecaaqui.com</strong> y empieza a compartir tu enlace.</p>
+        </div>
+        <p class="footer-info">Hipoteca Aquí &copy; 2026 • Tu comparador e intermediario hipotecario de confianza</p>
+    </footer>
+
+</body>
+</html>
