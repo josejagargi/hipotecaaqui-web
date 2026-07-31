@@ -35,3 +35,13 @@
   to = "/logo.png"
   status = 301
 
+[[redirects]]
+  from = "/logo-blanco"
+  to = "/logo-blanco.jpg"
+  status = 301
+
+[[redirects]]
+  from = "/logo-transparente"
+  to = "/logo-transparente.png"
+  status = 301
+
