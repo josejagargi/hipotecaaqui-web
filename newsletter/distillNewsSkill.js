@@ -1,12 +1,15 @@
 require('dotenv').config();
 const fetch = require('node-fetch');
+const { GoogleDecoder } = require('google-news-url-decoder');
 
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
-const CRM_BASE_ID = process.env.CRM_BASE_ID || 'appdpPB3CK0d5R2oI';
-const CRM_TOKEN = process.env.CRM_TOKEN || 'patapt61z0HwTUIDH.655a5a30d9af22ff222bfb5b53b427613dce343bff42e188665f34e8d5ff5171';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const CRM_BASE_ID = (process.env.CRM_BASE_ID || 'appdpPB3CK0d5R2oI').trim();
+const CRM_TOKEN = (process.env.CRM_TOKEN || 'patapt61z0HwTUIDH.655a5a30d9af22ff222bfb5b53b427613dce343bff42e188665f34e8d5ff5171').trim();
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : undefined;
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY ? process.env.YOUTUBE_API_KEY.trim() : undefined;
+
 
 const CANALES_TABLE = 'Canales';
 const CONTENT_TABLE = 'Content';
@@ -146,9 +149,43 @@ async function distillWithGemini(promptText) {
   }
 }
 
-/** Scrape channel RSS feed from YouTube channel handle */
-async function getChannelRssUrl(channelUrl) {
-  console.log(`Scraping channel page to find RSS URL: ${channelUrl}`);
+/** Resolve YouTube channel ID from URL (using API or scraping fallback) */
+async function getChannelIdFromUrl(channelUrl) {
+  const decodedUrl = decodeURIComponent(channelUrl);
+  
+  // 1. If URL already has channel ID
+  const channelIdMatch = decodedUrl.match(/\/channel\/(UC[\w-]{22})/);
+  if (channelIdMatch) {
+    return channelIdMatch[1];
+  }
+
+  // 2. If it's a handle, resolve with official YouTube API if available
+  const handleMatch = decodedUrl.match(/\/(@[^/?#\s]+)/);
+
+  if (handleMatch && YOUTUBE_API_KEY) {
+    const handle = handleMatch[1];
+    console.log(`Resolving YouTube handle ${handle} using official API...`);
+    try {
+      const url = `https://www.googleapis.com/youtube/v3/channels?forHandle=${encodeURIComponent(handle)}&part=id&key=${YOUTUBE_API_KEY}`;
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.items && data.items.length > 0) {
+          const id = data.items[0].id;
+          console.log(`Resolved handle ${handle} to channel ID: ${id}`);
+          return id;
+        }
+      } else {
+        const txt = await resp.text();
+        console.error(`YouTube API channels query failed: ${resp.status} - ${txt}`);
+      }
+    } catch (apiErr) {
+      console.error(`Error querying YouTube API for handle ${handle}:`, apiErr.message);
+    }
+  }
+
+  // 3. Fallback: scrape the channel page
+  console.log(`Fallback: scraping channel page to find channel ID for ${channelUrl}`);
   const res = await fetch(channelUrl, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
@@ -159,17 +196,68 @@ async function getChannelRssUrl(channelUrl) {
   const feedMatch = html.match(/href="([^"]+feeds\/videos\.xml\?channel_id=[^"]+)"/) || html.match(/channel_id=([^"&]+)/);
   if (feedMatch) {
     if (feedMatch[1].startsWith('http')) {
-      return feedMatch[1];
+      const idMatch = feedMatch[1].match(/channel_id=([^"&]+)/);
+      if (idMatch) return idMatch[1];
     } else {
-      return `https://www.youtube.com/feeds/videos.xml?channel_id=${feedMatch[1]}`;
+      return feedMatch[1];
     }
   }
-  // Try to find raw UC channel ID fallback
   const ucMatch = html.match(/"(UC[A-Za-z0-9_-]{22})"/);
   if (ucMatch) {
-    return `https://www.youtube.com/feeds/videos.xml?channel_id=${ucMatch[1]}`;
+    return ucMatch[1];
   }
-  throw new Error(`Could not locate YouTube RSS feed URL or Channel ID in HTML for ${channelUrl}`);
+  throw new Error(`Could not locate YouTube Channel ID in HTML for ${channelUrl}`);
+}
+
+/** Get latest videos from YouTube channel using official API (with RSS fallback) */
+async function getLatestChannelVideos(channelUrl) {
+  try {
+    const channelId = await getChannelIdFromUrl(channelUrl);
+    
+    // If we have YOUTUBE_API_KEY, use the playlistItems method (ultra-reliable, official)
+    if (YOUTUBE_API_KEY && channelId.startsWith('UC')) {
+      const playlistId = 'UU' + channelId.substring(2);
+      console.log(`Fetching latest videos for playlist ${playlistId} using official YouTube API...`);
+      try {
+        const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=15&key=${YOUTUBE_API_KEY}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items) {
+            return data.items.map(item => ({
+              videoId: item.snippet.resourceId.videoId,
+              title: item.snippet.title,
+              url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
+              description: item.snippet.description || '',
+              published: new Date(item.snippet.publishedAt)
+            }));
+          }
+        } else {
+          const txt = await res.text();
+          console.error(`Failed to fetch playlist items from YouTube API: ${res.status} - ${txt}`);
+        }
+      } catch (apiErr) {
+        console.error(`Error fetching playlist items via API:`, apiErr.message);
+      }
+    }
+    
+    // Fallback: Use standard RSS parsing
+    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    console.log(`Fallback: Fetching RSS feed ${rssUrl}...`);
+    const rssRes = await fetch(rssUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+      }
+    });
+    if (!rssRes.ok) {
+      throw new Error(`RSS fetch returned status ${rssRes.status}`);
+    }
+    const xml = await rssRes.text();
+    return parseRssXmlEntries(xml);
+  } catch (err) {
+    console.error(`Error in getLatestChannelVideos for ${channelUrl}:`, err.message);
+    return [];
+  }
 }
 
 /** Parse XML entries using Regex */
@@ -198,6 +286,7 @@ function parseRssXmlEntries(xml) {
   }
   return entries;
 }
+
 
 /** Fetch real news from Google News RSS */
 async function fetchRealGoogleNews() {
@@ -231,7 +320,17 @@ async function fetchRealGoogleNews() {
         });
       }
     }
-    return items.slice(0, 12);
+    const slicedItems = items.slice(0, 12);
+    console.log(`Decoding ${slicedItems.length} Google News URLs...`);
+    const googleDecoder = new GoogleDecoder();
+    const urlsToDecode = slicedItems.map(item => item.link).filter(Boolean);
+    const decodedUrls = await googleDecoder.decodeBatch(urlsToDecode);
+    for (let i = 0; i < slicedItems.length; i++) {
+      if (decodedUrls[i] && decodedUrls[i].status && decodedUrls[i].decoded_url) {
+        slicedItems[i].link = decodedUrls[i].decoded_url;
+      }
+    }
+    return slicedItems;
   } catch (err) {
     console.error("Error fetching Google News RSS:", err.message);
     return [];
@@ -278,17 +377,9 @@ async function runNewsDistillation({ forceDate = null } = {}) {
       try {
         if (red === 'youtube' || url.includes('youtube.com')) {
           // Process YouTube channel
-          const rssUrl = await getChannelRssUrl(url);
-          console.log(`Found RSS Feed URL: ${rssUrl}`);
-          
-          const rssRes = await fetch(rssUrl);
-          if (!rssRes.ok) {
-            console.error(`Failed to fetch RSS XML: ${rssRes.status}`);
-            continue;
-          }
-          const xml = await rssRes.ok ? await rssRes.text() : '';
-          const entries = parseRssXmlEntries(xml);
-          console.log(`Parsed ${entries.length} videos from the RSS feed.`);
+          const entries = await getLatestChannelVideos(url);
+          console.log(`Retrieved ${entries.length} videos from the YouTube channel.`);
+
 
           // Filter videos from the last 48 hours to avoid older videos
           const limitDate = new Date(today.getTime() - 48 * 60 * 60 * 1000);

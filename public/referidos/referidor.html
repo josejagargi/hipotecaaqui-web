@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programa de Amigos | Alta Cliente Referidor - Hipoteca Aquí</title>
+    <meta name="description" content="Únete al Programa de Amigos de Hipoteca Aquí. Regístrate en 30 segundos y gana desde 300€ en vales regalo por cada amigo al que ayudemos a conseguir su hipoteca.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #33475b;
+            --primary-dark: #1e2d3b;
+            --secondary: #ff5a5f;
+            --secondary-hover: #e04a4f;
+            --accent: #2ecc71;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --text: #1a202c;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 20px rgba(51, 71, 91, 0.08);
+            --shadow-lg: 0 16px 48px rgba(51, 71, 91, 0.15);
+            --radius: 20px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---- HEADER ---- */
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-container img {
+            height: 42px;
+            object-fit: contain;
+        }
+
+        .badge-programa {
+            background: rgba(255, 90, 95, 0.1);
+            color: var(--secondary);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 90, 95, 0.25);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ---- HERO SECTION ---- */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3.5rem 1.5rem 5.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, rgba(255,90,95,0.18) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 span { color: var(--secondary); }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            max-width: 620px;
+            margin: 0 auto;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ---- FORM CARD ---- */
+        .main-container {
+            max-width: 520px;
+            width: 100%;
+            margin: -3.5rem auto 4rem;
+            padding: 0 1.2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card-alta {
+            background: var(--white);
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .card-alta h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.4rem;
+            text-align: center;
+        }
+
+        .card-alta > p {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--primary);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 1.1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.9rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text);
+            background: var(--bg);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(255, 90, 95, 0.12);
+            background: white;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-hover));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 90, 95, 0.35);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-status {
+            margin-top: 1.2rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .form-status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: flex;
+        }
+
+        /* ---- SUCCESS RESULT BOX ---- */
+        .result-box {
+            display: none;
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 70px;
+            height: 70px;
+            background: #d1fae5;
+            color: #059669;
+            font-size: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .result-box h3 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-box p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .link-output {
+            background: var(--bg);
+            border: 2px dashed var(--secondary);
+            border-radius: 14px;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .link-output label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 0.6rem;
+        }
+
+        .link-input-row {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .link-input-row input {
+            flex: 1;
+            padding: 0.75rem 0.9rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            background: white;
+            outline: none;
+        }
+
+        .btn-copy {
+            padding: 0.75rem 1.2rem;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            white-space: nowrap;
+        }
+
+        .btn-copy:hover { background: var(--secondary-hover); }
+
+        .btn-dashboard {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+
+        .btn-dashboard:hover { background: var(--primary-dark); }
+
+        /* ---- BRANDS / REWARDS ---- */
+        .rewards-banner {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .rewards-banner h4 {
+            font-size: 0.95rem;
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .brand-logo-item {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 8px 14px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+        }
+
+        .brand-logo-item img {
+            max-height: 24px;
+            max-width: 75px;
+            object-fit: contain;
+        }
+
+        /* ---- FOOTER ---- */
+        footer {
+            margin-top: auto;
+            background: var(--primary);
+            color: rgba(255,255,255,0.7);
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.85rem;
+        }
+        footer a { color: var(--secondary); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-container">
+            <img src="/imagenes/CF_HAqui_logo_HD_trans.png" alt="Hipoteca Aquí">
+        </div>
+        <span class="badge-programa"><i class="fas fa-gift"></i> Programa de Amigos</span>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <h1>¡Gana <span>desde 300€</span> compartiendo Hipoteca Aquí!</h1>
+        <p>Ayudar a tus amigos o familiares a conseguir la mejor hipoteca ahora tiene recompensa. Regístrate en 30 segundos y obtén tu enlace personal.</p>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="card-alta">
+            <!-- Registration Form (Only 3 Fields: Name, Surnames, Email) -->
+            <form id="altaForm" onsubmit="handleAlta(event)">
+                <h2>Alta de Cliente Referidor</h2>
+                <p>Introduce tus datos para generar tu enlace único de recomendación:</p>
+
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required autocomplete="given-name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="apellidos">Apellidos</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user-tag"></i>
+                        <input type="text" id="apellidos" name="apellidos" placeholder="Tus apellidos" required autocomplete="family-name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" placeholder="tu.email@ejemplo.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-magic"></i> Obtener mi Enlace Personal
+                </button>
+
+                <div class="form-status" id="formStatus"></div>
+            </form>
+
+            <!-- Success Box -->
+            <div class="result-box" id="resultBox">
+                <div class="success-icon"><i class="fas fa-check"></i></div>
+                <h3 id="resultTitle">¡Enlace Creado con Éxito!</h3>
+                <p id="resultSubtitle">Comparte este enlace con tus amigos por WhatsApp o email:</p>
+
+                <div class="link-output">
+                    <label><i class="fas fa-link"></i> Tu Enlace Exclusivo de Referido</label>
+                    <div class="link-input-row">
+                        <input type="text" id="generatedLink" readonly>
+                        <button class="btn-copy" onclick="copyGeneratedLink()">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:0.8rem; align-items:center;">
+                    <a id="waShareBtn" href="#" target="_blank" class="btn-submit" style="background:#25d366; text-decoration:none;">
+                        <i class="fab fa-whatsapp"></i> Compartir por WhatsApp
+                    </a>
+                    <a href="#" class="btn-dashboard" id="btnGoLogin" onclick="goToPortalLogin(event)">
+                        <i class="fas fa-user-lock"></i> Crear Contraseña / Iniciar Sesión en mi Portal
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rewards Banner -->
+            <div class="rewards-banner">
+                <h4>Vales regalo canjeables en:</h4>
+                <div class="brand-logos">
+                    <div class="brand-logo-item"><img src="/logos vales regalo/amazon.png" alt="Amazon"></div>
+                    <div class="brand-logo-item"><img src="/logos vales regalo/zara.png" alt="Zara"></div>
+                    <div class="brand-logo-item"><img src="/logos vales regalo/ikea.png" alt="IKEA"></div>
+                    <div class="brand-logo-item"><img src="/logos vales regalo/logo mediamarkt.png" alt="MediaMarkt"></div>
+                    <div class="brand-logo-item"><img src="/logos vales regalo/el corte ingles.jpg" alt="El Corte Inglés"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explicación en 3 sencillos pasos (Extraída del Borrador) -->
+        <div style="margin-top: 3.5rem; background: var(--white); border-radius: 24px; padding: 2.5rem; box-shadow: var(--shadow); border: 1px solid var(--border);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <span style="background: rgba(255, 90, 95, 0.1); color: var(--secondary); font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.9rem; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px;">Pasos sencillos</span>
+                <h3 style="font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 0.5rem;">¿Cómo funciona el Programa de Amigos?</h3>
+                <p style="color: var(--text-light); font-size: 0.95rem; margin-top: 0.3rem;">Sin límites: cuantos más amigos traigas, más vales regalo de 300€ consigues.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div style="background: var(--bg); border-radius: 16px; padding: 1.5rem; border-left: 4px solid var(--secondary);">
+                    <div style="width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; margin-bottom: 1rem;">1</div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem;">Comparte tu enlace personal</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-light); line-height: 1.5;">Copia tu link exclusivo tras registrarte y envíaselo por WhatsApp o email a tus amigos o familiares que busquen vivienda o necesiten hipoteca.</p>
+                </div>
+
+                <div style="background: var(--bg); border-radius: 16px; padding: 1.5rem; border-left: 4px solid var(--secondary);">
+                    <div style="width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; margin-bottom: 1rem;">2</div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem;">Nos ponemos en marcha</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-light); line-height: 1.5;">Tu amigo se registra a través de tu enlace y nuestro equipo de asesores le acompañará gratis y sin compromiso para encontrar la mejor opción del mercado.</p>
+                </div>
+
+                <div style="background: var(--bg); border-radius: 16px; padding: 1.5rem; border-left: 4px solid var(--secondary);">
+                    <div style="width: 36px; height: 36px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; margin-bottom: 1rem;">3</div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem;">¡Consigue tus premios!</h4>
+                    <p style="font-size: 0.9rem; color: var(--text-light); line-height: 1.5;">En el momento en que tu amigo formalice su hipoteca con nosotros, ¡recibirás tu vale regalo de desde 300€ para gastar en tus tiendas preferidas!</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Hipoteca Aquí • <a href="/politica-privacidad.html" target="_blank">Política de Privacidad</a></p>
+    </footer>
+
+    <script>
+    let registeredEmail = '';
+
+    async function handleAlta(e) {
+        e.preventDefault();
+        
+        const nombre = document.getElementById('nombre').value.trim();
+        const apellidos = document.getElementById('apellidos').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        const btn = document.getElementById('submitBtn');
+        const statusEl = document.getElementById('formStatus');
+        statusEl.style.display = 'none';
+
+        if (!nombre || !apellidos || !email) {
+            showError('Por favor, rellena los tres campos obligatorios.');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando enlace...';
+
+        try {
+            const res = await fetch('/.netlify/functions/register-referrer-client', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, apellidos, email })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                showError(data.error || 'Error al procesar el registro.');
+                return;
+            }
+
+            registeredEmail = email;
+            sessionStorage.setItem('referidos_email', email);
+
+            // Display success result
+            document.getElementById('altaForm').style.display = 'none';
+            document.getElementById('resultBox').style.display = 'block';
+
+            const referralUrl = data.referrer.referralUrl;
+            document.getElementById('generatedLink').value = referralUrl;
+
+            const waMessage = encodeURIComponent(`¡Hola! Te recomiendo Hipoteca Aquí para tu hipoteca. Solicita tu estudio gratuito en: ${referralUrl}`);
+            document.getElementById('waShareBtn').href = `https://wa.me/?text=${waMessage}`;
+
+        } catch (err) {
+            console.error('Error:', err);
+            showError('Error de conexión. Inténtalo de nuevo.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Obtener mi Enlace Personal';
+        }
+    }
+
+    function goToPortalLogin(e) {
+        if (e) e.preventDefault();
+        const email = registeredEmail || document.getElementById('email').value.trim();
+        localStorage.setItem('portal_role', 'cliente');
+        window.location.href = `/login.html?portal=cliente&tab=signup&email=${encodeURIComponent(email)}`;
+    }
+
+    function showError(msg) {
+        const statusEl = document.getElementById('formStatus');
+        statusEl.className = 'form-status error';
+        statusEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
+        statusEl.style.display = 'flex';
+    }
+
+    function copyGeneratedLink() {
+        const input = document.getElementById('generatedLink');
+        input.select();
+        navigator.clipboard.writeText(input.value).then(() => {
+            const copyBtn = document.querySelector('.btn-copy');
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+            }, 2000);
+        });
+    }
+    </script>
+</body>
+</html>

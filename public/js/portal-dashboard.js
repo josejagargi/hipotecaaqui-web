@@ -4,16 +4,24 @@ let currentUserFranquiciadoId = null;
 let currentCompatibleProducts = [];
 let activeStudyLinkedContactIds = [];
 
-// Instant Greeting from localStorage to prevent any loading flashes or caching issues
-const cachedName = localStorage.getItem('currentUserDisplayName');
-if (cachedName) {
-    document.addEventListener('DOMContentLoaded', () => {
+// Instant DOM initialization & role-based tab selection to prevent flashing
+document.addEventListener('DOMContentLoaded', () => {
+    const cachedName = localStorage.getItem('currentUserDisplayName');
+    if (cachedName) {
         const userNameEl = document.getElementById('userName');
         if (userNameEl) userNameEl.textContent = cachedName;
         const profileNameEl = document.getElementById('profileName');
         if (profileNameEl) profileNameEl.value = cachedName;
-    });
-}
+    }
+
+    const portalRole = localStorage.getItem('portal_role') || 'cliente';
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedTab = urlParams.get('tab') || window.location.hash.replace('#', '') || (portalRole === 'cliente' ? 'contactos' : null);
+    
+    if (requestedTab && typeof window.switchTab === 'function') {
+        window.switchTab(requestedTab);
+    }
+});
 
 async function loadDashboardData() {
     const user = firebase.auth().currentUser;
@@ -238,6 +246,13 @@ async function loadDashboardData() {
         populateFilterDropdowns(currentRecords);
         applyFilters();
 
+        // Check if there is a tab specified in URL or if user is a client (defaults to referidos/contactos tab)
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedTab = urlParams.get('tab') || window.location.hash.replace('#', '') || (isClient ? 'contactos' : 'actividad');
+        if (typeof window.switchTab === 'function' && requestedTab) {
+            window.switchTab(requestedTab);
+        }
+
         // Dynamically refresh the linked contacts inside study modal if active
         const modalOverlay = document.getElementById('editModalOverlay');
         const recordTypeInput = document.getElementById('editRecordType');
@@ -309,8 +324,12 @@ function openEditModal(type, id) {
     recordIdInput.value = id;
     fieldsContainer.innerHTML = '';
     
-    const btnPrintReport = document.getElementById('btnPrintReport');
-    if (btnPrintReport) btnPrintReport.style.display = (type === 'estudio') ? 'inline-flex' : 'none';
+    const btnPrintFull = document.getElementById('btnPrintReportFull');
+    const btnPrintShort = document.getElementById('btnPrintReportShort');
+    const btnSendEmail = document.getElementById('btnSendReportEmail');
+    if (btnPrintFull) btnPrintFull.style.display = (type === 'estudio') ? 'inline-flex' : 'none';
+    if (btnPrintShort) btnPrintShort.style.display = (type === 'estudio') ? 'inline-flex' : 'none';
+    if (btnSendEmail) btnSendEmail.style.display = (type === 'estudio') ? 'inline-flex' : 'none';
     
     if (type === 'contact') {
         modalTitle.textContent = 'Editar Contacto';
@@ -2688,7 +2707,7 @@ window.calculateContactProgress = calculateContactProgress;
 
 // ── Print Client Report Function ──────────────────────────────────────────────
 
-function printClientReport() {
+function printClientReport(isFull = true) {
     const studyId = document.getElementById('editRecordId').value;
     const record = currentRecords.find(r => r.id === studyId);
     if (!record) {
@@ -2772,20 +2791,31 @@ function printClientReport() {
         return formatCurrencyLocal(value);
     };
 
+    const getConditionalAdvisorNotes = (viableVal) => {
+        const str = String(viableVal || '').toLowerCase();
+        if (str.includes('no viable') || str.includes('no_viable') || str.includes('🔴')) {
+            return `Estimado/a <strong>${contactName}</strong>, tras evaluar los datos de tu solicitud, la operación en las condiciones actuales presenta un riesgo elevado o requiere ajustes en la aportación inicial de ahorros o el precio del inmueble para su aprobación bancaria. Tu asesor asignado de <strong>Hipoteca Aquí</strong> contactará contigo para estudiar alternativas de financiación.`;
+        } else if (str.includes('viable') || str.includes('🟢')) {
+            return `Estimado/a <strong>${contactName}</strong>, nos complace informarte de que tu estudio de financiación es <strong>VIABLE</strong>. Tu perfil reúne los requisitos idóneos para acceder a las mejores condiciones hipotecarias del mercado. Un asesor especialista de <strong>Hipoteca Aquí</strong> se pondrá en contacto contigo para coordinar la presentación de ofertas formales.`;
+        } else {
+            return `Estimado/a <strong>${contactName}</strong>, tu estudio de viabilidad se encuentra en fase de análisis detallado. Requiere revisar aspectos concretos (como documentación complementaria o detalle de garantías) para optimizar la respuesta bancaria. Un asesor especialista de <strong>Hipoteca Aquí</strong> te guiará en los siguientes pasos.`;
+        }
+    };
+
     // Construct the print template document
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Informe de Viabilidad - ${contactName}</title>
+    <title>Informe de Viabilidad Hipotecaria - ${contactName}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             color: #1e293b;
             margin: 0;
-            padding: 1.5cm;
+            padding: 1.2cm 1.5cm;
             line-height: 1.4;
             background-color: #fff;
         }
@@ -2794,50 +2824,101 @@ function printClientReport() {
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.2rem;
+            gap: 1rem;
         }
         .logo-container {
             display: flex;
-            flex-direction: column;
-            gap: 0.2rem;
+            align-items: center;
+            flex-shrink: 0;
         }
-        .logo-text {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: #1e3a8a;
-            text-decoration: none;
-        }
-        .logo-text span {
-            color: #f59e0b;
+        .logo-container img {
+            height: 44px;
+            max-width: 220px;
+            object-fit: contain;
         }
         .header-title {
             text-align: right;
+            flex-grow: 1;
         }
         .header-title h1 {
             margin: 0;
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 800;
-            color: #0f172a;
+            color: #33475b;
         }
         .header-title p {
-            margin: 0.2rem 0 0 0;
-            font-size: 0.85rem;
+            margin: 0.15rem 0 0 0;
+            font-size: 0.82rem;
             color: #64748b;
         }
+        .header-actions {
+            flex-shrink: 0;
+            margin-left: 1rem;
+        }
+        .btn-print {
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #ff5a5f 0%, #e04a4f 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 12px rgba(255, 90, 95, 0.3);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+        .btn-print:hover {
+            background: linear-gradient(135deg, #e04a4f 0%, #c93b40 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(255, 90, 95, 0.4);
+        }
         .section {
-            margin-bottom: 1.8rem;
+            margin-bottom: 1.5rem;
             page-break-inside: avoid;
         }
         .section-title {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 800;
-            color: #1e3a8a;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 0.4rem;
+            color: #33475b;
+            border-bottom: 2px solid #ff5a5f;
+            padding-bottom: 0.35rem;
             margin-bottom: 0.8rem;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+        .summary-row-grid {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            display: grid;
+            grid-template-columns: min-content min-content min-content 1fr 1fr 1.3fr;
+            gap: 0.8rem;
+            align-items: center;
+        }
+        .summary-col {
+            padding: 0 0.2rem;
+        }
+        .summary-col:not(:first-child) {
+            border-left: 1px solid #e2e8f0;
+            padding-left: 0.7rem;
+        }
+        .summary-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            display: block;
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
         }
         .grid-2 {
             display: grid;
@@ -2847,38 +2928,43 @@ function printClientReport() {
         .grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
+            gap: 0.8rem;
         }
         .grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 0.8rem;
         }
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.6rem;
+        }
         .card {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 0.8rem 1rem;
+            padding: 0.75rem 0.9rem;
         }
         .card-title {
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             margin-bottom: 0.2rem;
         }
         .card-value {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 800;
             color: #0f172a;
         }
         .badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.3rem 0.8rem;
+            padding: 0.25rem 0.7rem;
             border-radius: 9999px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             text-transform: uppercase;
         }
@@ -2904,28 +2990,28 @@ function printClientReport() {
         }
         .data-table th, .data-table td {
             text-align: left;
-            padding: 0.6rem 0.8rem;
+            padding: 0.55rem 0.75rem;
             border-bottom: 1px solid #e2e8f0;
         }
         .data-table th {
             background: #f8fafc;
             color: #475569;
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
         }
         .data-table td {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
         .product-tag {
             font-weight: 700;
             background: #f1f5f9;
-            color: #1e3a8a;
+            color: #33475b;
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
             border: 1px solid #cbd5e1;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
         .product-tag-study {
             font-weight: 700;
@@ -2934,11 +3020,11 @@ function printClientReport() {
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
             border: 1px solid #ffedd5;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
         .progress-bar-container {
             width: 100%;
-            height: 6px;
+            height: 5px;
             background: #e2e8f0;
             border-radius: 4px;
             overflow: hidden;
@@ -2950,35 +3036,37 @@ function printClientReport() {
         }
         .semaforos-container {
             display: flex;
-            gap: 1.5rem;
-            margin-top: 0.4rem;
+            flex-direction: column;
+            gap: 0.25rem;
         }
         .semaforo-item {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
-            font-size: 0.85rem;
+            gap: 0.35rem;
+            font-size: 0.74rem;
             font-weight: 700;
+            white-space: nowrap;
         }
         .semaforo-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            flex-shrink: 0;
         }
         .info-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 0.6rem;
+            gap: 0.5rem;
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 0.8rem 1rem;
+            padding: 0.7rem 0.9rem;
         }
         .info-item {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             display: flex;
             justify-content: space-between;
-            padding: 0.2rem 0;
+            padding: 0.15rem 0;
             border-bottom: 1px dashed #e2e8f0;
         }
         .info-item:last-child {
@@ -2994,24 +3082,20 @@ function printClientReport() {
         }
         .footer-note {
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: #94a3b8;
-            margin-top: 2.5rem;
+            margin-top: 2rem;
             border-top: 1px solid #e2e8f0;
-            padding-top: 0.8rem;
+            padding-top: 0.7rem;
             page-break-inside: avoid;
         }
-        .no-print-bar {
-            background: #f1f5f9;
-            padding: 1rem;
-            display: flex;
-            justify-content: flex-end;
-            border-bottom: 1px solid #e2e8f0;
-            margin-bottom: 1rem;
-        }
         @media print {
-            .no-print-bar {
-                display: none;
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print {
+                display: none !important;
             }
             body {
                 padding: 0;
@@ -3020,42 +3104,76 @@ function printClientReport() {
     </style>
 </head>
 <body>
-    <div class="no-print-bar">
-        <button onclick="window.print()" style="padding: 0.6rem 1.2rem; background: #1e3a8a; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif;">
-            Imprimir Informe / Guardar PDF
-        </button>
-    </div>
-
     <!-- Header -->
     <div class="header">
         <div class="logo-container">
-            <div class="logo-text">Hipoteca<span>Aquí</span></div>
-            <div style="font-size: 0.7rem; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">ESTUDIO DE FINANCIACIÓN</div>
+            <img src="/logo-transparente.png" alt="Hipoteca Aquí" onerror="this.onerror=null; this.src='/imagenes/CF_HAqui_logo_HD_trans.png';">
         </div>
         <div class="header-title">
-            <h1>Informe de Viabilidad</h1>
+            <h1>Informe de Viabilidad Hipotecaria ${isFull ? '' : '(Abreviado)'}</h1>
             <p>Cliente: <strong>${contactName}</strong> | Fecha: ${createdDate}</p>
+        </div>
+        <div class="header-actions no-print">
+            <button class="btn-print" onclick="window.print()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Imprimir / PDF
+            </button>
         </div>
     </div>
 
-    <!-- 1. Resultado de Viabilidad y mejores ofertas -->
+    <!-- 1. Resultado de Viabilidad y Cuotas -->
     <div class="section">
-        <div class="section-title">1. Resultado de Viabilidad y Métricas Clave</div>
+        <div class="section-title">1. Resultado de Viabilidad y Cuotas</div>
         
-        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; padding: 1rem; border-radius: 8px;">
-                <div>
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.2rem;">Resultado Análisis</span>
-                    ${getViabilityBadge(f['Viabilidad'])}
+        <!-- Fila 1: Resultado, Estabilidad, Ahorros, Esfuerzo, % Financiación y Semáforos -->
+        <div class="summary-row-grid">
+            <div class="summary-col">
+                <span class="summary-label">Resultado Análisis</span>
+                ${getViabilityBadge(f['Viabilidad'])}
+            </div>
+            <div class="summary-col">
+                <span class="summary-label">Estabilidad Laboral</span>
+                <span style="font-weight: 800; font-size: 0.92rem; color: #33475b;">${f['Estabilidad conjunta'] || 'N/D'}</span>
+            </div>
+            <div class="summary-col">
+                <span class="summary-label">Ahorros Disponibles</span>
+                <span style="font-weight: 800; font-size: 0.92rem; color: #33475b;">${formatCurrencyLocal(f['Ahorros'])}</span>
+            </div>
+            <div class="summary-col">
+                <span class="summary-label">Esfuerzo Mensual</span>
+                <span style="font-weight: 800; font-size: 0.92rem; color: #0f172a;">${formatPercent(f['Esfuerzo mensual'])}</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: ${Math.min(parseFloat(f['Esfuerzo mensual'] || 0) * (parseFloat(f['Esfuerzo mensual']) <= 1 ? 100 : 1), 100)}%; background: ${parseFloat(f['Esfuerzo mensual'] || 0) > 0.4 ? '#ef4444' : '#10b981'};"></div>
                 </div>
-                <div style="text-align: right;">
-                    <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 0.2rem;">Estabilidad Laboral Conjunta</span>
-                    <span style="font-weight: 800; font-size: 0.95rem; color: #1e3a8a;">${f['Estabilidad conjunta'] || 'N/D'}</span>
+            </div>
+            <div class="summary-col">
+                <span class="summary-label">% Financiación</span>
+                <span style="font-weight: 800; font-size: 0.92rem; color: #0f172a;">${formatPercent(f['% a financiar'])}</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: ${Math.min(parseFloat(f['% a financiar'] || 0) * (parseFloat(f['% a financiar']) <= 1 ? 100 : 1), 100)}%; background: #33475b;"></div>
+                </div>
+            </div>
+            <div class="summary-col">
+                <span class="summary-label">Semáforos de Riesgo</span>
+                <div class="semaforos-container">
+                    <div class="semaforo-item">
+                        <div class="semaforo-dot" style="background: ${getSemaforoColor(f['SemaforoEstabilidad'])}"></div>
+                        <span>Estabilidad: ${getSemaforoText(f['SemaforoEstabilidad'])}</span>
+                    </div>
+                    <div class="semaforo-item">
+                        <div class="semaforo-dot" style="background: ${getSemaforoColor(f['SemaforoEsfuerzo'])}"></div>
+                        <span>Esfuerzo: ${getSemaforoText(f['SemaforoEsfuerzo'])}</span>
+                    </div>
+                    <div class="semaforo-item">
+                        <div class="semaforo-dot" style="background: ${getSemaforoColor(f['Semafor20masgatos'])}"></div>
+                        <span>Aportación (20%+Gastos): ${getSemaforoText(f['Semafor20masgatos'])}</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="grid-4" style="margin-bottom: 1rem;">
+        <!-- Fila 2: Las 5 tarjetas de Cuota juntas -->
+        <div class="grid-5">
             <div class="card">
                 <div class="card-title">Cuota Scoring</div>
                 <div class="card-value">${formatCurrencyLocal(f['Cuota scoring'])}</div>
@@ -3064,46 +3182,9 @@ function printClientReport() {
                 <div class="card-title">Cuota Máx. Endeudamiento</div>
                 <div class="card-value">${formatCurrencyLocal(f['Cuota maxima endeudamiento'])}</div>
             </div>
-            <div class="card">
-                <div class="card-title">Esfuerzo Mensual</div>
-                <div class="card-value">${formatPercent(f['Esfuerzo mensual'])}</div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: ${Math.min(parseFloat(f['Esfuerzo mensual'] || 0) * (parseFloat(f['Esfuerzo mensual']) <= 1 ? 100 : 1), 100)}%; background: ${parseFloat(f['Esfuerzo mensual'] || 0) > 0.4 ? '#ef4444' : '#10b981'};"></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">% Financiación</div>
-                <div class="card-value">${formatPercent(f['% a financiar'])}</div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: ${Math.min(parseFloat(f['% a financiar'] || 0) * (parseFloat(f['% a financiar']) <= 1 ? 100 : 1), 100)}%; background: #1e3a8a;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Semáforos de riesgo -->
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 1rem;">
-            <span style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem;">Semáforos de Riesgo</span>
-            <div class="semaforos-container">
-                <div class="semaforo-item">
-                    <div class="semaforo-dot" style="background: ${getSemaforoColor(f['SemaforoEstabilidad'])}"></div>
-                    <span>Estabilidad Laboral: ${getSemaforoText(f['SemaforoEstabilidad'])}</span>
-                </div>
-                <div class="semaforo-item">
-                    <div class="semaforo-dot" style="background: ${getSemaforoColor(f['SemaforoEsfuerzo'])}"></div>
-                    <span>Nivel de Esfuerzo: ${getSemaforoText(f['SemaforoEsfuerzo'])}</span>
-                </div>
-                <div class="semaforo-item">
-                    <div class="semaforo-dot" style="background: ${getSemaforoColor(f['Semafor20masgatos'])}"></div>
-                    <span>Aportación (20% + Gastos): ${getSemaforoText(f['Semafor20masgatos'])}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mejores ofertas de cuota -->
-        <div class="grid-3">
-            <div class="card" style="border-left: 4px solid #1e3a8a;">
+            <div class="card" style="border-left: 4px solid #33475b;">
                 <div class="card-title">Mejor Cuota Fija</div>
-                <div class="card-value" style="color: #1e3a8a;">${formatCurrencyArrayOrValue(f['Mejor cuota Fija'])}</div>
+                <div class="card-value" style="color: #33475b;">${formatCurrencyArrayOrValue(f['Mejor cuota Fija'])}</div>
             </div>
             <div class="card" style="border-left: 4px solid #f59e0b;">
                 <div class="card-title">Mejor Cuota Mixta</div>
@@ -3123,7 +3204,7 @@ function printClientReport() {
         <div class="grid-2">
             <!-- Col 1: Datos laborales y personales -->
             <div>
-                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Titular 1</h4>
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #33475b; text-transform: uppercase;">Titular 1</h4>
                 <div class="info-grid" style="margin-bottom: 0.8rem;">
                     <div class="info-item"><span class="info-label">Edad:</span><span class="info-value">${f['Edad sim'] ? f['Edad sim'] + ' años' : 'N/D'}</span></div>
                     <div class="info-item"><span class="info-label">Tipo de trabajo:</span><span class="info-value">${f['Tipo trabajo sim'] || 'N/D'}</span></div>
@@ -3133,7 +3214,7 @@ function printClientReport() {
                 </div>
 
                 ${f['Ingresos titular 2'] || f['Tipo trabajo T2'] ? `
-                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Titular 2</h4>
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #33475b; text-transform: uppercase;">Titular 2</h4>
                 <div class="info-grid">
                     <div class="info-item"><span class="info-label">Tipo de trabajo:</span><span class="info-value">${f['Tipo trabajo T2'] || 'N/D'}</span></div>
                     <div class="info-item"><span class="info-label">Antigüedad laboral:</span><span class="info-value">${f['Antiguedad T2'] ? f['Antiguedad T2'] + ' años' : 'N/D'}</span></div>
@@ -3149,7 +3230,7 @@ function printClientReport() {
 
             <!-- Col 2: Datos financieros y propiedad -->
             <div>
-                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Finanzas y Operación</h4>
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #33475b; text-transform: uppercase;">Finanzas y Operación</h4>
                 <div class="info-grid" style="margin-bottom: 0.8rem;">
                     <div class="info-item"><span class="info-label">Ahorros disponibles:</span><span class="info-value">${formatCurrencyLocal(f['Ahorros'])}</span></div>
                     <div class="info-item"><span class="info-label">Otros préstamos:</span><span class="info-value">${formatCurrencyLocal(f['Otros prestamos mensuales'])}</span></div>
@@ -3157,7 +3238,7 @@ function printClientReport() {
                     <div class="info-item"><span class="info-label">Plazo solicitado:</span><span class="info-value">${f['Años hipoteca'] ? f['Años hipoteca'] + ' años' : 'N/D'}</span></div>
                 </div>
 
-                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #1e3a8a; text-transform: uppercase;">Propiedad</h4>
+                <h4 style="margin: 0 0 0.4rem 0; font-size: 0.85rem; color: #33475b; text-transform: uppercase;">Propiedad</h4>
                 <div class="info-grid">
                     <div class="info-item"><span class="info-label">Precio del inmueble:</span><span class="info-value">${formatCurrencyLocal(f['Precio del inmueble'])}</span></div>
                     <div class="info-item"><span class="info-label">Finalidad:</span><span class="info-value">${f['Finalidad'] || 'N/D'}</span></div>
@@ -3168,7 +3249,16 @@ function printClientReport() {
         </div>
     </div>
 
-    <!-- 3. Productos compatibles -->
+    ${!isFull ? `
+    <!-- 3. Observaciones y Recomendaciones del Asesor (Versión Abreviada Cliente) -->
+    <div class="section">
+        <div class="section-title">3. Observaciones y Recomendaciones del Asesor</div>
+        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 5px solid #ff5a5f; border-radius: 8px; padding: 1.2rem; font-size: 0.9rem; line-height: 1.5; color: #33475b;">
+            ${getConditionalAdvisorNotes(f['Viabilidad'])}
+        </div>
+    </div>
+    ` : `
+    <!-- 3. Productos compatibles (Versión Completa Asesor) -->
     <div class="section">
         <div class="section-title">3. Productos Hipotecarios Compatibles</div>
         ${viableProducts.length === 0 ? `
@@ -3194,8 +3284,8 @@ function printClientReport() {
                             <tr>
                                 <td><span class="product-tag">${p.producto || 'N/D'}</span></td>
                                 <td style="text-align: right; font-weight: 600;">${formatCurrencyLocal(p.intereses)}</td>
-                                <td style="text-align: right; font-weight: 700; color: #1e3a8a;">${formatCurrencyLocal(p.cuotaP1)}</td>
-                                <td style="text-align: right; font-weight: 700; color: #1e3a8a;">${formatCurrencyLocal(p.cuotaP2)}</td>
+                                <td style="text-align: right; font-weight: 700; color: #33475b;">${formatCurrencyLocal(p.cuotaP1)}</td>
+                                <td style="text-align: right; font-weight: 700; color: #33475b;">${formatCurrencyLocal(p.cuotaP2)}</td>
                                 <td style="text-align: center;"><span style="font-weight: 700; color: #10b981;">${tinPct}</span></td>
                                 <td style="font-size: 0.8rem; color: #475569; max-width: 300px; white-space: normal;">${p.detalle || 'Sin detalles'}</td>
                             </tr>
@@ -3206,7 +3296,7 @@ function printClientReport() {
         `}
     </div>
 
-    <!-- 4. Productos a estudiar -->
+    <!-- 4. Productos a estudiar (Versión Completa Asesor) -->
     <div class="section" style="page-break-before: auto;">
         <div class="section-title">4. Productos Hipotecarios a Estudiar</div>
         ${estudiarProducts.length === 0 ? `
@@ -3243,6 +3333,7 @@ function printClientReport() {
             </table>
         `}
     </div>
+    `}
 
     <!-- Footer Disclaimer -->
     <div class="footer-note">
@@ -3259,3 +3350,51 @@ function printClientReport() {
 }
 window.printClientReport = printClientReport;
 
+async function sendViabilityReportEmail() {
+    const studyId = document.getElementById('editRecordId').value;
+    const record = currentRecords.find(r => r.id === studyId);
+    if (!record) {
+        alert('No se pudo encontrar la información del estudio actual.');
+        return;
+    }
+
+    const f = record.fields || {};
+    const rawEmail = f['email contacto'] || f['Email'] || f['Email cliente'];
+    const email = Array.isArray(rawEmail) ? rawEmail[0] : rawEmail;
+
+    if (!email) {
+        alert('Este estudio no tiene un email de cliente registrado.');
+        return;
+    }
+
+    if (!confirm(`¿Deseas enviar por correo el Informe de Viabilidad Abreviado en PDF a ${email}?`)) {
+        return;
+    }
+
+    const btnSend = document.getElementById('btnSendReportEmail');
+    const originalText = btnSend.innerHTML;
+    btnSend.disabled = true;
+    btnSend.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+    try {
+        const response = await fetch('/.netlify/functions/send-viability-report', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studyId, recipientEmail: email })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+            alert(`✅ Informe de Viabilidad enviado con éxito a ${email} desde gerente@hipotecaaqui.com`);
+        } else {
+            alert(`⚠️ Error enviando informe: ${data.error || 'Error desconocido'}`);
+        }
+    } catch (err) {
+        console.error('Error enviando informe:', err);
+        alert('⚠️ Ocurrió un fallo en la conexión al enviar el correo.');
+    } finally {
+        btnSend.disabled = false;
+        btnSend.innerHTML = originalText;
+    }
+}
+window.sendViabilityReportEmail = sendViabilityReportEmail;

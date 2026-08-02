@@ -1,36 +1,54 @@
-# Walkthrough: Personalización del Agente de Voz y Depuración del Webhook
+# Walkthrough: Sistema de Envíos de Informes de Viabilidad y Automatizaciones
 
-Hemos implementado las personalizaciones y ajustes específicos solicitados por el usuario sobre el flujo de llamada del Agente B2B.
+## 📧 Envío Automático de Informes de Viabilidad (Google Cloud OAuth2 & Gmail API)
 
-## Cambios Realizados
+Hemos implementado e integrado el sistema automático de generación y envío de **Informes de Viabilidad Hipotecaria** directamente desde la cuenta oficial `gerente@hipotecaaqui.com` utilizando la API de Google Cloud (OAuth 2.0).
 
-1. **Datos del Cliente y Segundo Titular (Bloque 1):**
-   * **Saludo Inicial:** Cambiado para preguntar en singular: `"comencemos con los datos del cliente para realizar el scoring..."` (eliminando la frase "cliente o clientes").
-   * **Pregunta explícita:** El bot primero toma los datos del primer cliente (nombre y teléfono) y al terminar le consulta explícitamente si hay un segundo cliente o titular.
+### 🛠️ Detalles de la Implementación:
 
-2. **Número de Pagas Flexible (Bloque 2):**
-   * Eliminada la sugerencia de "12 o 14 pagas" en la pregunta del bot para evitar sesgos en el diálogo.
-   * Modificado el prompt de sistema para que acepte y valide activamente cualquier número de pagas entre **8 y 14** (inclusive), soportando de esta manera pagas alternativas (ej. 13 pagas).
+1. **Netlify Function ([send-viability-report.js](file:///c:/Proyectos/Hipotecaaqui/netlify/functions/send-viability-report.js)):**
+   * Recibe el `recordId` del estudio de Airtable desde la automatización.
+   * Obtiene la información financiera del estudio y los datos de contacto del cliente.
+   * Genera dinámicamente un documento HTML y lo renderiza en un **PDF corporativo A4** utilizando Puppeteer / Chromium.
+   * Envía el correo electrónico con el PDF adjunto de forma **nativa** desde `gerente@hipotecaaqui.com` a través del transporte OAuth2 de Nodemailer con Google Cloud.
+   * Al finalizar el envío, actualiza automáticamente el campo `'Estado envio informe'` en Airtable a `"Enviado por Email"`.
 
-3. **Préstamos Activos Condicionales (Bloque 3):**
-   * El bot preguntará primero si tiene otros préstamos activos de manera general.
-   * Si respondes **"Sí"**, procederá a pedir la cuota mensual y el capital pendiente.
-   * Si respondes **"No"** (o similar), el bot saltará directamente a preguntarte por los ahorros que aporta a la compra, reduciendo el diálogo innecesario.
+2. **Autenticación Enterprise sin Contraseñas:**
+   * Configurado proyecto en Google Cloud Console (`hipotecaaqui`) con la **Gmail API** habilitada.
+   * Generadas credenciales de cliente OAuth 2.0 y obtenido el **Refresh Token** para `gerente@hipotecaaqui.com`.
+   * Variables de entorno configuradas en el entorno local (`.env`):
+     * `GMAIL_CLIENT_ID`
+     * `GMAIL_CLIENT_SECRET`
+     * `GMAIL_REFRESH_TOKEN`
+     * `SENDER_EMAIL=gerente@hipotecaaqui.com`
 
-4. **Franquiciados en Airtable ([vapi-webhook.js](file:///c:/Proyectos/Hipotecaaqui/netlify/functions/vapi-webhook.js)):**
-   * Retirado por completo el guardado y el patch final de la columna `'Franquiciados'` sobre la tabla `'Hipoteca'`.
-   * El webhook se limita a persistir el franquiciado únicamente en la tabla `'Contacts'`, permitiendo que el automatismo interno de tu base de Airtable asocie y herede el franquiciado en la tabla `'Hipoteca'`.
+3. **Disparador en Airtable (Automation Trigger):**
+   * **Tabla:** `Hipoteca`
+   * **Condiciones:** 
+     * `Enviar scoring` está marcado (`checked`) **O** `Viabilidad` es `🟢Viable` / `🔴No Viable`.
+     * **Y** `Estado envio informe` está vacío (`is empty`).
+   * **Acción:** Ejecuta el script de llamada `POST` a la Netlify Function `send-viability-report`.
 
 ---
 
-## 🎁 Documento y Sección Web: Sistema de Referidos
+## 🎙️ Personalización del Agente de Voz y Depuración del Webhook
 
-1. **Documento PDF Explicativo Ajustado a 1 Página:**
-   * **Archivo:** [borrador_pdf_referidos.html](file:///c:/Proyectos/Hipotecaaqui/referidos/borrador_pdf_referidos.html)
-   * Reducidos márgenes y altura del encabezado para asegurar ajuste perfecto en **1 única página A4**.
-   * Incorporado el logotipo de la marca de Hipoteca Aquí y paleta corporativa (`#33475b` y `#ff5a5f`).
-   * Incluidos los logos en tamaño compacto de las 5 marcas de vales regalo: **Amazon, Zara, IKEA, MediaMarkt y El Corte Inglés**.
+1. **Datos del Cliente y Segundo Titular (Bloque 1):**
+   * **Saludo Inicial:** Cambiado para preguntar en singular: `"comencemos con los datos del cliente para realizar el scoring..."`.
+   * **Pregunta explícita:** El bot consulta explícitamente si hay un segundo cliente o titular tras recopilar el primero.
 
-2. **Sección Explicativa en la Web:**
-   * **Landing pública de referidos:** [public/referidos/index.html](file:///c:/Proyectos/Hipotecaaqui/public/referidos/index.html#L438-L478) - Añadido bloque explicativo con el flujo en 3 pasos, los logos de las tiendas de vales regalo y enlace directo para descargar/ver el PDF.
-   * **Panel privado del cliente (Dashboard):** [public/referidos/dashboard.html](file:///c:/Proyectos/Hipotecaaqui/public/referidos/dashboard.html#L364-L403) - Incorporada tarjeta explicativa con el funcionamiento del sistema, marcas de vales regalo y acceso al PDF.
+2. **Número de Pagas Flexible (Bloque 2):**
+   * Acepta y valida activamente cualquier número de pagas entre **8 y 14** (inclusive).
+
+3. **Préstamos Activos Condicionales (Bloque 3):**
+   * Si la respuesta es "No", se salta la cuota y capital pendiente para agilizar el flujo.
+
+4. **Franquiciados en Airtable ([vapi-webhook.js](file:///c:/Proyectos/Hipotecaaqui/netlify/functions/vapi-webhook.js)):**
+   * Persistencia de franquiciados acoplada únicamente a la tabla `'Contacts'`.
+
+---
+
+## 🎁 Sistema de Referidos
+
+1. **Documento PDF Explicativo:** [borrador_pdf_referidos.html](file:///c:/Proyectos/Hipotecaaqui/referidos/borrador_pdf_referidos.html) ajustado a 1 página A4 con logos de marcas.
+2. **Landing y Dashboard:** [index.html](file:///c:/Proyectos/Hipotecaaqui/public/referidos/index.html) y [dashboard.html](file:///c:/Proyectos/Hipotecaaqui/public/referidos/dashboard.html).

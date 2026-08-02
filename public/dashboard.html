@@ -36,8 +36,8 @@
         <main class="main-content">
             <header class="top-bar">
                 <div class="welcome-text">
-                    <h1>¡Hola, <span id="userName">Cargando...</span>!</h1>
-                    <p>Aquí tienes el estado actual de tus gestiones.</p>
+                    <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.2rem;">¡Hola, <span id="userName">Cargando...</span>!</h1>
+                    <p style="font-size: 0.95rem; margin: 0;">Aquí tienes el estado actual de tus gestiones.</p>
                 </div>
                 <div class="user-profile">
                     <span id="userRole" class="status-badge" style="background: var(--bg-alt); color: var(--primary);">Cargando...</span>
@@ -191,33 +191,46 @@
                     <p id="contactsTabDesc" style="color: #666; margin-bottom: 2rem;">Gestiona la información de tus clientes y contactos.</p>
                     
                     <!-- Client Referral Header -->
-                    <div id="clientReferralHeader" style="display: none; background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%); border-radius: 16px; padding: 2rem; color: white; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(43, 108, 176, 0.15); box-sizing: border-box; width: 100%;">
-                        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.3rem; font-weight: 800; color: white;">🎁 ¡Invita y Gana desde 300€ en Vales Regalo!</h4>
-                        <p style="margin: 0 0 1.2rem 0; font-size: 0.92rem; color: rgba(255,255,255,0.9); line-height: 1.6;">
-                            Comparte tu enlace de recomendación con amigos o familiares que necesiten ayuda para su hipoteca. Al formalizarla, recibirás <strong>desde 300€ en vales regalo</strong> para tus marcas favoritas: <strong>Amazon, Zara, IKEA, MediaMarkt y El Corte Inglés</strong>.
-                        </p>
-                        
-                        <div style="background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem; width: 100%; box-sizing: border-box; margin-bottom: 1.5rem;">
-                            <span style="font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.5px;">Tu Enlace de Referencia Personalizado</span>
-                            <div style="display: flex; gap: 0.5rem; width: 100%;">
-                                <input type="text" id="referralLinkInput" readonly value="Cargando enlace..." style="flex: 1; padding: 0.8rem 1rem; border: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.88rem; color: var(--primary); font-weight: 600; background: white; outline: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; box-sizing: border-box;">
-                                <button class="btn" onclick="copyReferralLink()" style="padding: 0.8rem 1.2rem; display: flex; align-items: center; gap: 0.4rem; white-space: nowrap; font-size: 0.9rem; background: white; color: var(--primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s;">
+                    <div id="clientReferralHeader" style="display: none; background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%); border-radius: 16px; padding: 1.5rem 1.8rem; color: white; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(43, 108, 176, 0.15); box-sizing: border-box; width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                            <h4 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: white;">🎁 ¡Invita y Gana desde 300€ en Vales Regalo!</h4>
+                            <span style="font-size: 0.8rem; color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.12); padding: 0.3rem 0.8rem; border-radius: 50px; font-weight: 600;">Plan de Amigos</span>
+                        </div>
+
+                        <!-- Compact Referral Input Row (Link + Copy + WhatsApp + Email in 1 single row) -->
+                        <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; box-sizing: border-box; width: 100%;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.85); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.5rem;">Tu Enlace de Referencia Personalizado</span>
+                            <div style="display: flex; gap: 0.5rem; width: 100%; flex-wrap: wrap; align-items: center;">
+                                <input type="text" id="referralLinkInput" readonly value="Cargando enlace..." style="flex: 1; min-width: 220px; padding: 0.65rem 0.9rem; border: none; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: var(--primary); font-weight: 600; background: white; outline: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; box-sizing: border-box;">
+                                <button class="btn" onclick="copyReferralLink()" style="padding: 0.65rem 1rem; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; font-size: 0.85rem; background: white; color: var(--primary); border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s;">
                                     <i class="fas fa-copy"></i> Copiar Enlace
                                 </button>
+                                <a id="shareWhatsAppBtn" href="#" target="_blank" class="btn" style="background: #25d366; color: white; border: none; padding: 0.65rem 1rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                                    <i class="fab fa-whatsapp"></i> Compartir WhatsApp
+                                </a>
+                                <a id="shareEmailBtn" href="#" target="_blank" class="btn" style="background: #ea4335; color: white; border: none; padding: 0.65rem 1rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                                    <i class="fas fa-envelope"></i> Enviar Email
+                                </a>
                             </div>
                         </div>
 
-                        <!-- Quick Share & Info buttons -->
-                        <div style="display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center;">
-                            <a id="shareWhatsAppBtn" href="#" target="_blank" class="btn" style="background: #25d366; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer;">
-                                <i class="fab fa-whatsapp"></i> Compartir por WhatsApp
-                            </a>
-                            <a id="shareEmailBtn" href="#" target="_blank" class="btn" style="background: #ea4335; color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer;">
-                                <i class="fas fa-envelope"></i> Enviar por Email
-                            </a>
-                            <a href="/referidos/borrador_pdf_referidos.html" target="_blank" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; font-weight: 600; cursor: pointer;">
-                                <i class="fas fa-file-pdf"></i> Ver PDF Explicativo
-                            </a>
+                        <!-- Explicación en 3 sencillos pasos del Plan de Amigos -->
+                        <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 1.2rem; border: 1px solid rgba(255,255,255,0.1);">
+                            <span style="font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.8rem;">¿Cómo funciona el Plan de Amigos?</span>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div style="display: flex; gap: 0.6rem; align-items: flex-start;">
+                                    <span style="background: var(--secondary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; margin-top: 2px;">1</span>
+                                    <p style="margin: 0; font-size: 0.82rem; color: rgba(255,255,255,0.9); line-height: 1.4;"><strong>Comparte tu link:</strong> Envíalo a amigos o familiares que busquen hipoteca.</p>
+                                </div>
+                                <div style="display: flex; gap: 0.6rem; align-items: flex-start;">
+                                    <span style="background: var(--secondary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; margin-top: 2px;">2</span>
+                                    <p style="margin: 0; font-size: 0.82rem; color: rgba(255,255,255,0.9); line-height: 1.4;"><strong>Les asesoramos gratis:</strong> Les acompañamos a conseguir las mejores condiciones.</p>
+                                </div>
+                                <div style="display: flex; gap: 0.6rem; align-items: flex-start;">
+                                    <span style="background: var(--secondary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; margin-top: 2px;">3</span>
+                                    <p style="margin: 0; font-size: 0.82rem; color: rgba(255,255,255,0.9); line-height: 1.4;"><strong>¡Gana desde 300€!</strong> Recibe tu vale regalo (Amazon, Zara, IKEA, MediaMarkt, El Corte Inglés).</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -446,7 +459,9 @@
                 </div>
                 <div class="edit-modal-footer">
                     <button type="button" class="btn btn-outline" style="padding: 0.6rem 1.2rem;" onclick="closeEditModal()">Cancelar</button>
-                    <button type="button" id="btnPrintReport" class="btn btn-secondary" style="padding: 0.6rem 1.2rem; background: var(--secondary); color: white; border: none; font-weight: 700; display: none; align-items: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s;" onclick="printClientReport()"><i class="fas fa-print"></i> Imprimir Informe</button>
+                    <button type="button" id="btnPrintReportFull" class="btn btn-secondary" style="padding: 0.6rem 1rem; background: var(--primary); color: white; border: none; font-weight: 700; display: none; align-items: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s; border-radius: 8px;" onclick="printClientReport(true)"><i class="fas fa-file-alt"></i> Informe Completo (Asesor)</button>
+                    <button type="button" id="btnPrintReportShort" class="btn btn-secondary" style="padding: 0.6rem 1rem; background: var(--secondary); color: white; border: none; font-weight: 700; display: none; align-items: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(255, 90, 95, 0.25);" onclick="printClientReport(false)"><i class="fas fa-file-pdf"></i> Informe Abreviado (Cliente)</button>
+                    <button type="button" id="btnSendReportEmail" class="btn btn-secondary" style="padding: 0.6rem 1rem; background: #2563eb; color: white; border: none; font-weight: 700; display: none; align-items: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s; border-radius: 8px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);" onclick="sendViabilityReportEmail()"><i class="fas fa-paper-plane"></i> Enviar por Email</button>
                     <button type="submit" id="btnSaveRecord" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">Guardar Cambios</button>
                 </div>
             </form>

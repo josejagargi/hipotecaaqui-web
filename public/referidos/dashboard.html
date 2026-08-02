@@ -268,16 +268,19 @@
 <div id="loginScreen">
     <div class="login-box">
         <div class="brand-logo">Hipoteca <span>Aquí</span></div>
-        <h1>Panel de Referidos</h1>
-        <p>Accede con tu email para ver tu enlace y tus referidos</p>
-        <div class="input-wrap">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="loginEmail" placeholder="tu@email.com" autocomplete="email">
+        <h1>Acceso a Referidos</h1>
+        <p>Para acceder de forma segura a tu panel de referidos, utiliza tu cuenta de cliente con contraseña.</p>
+        
+        <a href="/login.html?portal=cliente" class="btn-primary" style="text-decoration:none; margin-top:1.5rem;">
+            <i class="fas fa-lock"></i> Iniciar Sesión con Contraseña
+        </a>
+
+        <div style="margin-top: 1.8rem; font-size: 0.88rem; color: var(--text-light); border-top: 1px solid var(--border); padding-top: 1.2rem;">
+            ¿Aún no estás registrado como cliente referidor?<br>
+            <a href="referidor.html" style="color: var(--secondary); font-weight: 700; text-decoration: none; display: inline-block; margin-top: 0.5rem;">
+                <i class="fas fa-user-plus"></i> Darme de alta en 30 segundos
+            </a>
         </div>
-        <button class="btn-primary" id="loginBtn" onclick="doLogin()">
-            <i class="fas fa-arrow-right"></i> Acceder
-        </button>
-        <div class="login-error" id="loginError"></div>
     </div>
 </div>
 

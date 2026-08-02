@@ -62,8 +62,12 @@ auth.onAuthStateChanged(user => {
     if (!isPortalPage) return; // Leave index.html and other pages alone
 
     if (user) {
-        // Logged in → go to dashboard
-        if (isLoginPage) window.location.href = 'dashboard.html';
+        // Logged in → check if there's a custom redirect URL (e.g. referidos dashboard tab)
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('redirectUrl') || localStorage.getItem('login_redirect') || 'dashboard.html';
+        localStorage.removeItem('login_redirect');
+
+        if (isLoginPage) window.location.href = redirect;
     } else {
         // Not logged in → go to login
         if (isDashboard) window.location.href = 'login.html';
@@ -74,7 +78,9 @@ auth.onAuthStateChanged(user => {
 window.loginWithEmail = async function(email, password) {
     try {
         await auth.signInWithEmailAndPassword(email, password);
-        window.location.href = 'dashboard.html';
+        const redirect = localStorage.getItem('login_redirect') || 'dashboard.html';
+        localStorage.removeItem('login_redirect');
+        window.location.href = redirect;
     } catch (error) {
         console.error('Email login error:', error);
         throw error;
@@ -85,7 +91,9 @@ window.loginWithEmail = async function(email, password) {
 window.signUpWithEmail = async function(email, password) {
     try {
         await auth.createUserWithEmailAndPassword(email, password);
-        window.location.href = 'dashboard.html';
+        const redirect = localStorage.getItem('login_redirect') || 'dashboard.html';
+        localStorage.removeItem('login_redirect');
+        window.location.href = redirect;
     } catch (error) {
         console.error('Email sign up error:', error);
         throw error;
@@ -98,7 +106,9 @@ window.loginWithGoogle = async function() {
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
         await auth.signInWithPopup(provider);
-        window.location.href = 'dashboard.html';
+        const redirect = localStorage.getItem('login_redirect') || 'dashboard.html';
+        localStorage.removeItem('login_redirect');
+        window.location.href = redirect;
     } catch (error) {
         console.error('Google login error:', error);
         throw error;

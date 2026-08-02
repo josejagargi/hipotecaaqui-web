@@ -82,6 +82,15 @@
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
         }
 
+        .news-card.no-media {
+            grid-template-columns: 1fr;
+        }
+
+        .news-card.no-media .card-top {
+            grid-column: span 1;
+        }
+
+
         /* Card Top details */
         .card-top {
             display: flex;
@@ -678,6 +687,7 @@
                         else if (item.url.includes('funcas.es') || item.url.includes('registradores.org') || item.url.includes('penotariado.com')) tagLabel = 'ESTUDIO';
                         else if (item.url.includes('fotocasa.es') || item.url.includes('idealista.com')) tagLabel = 'INMOBILIARIO';
 
+                        const hasMedia = !!(ytId || (item.imagen && item.imagen.length > 0));
                         let mediaHtml = '';
                         if (ytId) {
                             mediaHtml = `
@@ -710,13 +720,6 @@
                                     />
                                 </div>
                             `;
-                        } else {
-                            // Generic placeholder fallback matching brand style
-                            mediaHtml = `
-                                <div class="card-media" style="background: linear-gradient(135deg, var(--primary) 0%, #1a2a3a 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
-                                    <i class="far fa-newspaper" style="opacity: 0.15;"></i>
-                                </div>
-                            `;
                         }
 
                         let linkText = 'Leer noticia completa ➔';
@@ -744,7 +747,7 @@
                         }
 
                         htmlContent += `
-                            <div class="news-card">
+                            <div class="news-card ${hasMedia ? '' : 'no-media'}">
                                 <div class="card-top">
                                     <span class="card-date">${dateFormatted} ${item.canal ? `• ${item.canal.toUpperCase()}` : ''}</span>
                                     <span class="card-tag">${tagLabel}</span>
@@ -762,6 +765,7 @@
                                 </div>
                             </div>
                         `;
+
                     });
                 });
 
