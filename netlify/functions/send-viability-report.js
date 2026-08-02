@@ -51,6 +51,10 @@ exports.handler = async function(event, context) {
 
     const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
     const BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID;
+    const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
+    const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
+    const SENDER_EMAIL = process.env.SENDER_EMAIL || 'gerente@hipotecaaqui.com';
     const BREVO_USER = process.env.BREVO_SMTP_USER;
     const BREVO_PASS = process.env.BREVO_SMTP_PASS;
 
@@ -58,8 +62,11 @@ exports.handler = async function(event, context) {
         return { statusCode: 500, headers, body: JSON.stringify({ error: 'Falta configuración de Airtable' }) };
     }
 
-    if (!BREVO_USER || !BREVO_PASS) {
-        return { statusCode: 500, headers, body: JSON.stringify({ error: 'Falta configuración del servidor SMTP (Brevo)' }) };
+    const hasGmailOAuth = GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN;
+    const hasBrevo = BREVO_USER && BREVO_PASS;
+
+    if (!hasGmailOAuth && !hasBrevo) {
+        return { statusCode: 500, headers, body: JSON.stringify({ error: 'Falta configuración del servidor SMTP o Gmail OAuth2' }) };
     }
 
     try {
@@ -418,15 +425,29 @@ exports.handler = async function(event, context) {
 </html>`;
 
         // ── 5. Transporter setup & Email dispatch ──────────────────────────────
-        const transporter = nodemailer.createTransport({
-            host: 'smtp-relay.brevo.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: BREVO_USER,
-                pass: BREVO_PASS
-            }
-        });
+        let transporter;
+        if (hasGmailOAuth) {
+            transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    type: 'OAuth2',
+                    user: SENDER_EMAIL,
+                    clientId: GMAIL_CLIENT_ID,
+                    clientSecret: GMAIL_CLIENT_SECRET,
+                    refreshToken: GMAIL_REFRESH_TOKEN
+                }
+            });
+        } else {
+            transporter = nodemailer.createTransport({
+                host: 'smtp-relay.brevo.com',
+                port: 587,
+                secure: false,
+                auth: {
+                    user: BREVO_USER,
+                    pass: BREVO_PASS
+                }
+            });
+        }
 
         const safeFileName = contactName.replace(/[^a-zA-Z0-9]/g, '_');
         const attachmentObj = pdfBuffer ? {
