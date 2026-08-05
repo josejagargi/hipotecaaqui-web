@@ -1,4 +1,7 @@
 const nodemailer = require('nodemailer');
+const chromium = require('@sparticuz/chromium');
+const puppeteer = require('puppeteer-core');
+
 
 /**
  * Netlify Function to send the Abreviated Viability Report to a client.
@@ -369,8 +372,43 @@ exports.handler = async function(event, context) {
 </body>
 </html>`;
 
-        // ── 3. Render PDF Buffer (Optional Fallback) ────────────────────────
+        // ── 3. Render PDF Buffer (Chromium) ──────────────────────────────────
         let pdfBuffer = null;
+        try {
+            let executablePath;
+            if (process.platform === 'win32') {
+                const fs = require('fs');
+                if (fs.existsSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe')) {
+                    executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+                } else if (fs.existsSync('C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe')) {
+                    executablePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+                } else {
+                    executablePath = await chromium.executablePath();
+                }
+            } else {
+                executablePath = await chromium.executablePath();
+            }
+
+            const browser = await puppeteer.launch({
+                args: chromium.args || ['--no-sandbox', '--disable-setuid-sandbox'],
+                defaultViewport: chromium.defaultViewport || { width: 1200, height: 800 },
+                executablePath: executablePath,
+                headless: chromium.headless !== undefined ? chromium.headless : true,
+            });
+
+            const page = await browser.newPage();
+            await page.setContent(reportHtmlContent, { waitUntil: 'networkidle0' });
+            pdfBuffer = await page.pdf({
+                format: 'A4',
+                printBackground: true,
+                margin: { top: '0.4cm', right: '0.4cm', bottom: '0.4cm', left: '0.4cm' }
+            });
+            await browser.close();
+            console.log(`[DEBUG] PDF generado correctamente. Tamaño: ${pdfBuffer.length} bytes`);
+        } catch (pdfErr) {
+            console.error('[ERROR] Error generando PDF con Chromium, se usará HTML como respaldo:', pdfErr);
+        }
+
 
         // ── 4. Build HTML Email Body ──────────────────────────────────────────
         const emailBodyHtml = `
@@ -406,7 +444,7 @@ exports.handler = async function(event, context) {
             <p>Te adjuntamos en este correo tu <strong>Informe de Viabilidad Hipotecaria</strong> oficial adjunto para que puedas revisar cómodamente todas tus métricas y cuotas estimadas.</p>
 
             <div style="text-align: center; margin: 25px 0;">
-                <a href="https://hipotecaaqui.com/portal.html" class="btn-cta">Acceder a tu Panel de Cliente</a>
+                <a href="https://hipotecaaqui.com/login.html?portal=cliente" class="btn-cta">Acceder a tu Panel de Cliente</a>
             </div>
 
             <p style="margin-bottom: 0;">Atentamente,<br>
