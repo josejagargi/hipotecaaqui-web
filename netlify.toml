@@ -45,3 +45,10 @@
   to = "/logo-transparente.png"
   status = 301
 
+[[redirects]]
+  from = "/.netlify/functions/send-viability-report"
+  to = "/.netlify/functions/sendViabilityReport"
+  status = 200
+  force = true
+
+
