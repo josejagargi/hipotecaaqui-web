@@ -25,15 +25,29 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  let payload;
+  let payload = {};
   try {
-    const rawBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf-8') : event.body;
-    payload = typeof rawBody === 'object' ? rawBody : JSON.parse(rawBody || '{}');
+    let bodyStr = event.body;
+    if (event.isBase64Encoded && bodyStr) {
+      bodyStr = Buffer.from(bodyStr, 'base64').toString('utf-8');
+    }
+    if (typeof bodyStr === 'string' && bodyStr.trim().length > 0) {
+      payload = JSON.parse(bodyStr);
+    } else if (typeof bodyStr === 'object' && bodyStr !== null) {
+      payload = bodyStr;
+    }
   } catch (e) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON payload', details: e.message }) };
   }
 
-  const { action, to, subject, html, text, studyId, recordId, recipientEmail } = payload;
+  const action = payload.action;
+  const studyId = payload.studyId;
+  const recordId = payload.recordId;
+  const recipientEmail = payload.recipientEmail;
+  const to = payload.to;
+  const subject = payload.subject;
+  const html = payload.html;
+  const text = payload.text;
 
   // Handle viability report dispatch
   if (action === 'sendViabilityReport' || studyId || recordId) {
