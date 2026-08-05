@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const puppeteer = require('puppeteer-core');
+
 
 
 
@@ -377,6 +377,9 @@ exports.handler = async function(event, context) {
         try {
             const chromiumModule = await import('@sparticuz/chromium');
             const chromium = chromiumModule.default || chromiumModule;
+            const puppeteerModule = await import('puppeteer-core');
+            const puppeteer = puppeteerModule.default || puppeteerModule;
+
 
             let executablePath;
             if (process.platform === 'win32') {
