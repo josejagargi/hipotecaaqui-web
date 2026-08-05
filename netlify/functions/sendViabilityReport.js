@@ -163,6 +163,9 @@ exports.handler = async function(event, context) {
                 if (str.includes('no viable') || str.includes('no_viable') || str.includes('🔴')) {
                     viableColorClass = 'badge-no-viable';
                     viableText = 'No Viable';
+                } else if (str.includes('negociar') || str.includes('insuficiente') || str.includes('estudio') || str.includes('🟡')) {
+                    viableColorClass = 'badge-pending';
+                    viableText = String(viableVal).replace(/[🟢🟡🔴\s]+/g, ' ').trim();
                 } else if (str.includes('viable') || str.includes('🟢')) {
                     viableColorClass = 'badge-viable';
                     viableText = 'Viable';
@@ -178,8 +181,8 @@ exports.handler = async function(event, context) {
             const str = String(viableVal || '').toLowerCase();
             if (str.includes('no viable') || str.includes('no_viable') || str.includes('🔴')) {
                 return `Estimado/a <strong>${contactName}</strong>, tras evaluar detenidamente los datos de tu solicitud, la operación en las condiciones actuales presenta un riesgo elevado o requiere realizar ajustes en la aportación inicial de ahorros o el precio del inmueble para su aprobación bancaria. Tu asesor asignado de <strong>Hipoteca Aquí</strong> contactará contigo para estudiar alternativas de financiación.`;
-            } else if (str.includes('estudio') || str.includes('amarillo') || str.includes('🟡') || str.includes('pendiente') || str.includes('condicionado')) {
-                return `Estimado/a <strong>${contactName}</strong>, tu estudio de viabilidad se encuentra en fase de análisis detallado. Requiere revisar aspectos concretos (como documentación complementaria o detalle de garantías) para optimizar la respuesta bancaria. Un asesor especialista de <strong>Hipoteca Aquí</strong> te guiará en los siguientes pasos.`;
+            } else if (str.includes('negociar') || str.includes('insuficiente') || str.includes('estudio') || str.includes('amarillo') || str.includes('🟡') || str.includes('pendiente') || str.includes('condicionado')) {
+                return `Estimado/a <strong>${contactName}</strong>, tu estudio de viabilidad se encuentra en fase de análisis detallado. Requiere revisar aspectos concretos (como negociación de condiciones con entidades bancarias o ajuste de importes) para optimizar la aprobación. Un asesor especialista de <strong>Hipoteca Aquí</strong> te guiará en los siguientes pasos.`;
             } else if (str.includes('viable') || str.includes('🟢')) {
                 return `Estimado/a <strong>${contactName}</strong>, nos complace informarte de que tu estudio de financiación es <strong>VIABLE</strong>. Tu perfil reúne los requisitos idóneos para acceder a las mejores condiciones hipotecarias del mercado. Un asesor especialista de <strong>Hipoteca Aquí</strong> se pondrá en contacto contigo para coordinar la presentación de ofertas formales.`;
             } else {
