@@ -46,7 +46,7 @@
   status = 301
 
 [[redirects]]
-  from = "/.netlify/functions/send-viability-report"
+  from = "/api/send-viability-report"
   to = "/.netlify/functions/sendViabilityReport"
   status = 200
   force = true
