@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
-const chromium = require('@sparticuz/chromium');
 const puppeteer = require('puppeteer-core');
+
 
 
 /**
@@ -375,6 +375,9 @@ exports.handler = async function(event, context) {
         // ── 3. Render PDF Buffer (Chromium) ──────────────────────────────────
         let pdfBuffer = null;
         try {
+            const chromiumModule = await import('@sparticuz/chromium');
+            const chromium = chromiumModule.default || chromiumModule;
+
             let executablePath;
             if (process.platform === 'win32') {
                 const fs = require('fs');
