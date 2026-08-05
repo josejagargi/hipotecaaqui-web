@@ -32,7 +32,101 @@ exports.handler = async function(event, context) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON payload' }) };
   }
 
-  const { to, subject, html, text } = payload;
+  const { action, to, subject, html, text, studyId, recordId, recipientEmail } = payload;
+
+  // Handle viability report dispatch
+  if (action === 'sendViabilityReport' || studyId || recordId) {
+    const targetRecordId = studyId || recordId;
+    const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
+    const BASE_ID = process.env.AIRTABLE_BASE_ID;
+    const SENDER_EMAIL = process.env.SENDER_EMAIL || 'gerente@hipotecaaqui.com';
+    const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID;
+    const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
+    const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
+
+    if (!AIRTABLE_PAT || !BASE_ID) {
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Falta configuración de Airtable' }) };
+    }
+
+    try {
+      const recordRes = await fetch(`https://api.airtable.com/v0/${BASE_ID}/Hipoteca/${targetRecordId}`, {
+        headers: { 'Authorization': `Bearer ${AIRTABLE_PAT}` }
+      });
+
+      if (!recordRes.ok) {
+        const errText = await recordRes.text();
+        return { statusCode: recordRes.status, headers, body: JSON.stringify({ error: 'No se pudo obtener el estudio de Airtable', details: errText }) };
+      }
+
+      const record = await recordRes.json();
+      const f = record.fields || {};
+
+      const rawName = f['Nombre y apellidos (from Ficha cliente)'] || f['Nombre contacto'] || f['Nombre'] || 'Cliente';
+      const contactName = Array.isArray(rawName) ? rawName[0] : rawName;
+      const rawEmail = recipientEmail || f['email contacto'] || f['Email'] || f['Email cliente'];
+      const targetEmail = Array.isArray(rawEmail) ? rawEmail[0] : rawEmail;
+
+      if (!targetEmail) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: `El estudio ${targetRecordId} no tiene un email de cliente asociado.` }) };
+      }
+
+      const viability = f['Viabilidad'] || 'Pendiente';
+      const user = process.env.BREVO_SMTP_USER;
+      const pass = process.env.BREVO_SMTP_PASS;
+
+      let transporter;
+      if (GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN) {
+        transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            type: 'OAuth2',
+            user: SENDER_EMAIL,
+            clientId: GMAIL_CLIENT_ID,
+            clientSecret: GMAIL_CLIENT_SECRET,
+            refreshToken: GMAIL_REFRESH_TOKEN
+          }
+        });
+      } else if (user && pass) {
+        transporter = nodemailer.createTransport({
+          host: 'smtp-relay.brevo.com',
+          port: 587,
+          secure: false,
+          auth: { user, pass }
+        });
+      } else {
+        return { statusCode: 500, headers, body: JSON.stringify({ error: 'No hay credenciales SMTP u OAuth2 configuradas' }) };
+      }
+
+      const emailBodyHtml = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; color: #33475b;">
+        <h2 style="color: #33475b;">Informe de Viabilidad Hipotecaria</h2>
+        <p>Hola <strong>${contactName}</strong>,</p>
+        <p>Hemos completado la evaluación de tu estudio de financiación en <strong>Hipoteca Aquí</strong>.</p>
+        <p>Resultado del análisis: <strong>${viability}</strong></p>
+        <p>Atentamente,<br><strong>Dirección de Gerencia</strong><br>Hipoteca Aquí</p>
+      </div>`;
+
+      const mailResult = await transporter.sendMail({
+        from: `"Hipoteca Aquí - Gerencia" <${SENDER_EMAIL}>`,
+        to: targetEmail,
+        subject: `Informe de Viabilidad Hipotecaria - ${contactName}`,
+        html: emailBodyHtml
+      });
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          message: `Informe enviado con éxito a ${targetEmail} desde ${SENDER_EMAIL}`,
+          messageId: mailResult.messageId
+        })
+      };
+    } catch (err) {
+      return { statusCode: 500, headers, body: JSON.stringify({ error: err.message }) };
+    }
+  }
+
   if (!to || !subject || !(html || text)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing required fields: to, subject, html/text' }) };
   }
