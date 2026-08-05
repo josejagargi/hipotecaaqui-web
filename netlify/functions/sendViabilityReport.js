@@ -82,11 +82,24 @@ exports.handler = async function(event, context) {
         const f = record.fields || {};
 
         // Extract contact info
-        const rawName = f['Nombre y apellidos (from Ficha cliente)'] || f['Nombre contacto'] || f['Nombre'] || 'Cliente';
+        const rawName = f['Nombre y apellidos (from Ficha cliente)'] || f['Nombre contacto'] || f['Nombre'] || f['Cliente'] || 'Cliente';
         const contactName = Array.isArray(rawName) ? rawName[0] : rawName;
         
-        const rawEmail = payload.recipientEmail || f['email contacto'] || f['Email'] || f['Email cliente'];
-        const targetEmail = Array.isArray(rawEmail) ? rawEmail[0] : rawEmail;
+        let targetEmail = payload.recipientEmail || 
+            f['email contacto'] || 
+            f['Email contacto'] || 
+            f['Email (from Ficha cliente)'] || 
+            f['email (from Ficha cliente)'] || 
+            f['Email'] || 
+            f['email'] || 
+            f['Email cliente'];
+
+        if (Array.isArray(targetEmail)) {
+            targetEmail = targetEmail[0];
+        }
+        if (typeof targetEmail === 'string' && targetEmail.includes(',')) {
+            targetEmail = targetEmail.split(',')[0].trim();
+        }
 
         if (!targetEmail) {
             return { statusCode: 400, headers, body: JSON.stringify({ error: `El estudio ${studyId} no tiene un email de cliente asociado.` }) };
