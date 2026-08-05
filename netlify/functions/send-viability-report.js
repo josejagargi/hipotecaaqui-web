@@ -1,14 +1,5 @@
 const nodemailer = require('nodemailer');
 
-let chromium = null;
-let puppeteer = null;
-try {
-    chromium = require('@sparticuz/chromium');
-    puppeteer = require('puppeteer-core');
-} catch (e) {
-    console.warn('[WARN] Puppeteer/Chromium not available in this environment. Falling back to HTML report attachment.');
-}
-
 /**
  * Netlify Function to send the Abreviated Viability Report to a client.
  * Sender: gerente@hipotecaaqui.com
@@ -359,31 +350,8 @@ exports.handler = async function(event, context) {
 </body>
 </html>`;
 
-        // ── 3. Render PDF Buffer with Puppeteer Chromium ────────────────────
+        // ── 3. Render PDF Buffer (Optional Fallback) ────────────────────────
         let pdfBuffer = null;
-        if (chromium && puppeteer) {
-            try {
-                const executablePath = await chromium.executablePath();
-                const browser = await puppeteer.launch({
-                    args: chromium.args,
-                    defaultViewport: chromium.defaultViewport,
-                    executablePath: executablePath || undefined,
-                    headless: chromium.headless
-                });
-                const page = await browser.newPage();
-                await page.setContent(reportHtmlContent, { waitUntil: 'networkidle0' });
-                pdfBuffer = await page.pdf({
-                    format: 'A4',
-                    printBackground: true,
-                    margin: { top: '15mm', right: '15mm', bottom: '15mm', left: '15mm' }
-                });
-                await browser.close();
-                console.log('[DEBUG] PDF generated successfully with Puppeteer');
-            } catch (pdfErr) {
-                console.warn('[WARN] Puppeteer PDF rendering fallback:', pdfErr.message);
-                pdfBuffer = null;
-            }
-        }
 
         // ── 4. Build HTML Email Body ──────────────────────────────────────────
         const emailBodyHtml = `
