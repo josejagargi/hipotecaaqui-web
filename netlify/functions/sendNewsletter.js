@@ -76,9 +76,17 @@ exports.handler = async function(event, context) {
       const record = await recordRes.json();
       const f = record.fields || {};
 
-      const rawName = f['Nombre y apellidos (from Ficha cliente)'] || f['Nombre contacto'] || f['Nombre'] || 'Cliente';
+      const rawName = f['Nombre y apellidos (from Ficha cliente)'] || f['Nombre contacto'] || f['Nombre'] || f['Cliente'] || 'Cliente';
       const contactName = Array.isArray(rawName) ? rawName[0] : rawName;
-      const rawEmail = recipientEmail || f['email contacto'] || f['Email'] || f['Email cliente'];
+
+      const rawEmail = recipientEmail || 
+        f['email contacto'] || 
+        f['Email contacto'] || 
+        f['Email (from Ficha cliente)'] || 
+        f['email (from Ficha cliente)'] || 
+        f['Email'] || 
+        f['email'] || 
+        f['Email cliente'];
       const targetEmail = Array.isArray(rawEmail) ? rawEmail[0] : rawEmail;
 
       if (!targetEmail) {
