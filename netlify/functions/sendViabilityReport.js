@@ -31,11 +31,17 @@ exports.handler = async function(event, context) {
 
     let payload = {};
     try {
-        if (event.body) {
-            payload = JSON.parse(event.body);
+        let bodyStr = event.body;
+        if (event.isBase64Encoded && bodyStr) {
+            bodyStr = Buffer.from(bodyStr, 'base64').toString('utf-8');
+        }
+        if (typeof bodyStr === 'string' && bodyStr.trim().length > 0) {
+            payload = JSON.parse(bodyStr);
+        } else if (typeof bodyStr === 'object' && bodyStr !== null) {
+            payload = bodyStr;
         }
     } catch (e) {
-        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Payload JSON no válido' }) };
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Payload JSON no válido', details: e.message }) };
     }
 
     const studyId = payload.studyId || payload.recordId || (payload.record && payload.record.id);
