@@ -79,7 +79,7 @@ exports.handler = async function(event, context) {
       const rawName = f['Nombre y apellidos (from Ficha cliente)'] || f['Nombre contacto'] || f['Nombre'] || f['Cliente'] || 'Cliente';
       const contactName = Array.isArray(rawName) ? rawName[0] : rawName;
 
-      const rawEmail = recipientEmail || 
+      let targetEmail = recipientEmail || 
         f['email contacto'] || 
         f['Email contacto'] || 
         f['Email (from Ficha cliente)'] || 
@@ -87,7 +87,13 @@ exports.handler = async function(event, context) {
         f['Email'] || 
         f['email'] || 
         f['Email cliente'];
-      const targetEmail = Array.isArray(rawEmail) ? rawEmail[0] : rawEmail;
+
+      if (Array.isArray(targetEmail)) {
+        targetEmail = targetEmail[0];
+      }
+      if (typeof targetEmail === 'string' && targetEmail.includes(',')) {
+        targetEmail = targetEmail.split(',')[0].trim();
+      }
 
       if (!targetEmail) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: `El estudio ${targetRecordId} no tiene un email de cliente asociado.` }) };
