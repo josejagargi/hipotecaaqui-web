@@ -27,9 +27,10 @@ exports.handler = async function(event, context) {
 
   let payload;
   try {
-    payload = JSON.parse(event.body);
+    const rawBody = event.isBase64Encoded ? Buffer.from(event.body, 'base64').toString('utf-8') : event.body;
+    payload = typeof rawBody === 'object' ? rawBody : JSON.parse(rawBody || '{}');
   } catch (e) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON payload' }) };
+    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON payload', details: e.message }) };
   }
 
   const { action, to, subject, html, text, studyId, recordId, recipientEmail } = payload;
